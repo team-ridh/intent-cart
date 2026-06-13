@@ -6,6 +6,17 @@ frontend:
         - npm ci
     build:
       commands:
+        # ── Inject server-side env vars into .env.production ──────────────────
+        # Amplify Gen 1 only exposes console env vars during the BUILD phase.
+        # SSR Lambda functions do NOT automatically receive them at runtime.
+        # Writing them to .env.production makes Next.js bundle them into the
+        # server functions so process.env works correctly in production.
+        - echo "BEDROCK_ACCESS_KEY_ID=$BEDROCK_ACCESS_KEY_ID" >> .env.production
+        - echo "BEDROCK_SECRET_ACCESS_KEY=$BEDROCK_SECRET_ACCESS_KEY" >> .env.production
+        - echo "BEDROCK_REGION=$BEDROCK_REGION" >> .env.production
+        - echo "BEDROCK_MODEL_ID=$BEDROCK_MODEL_ID" >> .env.production
+        - echo "DYNAMO_TABLE=$DYNAMO_TABLE" >> .env.production
+        - echo "S3_BUCKET=$S3_BUCKET" >> .env.production
         - npm run build
   artifacts:
     baseDirectory: .next
