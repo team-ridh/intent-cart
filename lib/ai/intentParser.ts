@@ -1,42 +1,10 @@
 import type { ParsedIntent, Scenario } from "../types";
 
-// ─── Keyword → scenario mapping (deterministic fallback) ─────────
-const KEYWORD_MAP: Array<{ keywords: string[]; scenario: Scenario }> = [
-  {
-    keywords: ["guest","guests","visitor","visitors","hosting","party","host","arrival","arriving","come over","company","gathering","people coming","invite"],
-    scenario: "hosting",
-  },
-  {
-    keywords: ["fever","sick","ill","medicine","cold","cough","throat","headache","temperature","flu","viral","infection","unwell","doctor","health"],
-    scenario: "fever",
-  },
-  {
-    keywords: ["pooja","puja","prayer","worship","ritual","diya","aarti","festival","temple","prasad","hawan","navratri","diwali","ganesh","puja items"],
-    scenario: "pooja",
-  },
-  {
-    keywords: ["rain","raining","rainy","monsoon","wet","storm","thunder","drizzle","cloudy","umbrella","indoors","inside"],
-    scenario: "rainy",
-  },
-  {
-    keywords: ["travel","journey","trip","flight","train","bus","airport","station","pack","luggage","suitcase","holiday","vacation","leaving"],
-    scenario: "travel",
-  },
-  {
-    keywords: ["power cut","powercut","outage","electricity","blackout","no power","no light","dark","generator","inverter"],
-    scenario: "power_cut",
-  },
-  {
-    keywords: ["school","project","homework","assignment","stationery","craft","drawing","study","exam","class","teacher","deadline"],
-    scenario: "school",
-  },
-  {
-    keywords: ["tea","chai","coffee","break","snack time","evening snack","tea time","afternoon","break time"],
-    scenario: "tea_break",
-  },
-];
-
-const SCENARIO_META: Record<Scenario, Omit<ParsedIntent, "confidence" | "usedBedrock">> = {
+// ─── Scenario metadata (used server-side to validate Bedrock response) ───
+export const SCENARIO_META: Record<
+  Scenario,
+  Omit<ParsedIntent, "confidence" | "usedBedrock">
+> = {
   hosting: {
     scenario: "hosting",
     scenarioLabel: "Hosting",
@@ -120,54 +88,23 @@ const SCENARIO_META: Record<Scenario, Omit<ParsedIntent, "confidence" | "usedBed
   },
 };
 
-// ─── Local keyword-based detection ───────────────────────────────
-function detectScenarioLocally(input: string): { scenario: Scenario; confidence: number } {
-  const lower = input.toLowerCase();
-  let bestScenario: Scenario = "general";
-  let bestScore = 0;
+// ─── Client-side intent parse via Bedrock API route ──────────────
+// Throws on any error — no silent fallback.
+export async function parseIntent(input: string, photoS3Key?: string): Promise<ParsedIntent> {
+  const res = await fetch("/api/interpret", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ input, photoS3Key }),
+    credentials: "include", // send session cookie
+  });
 
-  for (const { keywords, scenario } of KEYWORD_MAP) {
-    let score = 0;
-    for (const kw of keywords) {
-      if (lower.includes(kw)) score += kw.split(" ").length > 1 ? 2 : 1;
-    }
-    if (score > bestScore) { bestScore = score; bestScenario = scenario; }
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ error: "Unknown error" }));
+    throw new Error(
+      `Intent parsing failed (${res.status}): ${body.error ?? "Unknown error"}`
+    );
   }
 
-  const confidence = bestScore === 0 ? 72 : Math.min(95, 75 + bestScore * 5);
-  return { scenario: bestScenario, confidence };
+  const data = await res.json();
+  return data.intent as ParsedIntent;
 }
-
-// ─── Main entry point ─────────────────────────────────────────────
-// Tries Bedrock first; falls back to local detection
-export async function parseIntent(input: string): Promise<ParsedIntent> {
-  // 1. Try Bedrock via API route
-  try {
-    const res = await fetch("/api/interpret", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ input }),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      if (data.intent) return data.intent as ParsedIntent;
-    }
-  } catch {
-    // Bedrock unavailable — fall through to local
-  }
-
-  // 2. Deterministic local fallback
-  const { scenario, confidence } = detectScenarioLocally(input);
-  const meta = SCENARIO_META[scenario];
-  return { ...meta, confidence, usedBedrock: false };
-}
-
-// Direct local parse (no Bedrock round-trip) — used server-side
-export function parseIntentLocal(input: string): ParsedIntent {
-  const { scenario, confidence } = detectScenarioLocally(input);
-  const meta = SCENARIO_META[scenario];
-  return { ...meta, confidence, usedBedrock: false };
-}
-
-export { SCENARIO_META };

@@ -1,0 +1,178 @@
+"use client";
+
+import type { CartItem } from "@/lib/types";
+
+const TYPE_COLOR: Record<string, string> = {
+  fastest: "var(--accent-teal)",
+  cheapest: "var(--accent-green)",
+  trusted: "var(--accent-purple)",
+  best: "var(--accent)",
+};
+
+const TYPE_LABEL: Record<string, string> = {
+  fastest: "⚡ Fastest",
+  cheapest: "💰 Cheapest",
+  trusted: "⭐ Trusted",
+  best: "✦ Best Match",
+};
+
+interface SubstituteDrawerProps {
+  item: CartItem;
+  selectedId?: string;
+  onClose: () => void;
+  onSelect: (subId: string) => void;
+}
+
+export function SubstituteDrawer({
+  item,
+  selectedId,
+  onClose,
+  onSelect,
+}: SubstituteDrawerProps) {
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.6)",
+          backdropFilter: "blur(4px)",
+          zIndex: 40,
+        }}
+        aria-hidden
+      />
+
+      {/* Drawer */}
+      <div
+        className="animate-slide-up"
+        role="dialog"
+        aria-label={`Substitutes for ${item.name}`}
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          background: "var(--bg-surface)",
+          borderTop: "1px solid var(--border)",
+          borderRadius: "24px 24px 0 0",
+          padding: 24,
+          maxHeight: "80vh",
+          overflowY: "auto",
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 20,
+          }}
+        >
+          <div>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }}>
+              {item.image} Substitutes for {item.name}
+            </div>
+            <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 2 }}>
+              Select the best option for your need
+            </div>
+          </div>
+          <button
+            className="btn-ghost"
+            onClick={onClose}
+            id="close-substitute-drawer"
+            aria-label="Close substitutes drawer"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Original item (always shown as "Best Match") */}
+        <div
+          className={`card${!selectedId ? " card-accent" : ""}`}
+          style={{ marginBottom: 10, cursor: "pointer" }}
+          onClick={() => onSelect("")}
+          id={`sub-original-${item.id}`}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                <span className="badge badge-orange">✦ Best Match</span>
+                {!selectedId && (
+                  <span style={{ fontSize: 11, color: "var(--accent)" }}>Selected</span>
+                )}
+              </div>
+              <div style={{ fontWeight: 600, fontSize: 15 }}>{item.name}</div>
+              <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{item.brand}</div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }}>
+                ₹{item.price}
+              </div>
+              <div style={{ color: "var(--accent-teal)", fontSize: 12 }}>⚡ {item.eta} min</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Substitute options */}
+        {item.substitutes.map((sub) => (
+          <div
+            key={sub.id}
+            className={`card${selectedId === sub.id ? " card-accent" : ""}`}
+            style={{ marginBottom: 10, cursor: "pointer" }}
+            onClick={() => onSelect(sub.id)}
+            id={`sub-${sub.id}`}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      padding: "2px 10px",
+                      borderRadius: 20,
+                      background: `${TYPE_COLOR[sub.type]}20`,
+                      color: TYPE_COLOR[sub.type],
+                      border: `1px solid ${TYPE_COLOR[sub.type]}40`,
+                    }}
+                  >
+                    {TYPE_LABEL[sub.type]}
+                  </span>
+                  {selectedId === sub.id && (
+                    <span style={{ fontSize: 11, color: "var(--accent)" }}>Selected</span>
+                  )}
+                </div>
+                <div style={{ fontWeight: 600, fontSize: 15 }}>{sub.name}</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{sub.brand}</div>
+                <div style={{ color: "var(--text-secondary)", fontSize: 12, marginTop: 4, fontStyle: "italic" }}>
+                  {sub.reason}
+                </div>
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 12 }}>
+                <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }}>
+                  ₹{sub.price}
+                  {sub.price < item.price && (
+                    <span style={{ fontSize: 11, color: "var(--accent-green)", display: "block" }}>
+                      save ₹{item.price - sub.price}
+                    </span>
+                  )}
+                </div>
+                <div style={{ color: "var(--accent-teal)", fontSize: 12 }}>⚡ {sub.eta} min</div>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {item.substitutes.length === 0 && (
+          <div style={{ textAlign: "center", color: "var(--text-muted)", padding: "20px 0", fontSize: 14 }}>
+            No substitutes available — this is the only option in stock.
+          </div>
+        )}
+      </div>
+    </>
+  );
+}

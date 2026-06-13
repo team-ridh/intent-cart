@@ -1,128 +1,185 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { ParsedIntent, Scenario } from "@/lib/types";
-import { parseIntentLocal, SCENARIO_META } from "@/lib/ai/intentParser";
+import { v4 as uuidv4 } from "uuid";
 import {
   BedrockRuntimeClient,
   ConverseCommand,
 } from "@aws-sdk/client-bedrock-runtime";
+import type { ParsedIntent, Scenario } from "@/lib/types";
+import { SCENARIO_META } from "@/lib/ai/intentParser";
+import { saveSession, saveIntent } from "@/lib/db/sessions";
 
-// ─── Model selection ──────────────────────────────────────────────
-// Claude Haiku 4.5 via cross-region inference profile (non-legacy, active)
-// Uses "us." prefix = cross-region inference profile required for 4.x models
-// Inference profiles route traffic across us-east-1 / us-west-2 automatically
+// ─── Session cookie config ────────────────────────────────────────
+const SESSION_COOKIE = "ic_session";
+const COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
+
+// ─── Bedrock model (Amazon Nova 2 Lite — multimodal, cost-efficient, 1M context) ──
+// Supports cross-region inference profile: us.amazon.nova-2-lite-v1:0
+// Docs: https://docs.aws.amazon.com/nova/latest/userguide/nova-lite.html
 const BEDROCK_MODEL_ID =
-  process.env.BEDROCK_MODEL_ID ??
-  "us.anthropic.claude-haiku-4-5-20251001-v1:0";
+  process.env.BEDROCK_MODEL_ID ?? "us.amazon.nova-2-lite-v1:0";
 
-// ─── Intent extraction via Amazon Bedrock Converse API ────────────
-// Converse API is the recommended approach for Claude 4.x models.
-// Falls back gracefully to local keyword engine if Bedrock unavailable.
-async function invokeBedrockClaude(input: string): Promise<ParsedIntent | null> {
-  const region = process.env.BEDROCK_REGION ?? "us-east-1";
+// ─── Validate env vars at module load time ────────────────────────
+if (!process.env.BEDROCK_ACCESS_KEY_ID || !process.env.BEDROCK_SECRET_ACCESS_KEY) {
+  throw new Error(
+    "[/api/interpret] BEDROCK_ACCESS_KEY_ID and BEDROCK_SECRET_ACCESS_KEY are required. " +
+      "Set them in .env.local or Amplify environment variables."
+  );
+}
 
-  // ⚠️  Use BEDROCK_ prefix — AWS_ is reserved by Amplify and causes build errors
-  if (
-    !process.env.BEDROCK_ACCESS_KEY_ID ||
-    !process.env.BEDROCK_SECRET_ACCESS_KEY
-  ) {
-    return null; // No credentials → skip to local fallback
-  }
+// ─── Bedrock client ───────────────────────────────────────────────
+const bedrockClient = new BedrockRuntimeClient({
+  region: process.env.BEDROCK_REGION ?? "us-east-1",
+  credentials: {
+    accessKeyId: process.env.BEDROCK_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.BEDROCK_SECRET_ACCESS_KEY!,
+  },
+});
 
-  try {
-    const client = new BedrockRuntimeClient({
-      region,
-      credentials: {
-        accessKeyId: process.env.BEDROCK_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.BEDROCK_SECRET_ACCESS_KEY!,
-      },
-    });
-
-    const systemPrompt = `You are a deterministic e-commerce intent extraction engine for a quick-commerce app in India.
-Analyse the user's situation and return ONLY a valid JSON object with these exact fields — no markdown, no explanation:
+// ─── System prompt ────────────────────────────────────────────────
+const SYSTEM_PROMPT = `You are a deterministic e-commerce intent extraction engine for a quick-commerce app in India called "Amazon Now OS".
+Analyse the user's situation and return ONLY a valid JSON object with these exact fields — no markdown, no explanation, no code blocks:
 {
   "scenario": one of ["hosting","fever","pooja","rainy","travel","power_cut","school","tea_break","general"],
   "scenarioLabel": human-readable label e.g. "Hosting" or "Fever Care",
   "urgency": one of ["High","Medium","Low"],
   "category": primary product category e.g. "Food & Beverage",
-  "confidence": integer 0-100,
+  "confidence": integer 0-100 representing how confident you are about the scenario,
   "summary": 6-10 word description of the shopping need,
   "deliveryMode": one of ["fastest","value","trusted"],
-  "suggestedItems": array of 4-6 item names the user likely needs
-}`;
+  "suggestedItems": array of 4-6 item names the user likely needs right now
+}
 
-    const command = new ConverseCommand({
-      modelId: BEDROCK_MODEL_ID,
-      system: [{ text: systemPrompt }],
-      messages: [
-        {
-          role: "user",
-          content: [{ text: `Situation: "${input}"` }],
-        },
-      ],
-      inferenceConfig: {
-        maxTokens: 400,
-        temperature: 0, // deterministic output
+Rules:
+- Return ONLY the JSON object. No other text.
+- confidence should reflect how clearly the situation maps to a scenario (95+ = very clear, 70-90 = likely, 50-70 = uncertain, use "general" below 50).
+- For Indian contexts: "pooja" includes puja, prayer, festival rituals. "hosting" includes guests, visitors, parties.`;
+
+// ─── Call Bedrock and parse the structured response ───────────────
+async function invokeBedrockForIntent(
+  situationText: string
+): Promise<ParsedIntent> {
+  const command = new ConverseCommand({
+    modelId: BEDROCK_MODEL_ID,
+    system: [{ text: SYSTEM_PROMPT }],
+    messages: [
+      {
+        role: "user",
+        content: [{ text: `Situation: "${situationText}"` }],
       },
-    });
+    ],
+    inferenceConfig: {
+      maxTokens: 512,
+      // Nova 2 Lite: keep temperature low for deterministic JSON output
+      // temperature: 0 is valid for Nova models via the Converse API
+      temperature: 0,
+      topP: 0.9,
+    },
+  });
 
-    const response = await client.send(command);
-    const content =
-      response.output?.message?.content?.[0]?.text ?? "";
+  const response = await bedrockClient.send(command);
+  const rawText = response.output?.message?.content?.[0]?.text ?? "";
 
-    if (!content) return null;
-
-    // Strip any accidental markdown fences
-    const cleaned = content.replace(/```json?|```/g, "").trim();
-    const parsed = JSON.parse(cleaned);
-
-    if (!parsed.scenario || !SCENARIO_META[parsed.scenario as Scenario]) {
-      return null;
-    }
-
-    return {
-      scenario: parsed.scenario as Scenario,
-      scenarioLabel: parsed.scenarioLabel ?? parsed.scenario,
-      urgency: parsed.urgency ?? "Medium",
-      category: parsed.category ?? "General",
-      confidence:
-        typeof parsed.confidence === "number" ? parsed.confidence : 80,
-      summary: parsed.summary ?? "",
-      deliveryMode: parsed.deliveryMode ?? "fastest",
-      suggestedItems: Array.isArray(parsed.suggestedItems)
-        ? parsed.suggestedItems
-        : [],
-      usedBedrock: true,
-    } satisfies ParsedIntent;
-  } catch (err) {
-    console.error("[Bedrock] Error invoking model:", err);
-    return null; // → falls through to local fallback
+  if (!rawText) {
+    throw new Error("Bedrock returned an empty response");
   }
+
+  // Strip accidental markdown fences
+  const cleaned = rawText.replace(/^```json?\s*/i, "").replace(/\s*```$/i, "").trim();
+
+  let parsed: Partial<ParsedIntent>;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    throw new Error(`Bedrock returned invalid JSON: ${rawText.slice(0, 200)}`);
+  }
+
+  // Validate scenario
+  const scenario = parsed.scenario as Scenario;
+  if (!scenario || !SCENARIO_META[scenario]) {
+    throw new Error(
+      `Bedrock returned unknown scenario: "${parsed.scenario}". ` +
+        `Expected one of: ${Object.keys(SCENARIO_META).join(", ")}`
+    );
+  }
+
+  // Validate and normalise required fields
+  if (typeof parsed.confidence !== "number" || parsed.confidence < 0 || parsed.confidence > 100) {
+    throw new Error(`Bedrock returned invalid confidence: ${parsed.confidence}`);
+  }
+
+  return {
+    scenario,
+    scenarioLabel: typeof parsed.scenarioLabel === "string" ? parsed.scenarioLabel : SCENARIO_META[scenario].scenarioLabel,
+    urgency: ["High", "Medium", "Low"].includes(parsed.urgency as string)
+      ? (parsed.urgency as "High" | "Medium" | "Low")
+      : SCENARIO_META[scenario].urgency,
+    category: typeof parsed.category === "string" ? parsed.category : SCENARIO_META[scenario].category,
+    confidence: parsed.confidence,
+    summary: typeof parsed.summary === "string" ? parsed.summary : SCENARIO_META[scenario].summary,
+    deliveryMode: typeof parsed.deliveryMode === "string" ? parsed.deliveryMode : "fastest",
+    suggestedItems: Array.isArray(parsed.suggestedItems) ? parsed.suggestedItems : [],
+    usedBedrock: true,
+  };
 }
 
 // ─── POST /api/interpret ──────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
-    const { input } = (await req.json()) as { input: string };
+    const body = await req.json() as { input?: string; photoS3Key?: string };
+    const { input, photoS3Key } = body;
 
     if (!input || typeof input !== "string" || input.trim().length < 2) {
-      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+      return NextResponse.json(
+        { error: "input must be a non-empty string of at least 2 characters" },
+        { status: 400 }
+      );
     }
 
-    // 1. Try Amazon Bedrock (Claude Haiku 4.5)
-    const bedrockResult = await invokeBedrockClaude(input.trim());
-    if (bedrockResult) {
-      return NextResponse.json({ intent: bedrockResult, source: "bedrock" });
+    // ─── Get or create session ID ─────────────────────────────────
+    const existingSessionId = req.cookies.get(SESSION_COOKIE)?.value;
+    const sessionId = existingSessionId ?? uuidv4();
+    const isNewSession = !existingSessionId;
+
+    // ─── Call Bedrock ─────────────────────────────────────────────
+    const intent = await invokeBedrockForIntent(input.trim());
+
+    // ─── Persist to DynamoDB ──────────────────────────────────────
+    if (isNewSession) {
+      // Create the session record first
+      await saveSession({
+        sessionId,
+        situationText: input.trim(),
+        ...(photoS3Key ? { photoS3Key } : {}),
+        intent,
+        urgencyMode: "fastest",
+        selectedSubstitutes: {},
+        status: "active",
+      });
+    } else {
+      // Update existing session with new intent
+      await saveIntent(sessionId, input.trim(), intent, photoS3Key);
     }
 
-    // 2. Deterministic local fallback (always works, no API needed)
-    const localResult = parseIntentLocal(input.trim());
-    return NextResponse.json({ intent: localResult, source: "local" });
+    // ─── Build response, set session cookie if new ────────────────
+    const res = NextResponse.json({ intent, sessionId });
+
+    if (isNewSession) {
+      res.cookies.set(SESSION_COOKIE, sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: COOKIE_MAX_AGE,
+        path: "/",
+      });
+    }
+
+    return res;
   } catch (err) {
-    console.error("[/api/interpret] Error:", err);
-    const fallback = parseIntentLocal("general");
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[POST /api/interpret] Error:", message);
     return NextResponse.json(
-      { intent: fallback, source: "fallback" },
-      { status: 200 }
+      { error: "Intent parsing failed", details: message },
+      { status: 502 }
     );
   }
 }

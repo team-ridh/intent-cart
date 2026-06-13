@@ -19,11 +19,102 @@ Instead of asking *"What product do you want?"*, we ask **"What is happening rig
 ## Features
 
 - **🎙 Voice / Text / Photo input** — describe any situation naturally
-- **⚡ AI-generated cart** — powered by Amazon Bedrock (Claude 3 Haiku)
-- **💡 "Why included" reasoning** — every item comes with a context explanation
+- **⚡ AI-generated cart** — Amazon Bedrock (Claude Haiku 4.5) for real intent extraction
+- **🗃 DynamoDB sessions** — cart persists across refreshes and devices
+- **📷 S3 photo uploads** — real presigned PUT URL, uploaded directly to S3
+- **💡 "Why included" reasoning** — every item has a context explanation
 - **⇄ Substitute drawer** — Best Match / Fastest / Cheapest / Most Trusted per item
-- **🔄 Urgency modes** — Fastest · Best Value · Most Trusted
-- **🛒 Checkout preview** — full order summary with live ETA countdown
+- **🔄 Urgency modes** — Fastest · Best Value · Most Trusted (server-synced)
+- **🛒 Checkout confirm** — order saved as `confirmed` in DynamoDB
+
+---
+
+## AWS Resource Setup
+
+> **Required before running** — the app has no local fallbacks. All three AWS services must be provisioned.
+
+### 1. DynamoDB Table
+
+**AWS Console → DynamoDB → Tables → Create table**
+
+| Field | Value |
+|---|---|
+| Table name | `intent-cart-sessions` |
+| Partition key | `sessionId` (String) |
+| Billing mode | On-demand (PAY_PER_REQUEST) |
+
+Enable TTL: **Table → Additional settings → Time to Live → Enable → attribute: `expiresAt`**
+
+### 2. S3 Bucket
+
+**AWS Console → S3 → Create bucket**
+
+| Field | Value |
+|---|---|
+| Bucket name | `intent-cart-uploads-{your-12-digit-account-id}` |
+| Region | Same as `BEDROCK_REGION` |
+| Block all public access | ON (we use presigned URLs) |
+
+Add **CORS configuration** (Bucket → Permissions → CORS):
+
+```json
+[
+  {
+    "AllowedHeaders": ["*"],
+    "AllowedMethods": ["PUT", "GET"],
+    "AllowedOrigins": [
+      "http://localhost:3000",
+      "https://your-amplify-domain.amplifyapp.com"
+    ],
+    "ExposeHeaders": []
+  }
+]
+```
+
+### 3. IAM Policy
+
+Attach to the IAM user whose keys go in your env vars:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["bedrock:InvokeModel"],
+      "Resource": "arn:aws:bedrock:us-east-1:*:inference-profile/us.amazon.nova-2-lite-v1:0"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem"],
+      "Resource": "arn:aws:dynamodb:us-east-1:*:table/intent-cart-sessions"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["s3:PutObject", "s3:GetObject"],
+      "Resource": "arn:aws:s3:::intent-cart-uploads-*/*"
+    }
+  ]
+}
+```
+
+### 4. Environment Variables
+
+Copy `.env.example` → `.env.local` and fill in:
+
+```bash
+BEDROCK_ACCESS_KEY_ID=your-key-id
+BEDROCK_SECRET_ACCESS_KEY=your-secret
+BEDROCK_REGION=us-east-1
+BEDROCK_MODEL_ID=us.amazon.nova-2-lite-v1:0
+DYNAMO_TABLE=intent-cart-sessions
+S3_BUCKET=intent-cart-uploads-{accountId}
+NEXT_PUBLIC_S3_REGION=us-east-1
+NEXT_PUBLIC_S3_BUCKET=intent-cart-uploads-{accountId}
+```
+
+**Amplify Console**: Add these same vars under **App Settings → Environment variables**.
+> ⚠️ Never use `AWS_` prefix — it's reserved by Amplify and causes a build error.
 
 ---
 

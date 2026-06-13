@@ -62,3 +62,29 @@ export interface GeneratedCart {
   summaryLine: string;
   intent: ParsedIntent;
 }
+
+// ─── Session stored in DynamoDB ──────────────────────────────────
+
+export type SessionStatus = "active" | "confirmed";
+
+export interface Session {
+  sessionId: string;
+  situationText: string;
+  photoS3Key?: string;
+  intent?: ParsedIntent;
+  cart?: GeneratedCart;
+  urgencyMode: UrgencyMode;
+  selectedSubstitutes: Record<string, string>;
+  status: SessionStatus;
+  createdAt: number; // epoch ms
+  updatedAt: number; // epoch ms
+  expiresAt: number; // epoch seconds — DynamoDB TTL
+}
+
+// ─── S3 upload info ──────────────────────────────────────────────
+
+export interface PresignedUploadResult {
+  presignedUrl: string;
+  s3Key: string;
+  publicUrl: string;
+}
