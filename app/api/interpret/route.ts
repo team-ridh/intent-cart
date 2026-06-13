@@ -7,8 +7,8 @@ import {
 } from "@aws-sdk/client-bedrock-runtime";
 
 // ─── Bedrock model IDs ────────────────────────────────────────────
-// Claude 3 Haiku — fastest, best for intent extraction
-const BEDROCK_MODEL_ID = "anthropic.claude-3-haiku-20240307-v1:0";
+// Claude 3.5 Haiku — fast, cheap, best for intent extraction (Claude 3 Haiku is now Legacy)
+const BEDROCK_MODEL_ID = process.env.BEDROCK_MODEL_ID ?? "anthropic.claude-3-5-haiku-20241022-v1:0";
 
 // ─── Bedrock client (lazy-loaded to avoid build errors when SDK absent) ──
 async function invokeBedrockClaude(input: string): Promise<ParsedIntent | null> {
