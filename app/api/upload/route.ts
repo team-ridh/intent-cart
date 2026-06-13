@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, connection } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { createPresignedPutUrl } from "@/lib/storage/presignedUrl";
 
@@ -10,6 +10,9 @@ const MAX_FILE_SIZE_MB = 10;
 // Returns a presigned S3 PUT URL for direct browser upload.
 export async function GET(req: NextRequest) {
   try {
+    // Force Next.js 16 to read env vars at runtime, not build time
+    await connection();
+
     const sessionId = req.cookies.get(SESSION_COOKIE)?.value;
     if (!sessionId) {
       return NextResponse.json(

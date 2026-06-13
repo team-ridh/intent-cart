@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, connection } from "next/server";
 import { generateCart } from "@/lib/ai/cartGenerator";
 import { applyUrgencyMode } from "@/lib/ai/substituteRanker";
 import {
@@ -21,6 +21,9 @@ function getSessionId(req: NextRequest): string {
 // ─── GET /api/cart — load cart for the current session ───────────
 export async function GET(req: NextRequest) {
   try {
+    // Force Next.js 16 to read env vars at runtime, not build time
+    await connection();
+
     const sessionId = getSessionId(req);
     const session = await getSession(sessionId);
 
@@ -60,6 +63,9 @@ export async function GET(req: NextRequest) {
 // ─── POST /api/cart — generate and save cart to DynamoDB ─────────
 export async function POST(req: NextRequest) {
   try {
+    // Force Next.js 16 to read env vars at runtime, not build time
+    await connection();
+
     const sessionId = getSessionId(req);
     const session = await getSession(sessionId);
 
@@ -97,6 +103,9 @@ export async function POST(req: NextRequest) {
 // ─── PATCH /api/cart — update urgency, qty, substitutes ──────────
 export async function PATCH(req: NextRequest) {
   try {
+    // Force Next.js 16 to read env vars at runtime, not build time
+    await connection();
+
     const sessionId = getSessionId(req);
     const session = await getSession(sessionId);
 

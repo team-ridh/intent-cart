@@ -1,29 +1,37 @@
 import { S3Client } from "@aws-sdk/client-s3";
 
-// ─── Validate required environment variables ──────────────────────
-const requiredEnvVars = [
-  "BEDROCK_ACCESS_KEY_ID",
-  "BEDROCK_SECRET_ACCESS_KEY",
-  "BEDROCK_REGION",
-  "S3_BUCKET",
-] as const;
-
-for (const key of requiredEnvVars) {
-  if (!process.env[key]) {
+// ─── Lazy-validated env vars (validated at request time, not module load) ─────
+// Module-level throws crash the SSR Lambda before any route handler runs,
+// returning a plain-text 500 with no useful error body.
+// Module-level process.env reads get baked in as `undefined` at Amplify build time.
+function getEnv(key: string): string {
+  const value = process.env[key];
+  if (!value) {
     throw new Error(
       `[S3] Missing required environment variable: ${key}. ` +
         `Set it in .env.local (dev) or Amplify environment variables (prod).`
     );
   }
+  return value;
 }
 
-// ─── S3 client singleton ──────────────────────────────────────────
-export const s3Client = new S3Client({
-  region: process.env.BEDROCK_REGION!,
-  credentials: {
-    accessKeyId: process.env.BEDROCK_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.BEDROCK_SECRET_ACCESS_KEY!,
-  },
-});
+// ─── S3 client singleton — created lazily on first request ────────────────────
+let _s3Client: S3Client | null = null;
 
-export const S3_BUCKET = process.env.S3_BUCKET!;
+export function getS3Client(): S3Client {
+  if (_s3Client) return _s3Client;
+
+  _s3Client = new S3Client({
+    region: getEnv("BEDROCK_REGION"),
+    credentials: {
+      accessKeyId: getEnv("BEDROCK_ACCESS_KEY_ID"),
+      secretAccessKey: getEnv("BEDROCK_SECRET_ACCESS_KEY"),
+    },
+  });
+
+  return _s3Client;
+}
+
+export function getS3Bucket(): string {
+  return getEnv("S3_BUCKET");
+}

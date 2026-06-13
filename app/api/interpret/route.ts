@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, connection } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import {
   BedrockRuntimeClient,
@@ -12,16 +12,13 @@ import { saveSession, saveIntent } from "@/lib/db/sessions";
 const SESSION_COOKIE = "ic_session";
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
 
-// ─── Bedrock model (Amazon Nova 2 Lite — multimodal, cost-efficient, 1M context) ──
-// Supports cross-region inference profile: us.amazon.nova-2-lite-v1:0
-// Docs: https://docs.aws.amazon.com/nova/latest/userguide/nova-lite.html
-const BEDROCK_MODEL_ID =
-  process.env.BEDROCK_MODEL_ID ?? "us.amazon.nova-2-lite-v1:0";
 
 // ─── Bedrock client — created lazily to avoid module-level throw ──────────────
 // A module-level throw crashes the entire SSR Lambda with a plain-text 500,
 // swallowing the real error. We create the client on first use so the route
 // handler's catch block can return a proper JSON error instead.
+// NOTE: process.env access is inside this function (not at module level) so
+// Next.js 16 reads the actual runtime values set in Amplify, not build-time undefined.
 function getBedrockClient(): BedrockRuntimeClient {
   const accessKeyId = process.env.BEDROCK_ACCESS_KEY_ID;
   const secretAccessKey = process.env.BEDROCK_SECRET_ACCESS_KEY;
@@ -35,6 +32,10 @@ function getBedrockClient(): BedrockRuntimeClient {
     region: process.env.BEDROCK_REGION ?? "us-east-1",
     credentials: { accessKeyId, secretAccessKey },
   });
+}
+
+function getModelId(): string {
+  return process.env.BEDROCK_MODEL_ID ?? "us.amazon.nova-2-lite-v1:0";
 }
 
 // ─── System prompt ────────────────────────────────────────────────
@@ -61,7 +62,7 @@ async function invokeBedrockForIntent(
   situationText: string
 ): Promise<ParsedIntent> {
   const command = new ConverseCommand({
-    modelId: BEDROCK_MODEL_ID,
+    modelId: getModelId(),
     system: [{ text: SYSTEM_PROMPT }],
     messages: [
       {
@@ -125,6 +126,10 @@ async function invokeBedrockForIntent(
 // ─── POST /api/interpret ──────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
+    // Signal to Next.js 16 that this route reads env vars at runtime
+    // (not at build time). Without this, Amplify bakes in undefined values.
+    await connection();
+
     const body = await req.json() as { input?: string; photoS3Key?: string };
     const { input, photoS3Key } = body;
 

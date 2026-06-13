@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, connection } from "next/server";
 import { confirmSession, getSession } from "@/lib/db/sessions";
 
 const SESSION_COOKIE = "ic_session";
@@ -6,6 +6,9 @@ const SESSION_COOKIE = "ic_session";
 // ─── POST /api/checkout/confirm — mark session as confirmed ──────
 export async function POST(req: NextRequest) {
   try {
+    // Force Next.js 16 to read env vars at runtime, not build time
+    await connection();
+
     const sessionId = req.cookies.get(SESSION_COOKIE)?.value;
     if (!sessionId) {
       return NextResponse.json(
