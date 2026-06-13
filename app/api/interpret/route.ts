@@ -18,11 +18,12 @@ const BEDROCK_MODEL_ID =
 // Converse API is the recommended approach for Claude 4.x models.
 // Falls back gracefully to local keyword engine if Bedrock unavailable.
 async function invokeBedrockClaude(input: string): Promise<ParsedIntent | null> {
-  const region = process.env.AWS_REGION ?? "us-east-1";
+  const region = process.env.BEDROCK_REGION ?? "us-east-1";
 
+  // ⚠️  Use BEDROCK_ prefix — AWS_ is reserved by Amplify and causes build errors
   if (
-    !process.env.AWS_ACCESS_KEY_ID ||
-    !process.env.AWS_SECRET_ACCESS_KEY
+    !process.env.BEDROCK_ACCESS_KEY_ID ||
+    !process.env.BEDROCK_SECRET_ACCESS_KEY
   ) {
     return null; // No credentials → skip to local fallback
   }
@@ -31,11 +32,8 @@ async function invokeBedrockClaude(input: string): Promise<ParsedIntent | null> 
     const client = new BedrockRuntimeClient({
       region,
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-        ...(process.env.AWS_SESSION_TOKEN
-          ? { sessionToken: process.env.AWS_SESSION_TOKEN }
-          : {}),
+        accessKeyId: process.env.BEDROCK_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.BEDROCK_SECRET_ACCESS_KEY!,
       },
     });
 
