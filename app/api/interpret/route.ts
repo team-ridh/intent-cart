@@ -18,22 +18,24 @@ const COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
 const BEDROCK_MODEL_ID =
   process.env.BEDROCK_MODEL_ID ?? "us.amazon.nova-2-lite-v1:0";
 
-// ─── Validate env vars at module load time ────────────────────────
-if (!process.env.BEDROCK_ACCESS_KEY_ID || !process.env.BEDROCK_SECRET_ACCESS_KEY) {
-  throw new Error(
-    "[/api/interpret] BEDROCK_ACCESS_KEY_ID and BEDROCK_SECRET_ACCESS_KEY are required. " +
-      "Set them in .env.local or Amplify environment variables."
-  );
+// ─── Bedrock client — created lazily to avoid module-level throw ──────────────
+// A module-level throw crashes the entire SSR Lambda with a plain-text 500,
+// swallowing the real error. We create the client on first use so the route
+// handler's catch block can return a proper JSON error instead.
+function getBedrockClient(): BedrockRuntimeClient {
+  const accessKeyId = process.env.BEDROCK_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.BEDROCK_SECRET_ACCESS_KEY;
+  if (!accessKeyId || !secretAccessKey) {
+    throw new Error(
+      "[/api/interpret] BEDROCK_ACCESS_KEY_ID and BEDROCK_SECRET_ACCESS_KEY are required. " +
+        "Set them in .env.local or Amplify environment variables."
+    );
+  }
+  return new BedrockRuntimeClient({
+    region: process.env.BEDROCK_REGION ?? "us-east-1",
+    credentials: { accessKeyId, secretAccessKey },
+  });
 }
-
-// ─── Bedrock client ───────────────────────────────────────────────
-const bedrockClient = new BedrockRuntimeClient({
-  region: process.env.BEDROCK_REGION ?? "us-east-1",
-  credentials: {
-    accessKeyId: process.env.BEDROCK_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.BEDROCK_SECRET_ACCESS_KEY!,
-  },
-});
 
 // ─── System prompt ────────────────────────────────────────────────
 const SYSTEM_PROMPT = `You are a deterministic e-commerce intent extraction engine for a quick-commerce app in India called "Amazon Now OS".
@@ -69,14 +71,12 @@ async function invokeBedrockForIntent(
     ],
     inferenceConfig: {
       maxTokens: 512,
-      // Nova 2 Lite: keep temperature low for deterministic JSON output
-      // temperature: 0 is valid for Nova models via the Converse API
       temperature: 0,
       topP: 0.9,
     },
   });
 
-  const response = await bedrockClient.send(command);
+  const response = await getBedrockClient().send(command);
   const rawText = response.output?.message?.content?.[0]?.text ?? "";
 
   if (!rawText) {

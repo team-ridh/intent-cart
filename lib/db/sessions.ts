@@ -1,5 +1,5 @@
 import { GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { docClient, SESSIONS_TABLE } from "./client";
+import { getDocClient, getSessionsTable } from "./client";
 import type { GeneratedCart, ParsedIntent, Session, UrgencyMode } from "../types";
 
 // TTL = 7 days from now (DynamoDB TTL is in epoch seconds)
@@ -15,9 +15,9 @@ function ttlSeconds() {
 
 // ─── Get a session by ID ──────────────────────────────────────────
 export async function getSession(sessionId: string): Promise<Session | null> {
-  const result = await docClient.send(
+  const result = await getDocClient().send(
     new GetCommand({
-      TableName: SESSIONS_TABLE,
+      TableName: getSessionsTable(),
       Key: { sessionId },
     })
   );
@@ -31,9 +31,9 @@ export async function saveSession(
   session: Omit<Session, "createdAt" | "updatedAt" | "expiresAt">
 ): Promise<void> {
   const now = nowMs();
-  await docClient.send(
+  await getDocClient().send(
     new PutCommand({
-      TableName: SESSIONS_TABLE,
+      TableName: getSessionsTable(),
       Item: {
         ...session,
         createdAt: now,
@@ -51,9 +51,9 @@ export async function saveIntent(
   intent: ParsedIntent,
   photoS3Key?: string
 ): Promise<void> {
-  await docClient.send(
+  await getDocClient().send(
     new UpdateCommand({
-      TableName: SESSIONS_TABLE,
+      TableName: getSessionsTable(),
       Key: { sessionId },
       UpdateExpression:
         "SET situationText = :st, intent = :intent, updatedAt = :now, expiresAt = :ttl" +
@@ -75,9 +75,9 @@ export async function saveCart(
   cart: GeneratedCart,
   urgencyMode: UrgencyMode
 ): Promise<void> {
-  await docClient.send(
+  await getDocClient().send(
     new UpdateCommand({
-      TableName: SESSIONS_TABLE,
+      TableName: getSessionsTable(),
       Key: { sessionId },
       UpdateExpression:
         "SET cart = :cart, urgencyMode = :mode, updatedAt = :now, expiresAt = :ttl",
@@ -119,9 +119,9 @@ export async function updateCartState(
     values[":subs"] = updates.selectedSubstitutes;
   }
 
-  await docClient.send(
+  await getDocClient().send(
     new UpdateCommand({
-      TableName: SESSIONS_TABLE,
+      TableName: getSessionsTable(),
       Key: { sessionId },
       UpdateExpression: `SET ${setParts.join(", ")}`,
       ExpressionAttributeValues: values,
@@ -132,9 +132,9 @@ export async function updateCartState(
 
 // ─── Mark session as confirmed (checkout) ────────────────────────
 export async function confirmSession(sessionId: string): Promise<void> {
-  await docClient.send(
+  await getDocClient().send(
     new UpdateCommand({
-      TableName: SESSIONS_TABLE,
+      TableName: getSessionsTable(),
       Key: { sessionId },
       UpdateExpression:
         "SET #status = :confirmed, updatedAt = :now",
