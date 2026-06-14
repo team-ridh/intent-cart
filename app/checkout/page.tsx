@@ -99,7 +99,7 @@ function CheckoutPage() {
           <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4 }}>minutes remaining</div>
         </div>
 
-        <div style={{ marginBottom: 32, padding: "16px 24px", borderRadius: 16, background: "var(--bg-surface)", border: "1px solid var(--border)" }}>
+        <div style={{ marginBottom: 32, padding: "16px 24px", borderRadius: 16, background: "var(--bg-surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
           <div style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 8 }}>Order summary</div>
           <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22 }}>₹{totalPrice}</div>
           <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{cart?.itemCount} items · {intent?.scenarioLabel}</div>
@@ -114,7 +114,7 @@ function CheckoutPage() {
     <main className="min-h-screen pb-32" style={{ maxWidth: 680, margin: "0 auto", padding: "0 16px" }}>
 
       {/* Sticky header */}
-      <div style={{ position: "sticky", top: 0, zIndex: 30, background: "rgba(10,11,15,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--border)", marginBottom: 24, padding: "16px 0" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 30, background: "rgba(245,246,250,0.9)", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--border)", marginBottom: 24, padding: "16px 0" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <button className="btn-ghost" style={{ padding: "8px 12px" }} onClick={() => router.push("/cart")}>
             ← Cart
@@ -246,7 +246,7 @@ function CheckoutPage() {
 
       {/* Bottom CTA */}
       {!isLoading && cart && !confirmed && (
-        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, padding: "20px", background: "rgba(10,11,15,0.95)", backdropFilter: "blur(20px)", borderTop: "1px solid var(--border)", zIndex: 20 }}>
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, padding: "20px", background: "rgba(245,246,250,0.97)", backdropFilter: "blur(20px)", borderTop: "1px solid var(--border)", zIndex: 20 }}>
           <div style={{ maxWidth: 680, margin: "0 auto" }}>
             <button
               id="confirm-order-btn"
