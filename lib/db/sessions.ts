@@ -149,3 +149,11 @@ export async function confirmSession(sessionId: string): Promise<void> {
     })
   );
 }
+
+// ─── Get last confirmed session for re-order display ─────────────
+// Returns the most recent session for this sessionId if it was confirmed.
+export async function getConfirmedSession(sessionId: string): Promise<Session | null> {
+  const session = await getSession(sessionId);
+  if (!session || session.status !== "confirmed" || !session.cart) return null;
+  return session;
+}
