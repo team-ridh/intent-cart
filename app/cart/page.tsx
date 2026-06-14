@@ -17,6 +17,77 @@ const URGENCY_META = {
   trusted: { label: "⭐ Most Trusted", badgeColor: "purple" },
 } as const;
 
+// ─── Toast notification ────────────────────────────────────────────
+interface ToastProps {
+  message: string;
+  type?: "success" | "info" | "warning";
+  onDismiss: () => void;
+}
+
+function Toast({ message, type = "success", onDismiss }: ToastProps) {
+  const bg =
+    type === "success"
+      ? "rgba(22,163,74,0.12)"
+      : type === "warning"
+      ? "rgba(217,119,6,0.12)"
+      : "rgba(0,153,187,0.12)";
+  const border =
+    type === "success"
+      ? "rgba(22,163,74,0.35)"
+      : type === "warning"
+      ? "rgba(217,119,6,0.35)"
+      : "rgba(0,153,187,0.35)";
+  const color =
+    type === "success"
+      ? "var(--accent-green)"
+      : type === "warning"
+      ? "var(--accent-amber)"
+      : "var(--accent-teal)";
+
+  return (
+    <div
+      className="animate-float-in"
+      style={{
+        position: "fixed",
+        top: 20,
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 80,
+        background: bg,
+        border: `1px solid ${border}`,
+        color,
+        padding: "12px 20px",
+        borderRadius: 50,
+        fontSize: 14,
+        fontWeight: 600,
+        backdropFilter: "blur(20px)",
+        whiteSpace: "nowrap",
+        cursor: "pointer",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
+      }}
+      onClick={onDismiss}
+    >
+      {message}
+    </div>
+  );
+}
+
+function useToast() {
+  const [toast, setToast] = useState<{ message: string; type: "success" | "info" | "warning" } | null>(null);
+  const timerRef = { current: 0 as unknown as ReturnType<typeof setTimeout> };
+
+  const show = useCallback((message: string, type: "success" | "info" | "warning" = "success") => {
+    clearTimeout(timerRef.current);
+    setToast({ message, type });
+    timerRef.current = setTimeout(() => setToast(null), 3200);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const dismiss = useCallback(() => setToast(null), []);
+
+  return { toast, show, dismiss };
+}
+
+// ─── Main cart page ────────────────────────────────────────────────
 function CartPage() {
   const router = useRouter();
   const {
@@ -26,13 +97,14 @@ function CartPage() {
     adjustQuantity, removeItem,
     getTotalPrice, getFinalItems,
     loadFromServer, isLoading, error,
+    situationText,
+    setIsLoading,
   } = useCartStore();
 
   const [drawerItem, setDrawerItem] = useState<CartItem | null>(null);
+  const { toast, show: showToast, dismiss: dismissToast } = useToast();
 
-  // ─── Hydrate from DynamoDB on mount ──────────────────────────────
-  // If cart is already in store (came directly from Screen 1), save it to DynamoDB.
-  // If store is empty (e.g. page refresh), load from DynamoDB.
+  // ─── Hydrate from DynamoDB on mount ────────────────────────────
   useEffect(() => {
     if (!cart) {
       // Store is empty (page refresh) — load from DynamoDB
@@ -47,8 +119,8 @@ function CartPage() {
       }).catch((err) => console.error("[Cart] Failed to persist cart to DynamoDB:", err));
 
       // Simulate AI loading delay for UX
-      useCartStore.setState({ isLoading: true });
-      setTimeout(() => useCartStore.setState({ isLoading: false }), 1200);
+      setIsLoading(true); // ✅ Uses proper store action (not useCartStore.setState)
+      setTimeout(() => setIsLoading(false), 1200);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -62,14 +134,100 @@ function CartPage() {
     setDrawerItem(null);
   }, [syncSubstitute]);
 
-  // Error state
+  // ─── Save cart ─────────────────────────────────────────────────
+  const handleSave = useCallback(() => {
+    if (!cart) return;
+    const savedData = {
+      cart,
+      intent,
+      urgencyMode,
+      selectedSubstitutes,
+      savedAt: new Date().toISOString(),
+    };
+    const existing = localStorage.getItem("ic_saved_cart");
+    const isUpdate = !!existing;
+    localStorage.setItem("ic_saved_cart", JSON.stringify(savedData));
+    showToast(isUpdate ? "✅ Cart updated!" : "✅ Cart saved!", "success");
+  }, [cart, intent, urgencyMode, selectedSubstitutes, showToast]);
+
+  // ─── Refine (back to input WITHOUT resetting store) ─────────────
+  const handleRefine = useCallback(() => {
+    router.push("/?refine=1");
+  }, [router]);
+
+  // ─── Share cart ────────────────────────────────────────────────
+  const handleShare = useCallback(async () => {
+    if (!cart || !intent) return;
+
+    const finalItems = getFinalItems();
+    const itemList = finalItems
+      .slice(0, 5)
+      .map((item) => `• ${item.name} — ₹${item.price}`)
+      .join("\n");
+
+    const shareText =
+      `🛒 Amazon Now OS — ${intent.scenarioLabel} Cart\n\n` +
+      `${cart.summaryLine}\n\n` +
+      `${itemList}\n\n` +
+      `Total: ₹${getTotalPrice()} · ETA: ~${cart.estimatedEta} min`;
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: `Amazon Now OS — ${intent.scenarioLabel} Cart`,
+          text: shareText,
+          url: window.location.origin,
+        });
+        showToast("✅ Shared!", "success");
+      } catch (err) {
+        // User cancelled share — not an error
+        if (err instanceof Error && err.name !== "AbortError") {
+          console.error("[Cart] Share failed:", err.message);
+        }
+      }
+    } else {
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(shareText);
+        showToast("📋 Cart summary copied to clipboard!", "info");
+      } catch {
+        showToast("⚠️ Could not copy to clipboard", "warning");
+      }
+    }
+  }, [cart, intent, getFinalItems, getTotalPrice, showToast]);
+
+  // ─── Error state ──────────────────────────────────────────────
   if (error && !isLoading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, textAlign: "center" }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
-        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, marginBottom: 10 }}>Failed to load cart</h2>
+        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, marginBottom: 10 }}>
+          Failed to load cart
+        </h2>
         <p style={{ color: "var(--text-muted)", fontSize: 14, maxWidth: 380, marginBottom: 24 }}>{error}</p>
-        <button className="btn-primary" onClick={() => router.push("/")}>← Start Over</button>
+        <div style={{ display: "flex", gap: 12 }}>
+          <button className="btn-secondary" onClick={() => loadFromServer()}>↺ Try Again</button>
+          <button className="btn-primary" onClick={() => router.push("/")}>← Start Over</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Empty cart state ─────────────────────────────────────────
+  if (!isLoading && cart && cart.items.length === 0) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, textAlign: "center" }}>
+        <div style={{ fontSize: 56, marginBottom: 16 }}>🛒</div>
+        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, marginBottom: 10 }}>
+          Cart is empty
+        </h2>
+        <p style={{ color: "var(--text-muted)", fontSize: 14, maxWidth: 360, marginBottom: 24, lineHeight: 1.6 }}>
+          We couldn&apos;t find items for this situation. Try describing it differently.
+        </p>
+        <div style={{ display: "flex", gap: 12 }}>
+          <button className="btn-secondary" onClick={handleRefine}>✏️ Refine Situation</button>
+          <button className="btn-primary" onClick={() => router.push("/")}>⚡ New Situation</button>
+        </div>
       </div>
     );
   }
@@ -79,6 +237,9 @@ function CartPage() {
 
   return (
     <main className="min-h-screen pb-32" style={{ maxWidth: 680, margin: "0 auto", padding: "0 16px" }}>
+
+      {/* Toast */}
+      {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismissToast} />}
 
       {/* Sticky header */}
       <div style={{ position: "sticky", top: 0, zIndex: 30, background: "rgba(245,246,250,0.9)", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--border)", marginBottom: 24, padding: "16px 0" }}>
@@ -97,6 +258,18 @@ function CartPage() {
           )}
         </div>
       </div>
+
+      {/* Refining banner */}
+      {situationText && (
+        <div style={{ marginBottom: 16, padding: "10px 14px", borderRadius: 12, background: "var(--accent-dim)", border: "1px solid var(--border-accent)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ fontSize: 13, color: "var(--text-secondary)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            🎯 &nbsp;<span style={{ color: "var(--text-muted)" }}>Situation:</span> {situationText}
+          </div>
+          <button className="btn-ghost" style={{ fontSize: 12, padding: "4px 10px", flexShrink: 0 }} onClick={handleRefine}>
+            ✏️ Refine
+          </button>
+        </div>
+      )}
 
       {/* Intent summary banner */}
       {!isLoading && intent && (
@@ -174,11 +347,32 @@ function CartPage() {
               </div>
             </div>
 
-            {/* Secondary actions */}
+            {/* Secondary actions — all wired */}
             <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-              <button className="btn-secondary" style={{ flex: 1, fontSize: 13 }}>💾 Save</button>
-              <button className="btn-secondary" style={{ flex: 1, fontSize: 13 }}>🔄 Refine</button>
-              <button className="btn-secondary" style={{ flex: 1, fontSize: 13 }}>📤 Share</button>
+              <button
+                id="cart-save-btn"
+                className="btn-secondary"
+                style={{ flex: 1, fontSize: 13 }}
+                onClick={handleSave}
+              >
+                💾 Save
+              </button>
+              <button
+                id="cart-refine-btn"
+                className="btn-secondary"
+                style={{ flex: 1, fontSize: 13 }}
+                onClick={handleRefine}
+              >
+                🔄 Refine
+              </button>
+              <button
+                id="cart-share-btn"
+                className="btn-secondary"
+                style={{ flex: 1, fontSize: 13 }}
+                onClick={handleShare}
+              >
+                📤 Share
+              </button>
             </div>
 
             <button

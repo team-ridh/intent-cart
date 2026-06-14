@@ -1,15 +1,281 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import type { CartItem } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Logo } from "@/components/Logo";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
 
+// ─── Address types ────────────────────────────────────────────────
+type AddressType = "Home" | "Work" | "Other";
+
+interface Address {
+  line1: string;
+  line2: string;
+  pincode: string;
+  type: AddressType;
+}
+
+const DEFAULT_ADDRESS: Address = {
+  line1: "123 MG Road, Indiranagar",
+  line2: "Bengaluru",
+  pincode: "560038",
+  type: "Home",
+};
+
+// ─── Payment types ────────────────────────────────────────────────
+type PaymentMethod = "amazonpay" | "upi" | "cod";
+
+const PAYMENT_OPTIONS: Array<{
+  id: PaymentMethod;
+  label: string;
+  icon: string;
+  sub: string;
+  fee: number;
+}> = [
+  { id: "amazonpay", label: "Amazon Pay Balance", icon: "AP", sub: "₹2,450.00 available", fee: 0 },
+  { id: "upi",       label: "UPI / Google Pay",   icon: "UPI", sub: "Pay instantly via UPI", fee: 0 },
+  { id: "cod",       label: "Cash on Delivery",   icon: "₹",  sub: "Pay when delivered",   fee: 50 },
+];
+
+// ─── Address editor ───────────────────────────────────────────────
+interface AddressEditorProps {
+  address: Address;
+  onChange: (a: Address) => void;
+  onSave: () => void;
+  onCancel: () => void;
+}
+
+function AddressEditor({ address, onChange, onSave, onCancel }: AddressEditorProps) {
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "10px 14px",
+    borderRadius: 10,
+    border: "1px solid var(--border)",
+    background: "var(--bg-raised)",
+    fontSize: 14,
+    color: "var(--text-primary)",
+    outline: "none",
+    marginBottom: 10,
+    boxSizing: "border-box",
+  };
+
+  return (
+    <div style={{ marginTop: 12 }}>
+      <input
+        id="addr-line1"
+        style={inputStyle}
+        placeholder="Street address"
+        value={address.line1}
+        onChange={(e) => onChange({ ...address, line1: e.target.value })}
+      />
+      <input
+        id="addr-line2"
+        style={inputStyle}
+        placeholder="City"
+        value={address.line2}
+        onChange={(e) => onChange({ ...address, line2: e.target.value })}
+      />
+      <input
+        id="addr-pincode"
+        style={{ ...inputStyle, marginBottom: 14 }}
+        placeholder="PIN code"
+        value={address.pincode}
+        onChange={(e) => onChange({ ...address, pincode: e.target.value })}
+      />
+      {/* Address type radio */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+        {(["Home", "Work", "Other"] as AddressType[]).map((t) => (
+          <button
+            key={t}
+            id={`addr-type-${t.toLowerCase()}`}
+            onClick={() => onChange({ ...address, type: t })}
+            style={{
+              flex: 1,
+              padding: "8px 0",
+              borderRadius: 8,
+              border: `1px solid ${address.type === t ? "var(--accent)" : "var(--border)"}`,
+              background: address.type === t ? "var(--accent-dim)" : "transparent",
+              color: address.type === t ? "var(--accent)" : "var(--text-muted)",
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+            }}
+          >
+            {t === "Home" ? "🏠" : t === "Work" ? "🏢" : "📍"} {t}
+          </button>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 10 }}>
+        <button className="btn-secondary" style={{ flex: 1, fontSize: 13 }} onClick={onCancel}>
+          Cancel
+        </button>
+        <button className="btn-primary" id="addr-save-btn" style={{ flex: 1, fontSize: 13 }} onClick={onSave}>
+          ✓ Save Address
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Payment selector ─────────────────────────────────────────────
+interface PaymentSelectorProps {
+  selected: PaymentMethod;
+  upiId: string;
+  onUpiIdChange: (v: string) => void;
+  onSelect: (m: PaymentMethod) => void;
+  onClose: () => void;
+}
+
+function PaymentSelector({ selected, upiId, onUpiIdChange, onSelect, onClose }: PaymentSelectorProps) {
+  return (
+    <div style={{ marginTop: 12 }}>
+      {PAYMENT_OPTIONS.map((opt) => (
+        <div
+          key={opt.id}
+          id={`pay-${opt.id}`}
+          onClick={() => onSelect(opt.id)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "14px 16px",
+            borderRadius: 12,
+            border: `1px solid ${selected === opt.id ? "var(--accent)" : "var(--border)"}`,
+            background: selected === opt.id ? "var(--accent-dim)" : "var(--bg-raised)",
+            cursor: "pointer",
+            marginBottom: 8,
+            transition: "all 0.15s ease",
+          }}
+        >
+          <div
+            style={{
+              width: 40,
+              height: 28,
+              borderRadius: 8,
+              background: opt.id === "amazonpay"
+                ? "linear-gradient(135deg,#FF6B35,#FF9A6B)"
+                : opt.id === "upi"
+                ? "linear-gradient(135deg,#4F46E5,#7C3AED)"
+                : "linear-gradient(135deg,#059669,#10B981)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: opt.id === "cod" ? 14 : 11,
+              fontWeight: 700,
+              color: "#fff",
+              flexShrink: 0,
+            }}
+          >
+            {opt.icon}
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 600, fontSize: 14 }}>{opt.label}</div>
+            <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
+              {opt.sub}
+              {opt.fee > 0 && <span style={{ color: "#EF4444" }}> · +₹{opt.fee} COD fee</span>}
+            </div>
+          </div>
+          <div
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: "50%",
+              border: `2px solid ${selected === opt.id ? "var(--accent)" : "var(--border)"}`,
+              background: selected === opt.id ? "var(--accent)" : "transparent",
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {selected === opt.id && (
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#fff" }} />
+            )}
+          </div>
+        </div>
+      ))}
+
+      {/* UPI ID input */}
+      {selected === "upi" && (
+        <input
+          id="upi-id-input"
+          style={{
+            width: "100%",
+            padding: "10px 14px",
+            borderRadius: 10,
+            border: "1px solid var(--border)",
+            background: "var(--bg-raised)",
+            fontSize: 14,
+            color: "var(--text-primary)",
+            marginTop: 4,
+            marginBottom: 10,
+            boxSizing: "border-box",
+            outline: "none",
+          }}
+          placeholder="yourname@upi"
+          value={upiId}
+          onChange={(e) => onUpiIdChange(e.target.value)}
+        />
+      )}
+
+      <button
+        className="btn-primary"
+        id="pay-confirm-btn"
+        style={{ width: "100%", fontSize: 14 }}
+        onClick={onClose}
+      >
+        ✓ Confirm Payment Method
+      </button>
+    </div>
+  );
+}
+
+// ─── Order summary item row ───────────────────────────────────────
+function OrderItemRow({ item }: { item: CartItem }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "10px 0",
+        borderBottom: "1px solid var(--border)",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {item.image?.startsWith("http") ? (
+          <img
+            src={item.image}
+            alt={item.name}
+            style={{ width: 36, height: 36, objectFit: "contain", borderRadius: 6, border: "1px solid var(--border)", background: "var(--bg-elevated)", padding: 2 }}
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+          />
+        ) : (
+          <span style={{ fontSize: 24 }}>{item.image || "📦"}</span>
+        )}
+        <div>
+          <div style={{ fontWeight: 500, fontSize: 14 }}>{item.name}</div>
+          <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
+            {item.brand} · ×{item.quantity} · ⚡{item.eta} min
+          </div>
+        </div>
+      </div>
+      <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15 }}>
+        ₹{item.price * item.quantity}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main checkout page ───────────────────────────────────────────
 function CheckoutPage() {
   const router = useRouter();
-  const { cart, intent, urgencyMode, getFinalItems, getTotalPrice, loadFromServer, isLoading, error } = useCartStore();
+  const { cart, intent, getFinalItems, getTotalPrice, loadFromServer, isLoading, error } =
+    useCartStore();
 
   const [confirmed, setConfirmed] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -17,7 +283,18 @@ function CheckoutPage() {
   const [countdown, setCountdown] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Hydrate from DynamoDB if store is empty (page refresh)
+  // ─── Address state ───────────────────────────────────────────────
+  const [address, setAddress] = useState<Address>(DEFAULT_ADDRESS);
+  const [editingAddress, setEditingAddress] = useState(false);
+  const [pendingAddress, setPendingAddress] = useState<Address>(DEFAULT_ADDRESS);
+  const [addressSaved, setAddressSaved] = useState(false);
+
+  // ─── Payment state ───────────────────────────────────────────────
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("amazonpay");
+  const [editingPayment, setEditingPayment] = useState(false);
+  const [upiId, setUpiId] = useState("");
+
+  // Hydrate from DynamoDB if store is empty
   useEffect(() => {
     if (!cart) loadFromServer();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -53,31 +330,42 @@ function CheckoutPage() {
       setConfirmed(true);
       setCountdown(cart?.estimatedEta ?? 15);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Confirmation failed";
-      setConfirmError(message);
+      setConfirmError(err instanceof Error ? err.message : "Confirmation failed");
     } finally {
       setConfirming(false);
     }
   };
 
-  // Error state
+  const handleAddressSave = () => {
+    setAddress(pendingAddress);
+    setEditingAddress(false);
+    setAddressSaved(true);
+    setTimeout(() => setAddressSaved(false), 2000);
+  };
+
+  // ─── Error state ─────────────────────────────────────────────────
   if (error && !isLoading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, textAlign: "center" }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
         <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, marginBottom: 10 }}>Failed to load checkout</h2>
         <p style={{ color: "var(--text-muted)", fontSize: 14, maxWidth: 380, marginBottom: 24 }}>{error}</p>
-        <button className="btn-primary" onClick={() => router.push("/")}>← Start Over</button>
+        <div style={{ display: "flex", gap: 12 }}>
+          <button className="btn-secondary" onClick={() => loadFromServer()}>↺ Try Again</button>
+          <button className="btn-primary" onClick={() => router.push("/")}>← Start Over</button>
+        </div>
       </div>
     );
   }
 
   const totalPrice = getTotalPrice();
   const finalItems = getFinalItems();
-  const deliveryFee = 0;
   const platformFee = 3;
+  const cod = PAYMENT_OPTIONS.find((o) => o.id === paymentMethod)!;
+  const codFee = cod.fee;
+  const grandTotal = totalPrice + platformFee + codFee;
 
-  // ─── Confirmed State ──────────────────────────────────────────────
+  // ─── Confirmed state ─────────────────────────────────────────────
   if (confirmed) {
     const mm = String(Math.floor(countdown / 60)).padStart(2, "0");
     const ss = String(countdown % 60).padStart(2, "0");
@@ -99,13 +387,19 @@ function CheckoutPage() {
           <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4 }}>minutes remaining</div>
         </div>
 
-        <div style={{ marginBottom: 32, padding: "16px 24px", borderRadius: 16, background: "var(--bg-surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+        <div style={{ marginBottom: 16, padding: "16px 24px", borderRadius: 16, background: "var(--bg-surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", minWidth: 260 }}>
           <div style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 8 }}>Order summary</div>
-          <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22 }}>₹{totalPrice}</div>
+          <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22 }}>₹{grandTotal}</div>
           <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{cart?.itemCount} items · {intent?.scenarioLabel}</div>
         </div>
 
-        <button className="btn-secondary" onClick={() => router.push("/")}>← Shop Again</button>
+        <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 32 }}>
+          📍 Delivering to {address.line1}, {address.line2} · {address.type}
+        </div>
+
+        <button className="btn-secondary" onClick={() => { useCartStore.getState().reset(); router.push("/"); }}>
+          ← Shop Again
+        </button>
       </main>
     );
   }
@@ -122,7 +416,7 @@ function CheckoutPage() {
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16 }}>Checkout</div>
             <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
-              {isLoading ? "Loading…" : `${cart?.itemCount ?? 0} items · ₹${totalPrice}`}
+              {isLoading ? "Loading…" : `${cart?.itemCount ?? 0} items · ₹${grandTotal}`}
             </div>
           </div>
           <Logo />
@@ -157,50 +451,103 @@ function CheckoutPage() {
               Order Summary
             </div>
             {finalItems.map((item) => (
-              <div key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--border-subtle)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 20 }}>{item.image}</span>
-                  <div>
-                    <div style={{ fontWeight: 500, fontSize: 14 }}>{item.name}</div>
-                    <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
-                      {item.brand} · ×{item.quantity} · ⚡{item.eta} min
-                    </div>
-                  </div>
-                </div>
-                <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15 }}>
-                  ₹{item.price * item.quantity}
-                </div>
-              </div>
+              <OrderItemRow key={item.id} item={item} />
             ))}
           </div>
 
           {/* Delivery address */}
           <div className="card" style={{ marginBottom: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <div style={{ fontWeight: 600, fontSize: 14 }}>📍 Delivery Address</div>
-              <button className="btn-ghost" style={{ fontSize: 12 }}>Change</button>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>
+                  📍 Delivery Address
+                  {addressSaved && (
+                    <span style={{ marginLeft: 8, color: "var(--accent-green)", fontSize: 12 }}>✓ Saved</span>
+                  )}
+                </div>
+                {!editingAddress && (
+                  <div style={{ color: "var(--text-secondary)", fontSize: 14, lineHeight: 1.6, marginTop: 6 }}>
+                    {address.line1}<br />{address.line2} — {address.pincode}
+                    <span className="badge badge-teal" style={{ marginLeft: 8, fontSize: 11 }}>{address.type}</span>
+                  </div>
+                )}
+              </div>
+              {!editingAddress && (
+                <button
+                  id="change-address-btn"
+                  className="btn-ghost"
+                  style={{ fontSize: 12, flexShrink: 0 }}
+                  onClick={() => { setPendingAddress(address); setEditingAddress(true); }}
+                >
+                  ✏️ Change
+                </button>
+              )}
             </div>
-            <div style={{ color: "var(--text-secondary)", fontSize: 14, lineHeight: 1.6 }}>
-              123 MG Road, Bengaluru<br />
-              Karnataka 560001 · Home
-            </div>
+            {editingAddress && (
+              <AddressEditor
+                address={pendingAddress}
+                onChange={setPendingAddress}
+                onSave={handleAddressSave}
+                onCancel={() => setEditingAddress(false)}
+              />
+            )}
           </div>
 
           {/* Payment */}
           <div className="card" style={{ marginBottom: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <div style={{ fontWeight: 600, fontSize: 14 }}>💳 Payment</div>
-              <button className="btn-ghost" style={{ fontSize: 12 }}>Change</button>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 36, height: 24, borderRadius: 6, background: "linear-gradient(135deg,#FF6B35,#FF9A6B)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "#fff" }}>
-                AP
-              </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <div style={{ fontWeight: 500, fontSize: 14 }}>Amazon Pay Balance</div>
-                <div style={{ color: "var(--text-muted)", fontSize: 12 }}>₹2,450.00 available</div>
+                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>💳 Payment</div>
+                {!editingPayment && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
+                    <div style={{
+                      width: 40, height: 28, borderRadius: 8,
+                      background: paymentMethod === "amazonpay"
+                        ? "linear-gradient(135deg,#FF6B35,#FF9A6B)"
+                        : paymentMethod === "upi"
+                        ? "linear-gradient(135deg,#4F46E5,#7C3AED)"
+                        : "linear-gradient(135deg,#059669,#10B981)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: paymentMethod === "cod" ? 14 : 11, fontWeight: 700, color: "#fff",
+                    }}>
+                      {PAYMENT_OPTIONS.find((o) => o.id === paymentMethod)?.icon}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 500, fontSize: 14 }}>
+                        {PAYMENT_OPTIONS.find((o) => o.id === paymentMethod)?.label}
+                      </div>
+                      {paymentMethod === "upi" && upiId && (
+                        <div style={{ color: "var(--text-muted)", fontSize: 12 }}>{upiId}</div>
+                      )}
+                      {paymentMethod !== "upi" && (
+                        <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
+                          {PAYMENT_OPTIONS.find((o) => o.id === paymentMethod)?.sub}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
+              {!editingPayment && (
+                <button
+                  id="change-payment-btn"
+                  className="btn-ghost"
+                  style={{ fontSize: 12, flexShrink: 0 }}
+                  onClick={() => setEditingPayment(true)}
+                >
+                  ✏️ Change
+                </button>
+              )}
             </div>
+            {editingPayment && (
+              <PaymentSelector
+                selected={paymentMethod}
+                upiId={upiId}
+                onUpiIdChange={setUpiId}
+                onSelect={setPaymentMethod}
+                onClose={() => setEditingPayment(false)}
+              />
+            )}
           </div>
 
           {/* Price breakdown */}
@@ -209,26 +556,25 @@ function CheckoutPage() {
               Price Details
             </div>
             {[
-              { label: `Items (${cart.itemCount})`, value: totalPrice },
-              { label: "Delivery fee", value: deliveryFee, zero: true },
-              { label: "Platform fee", value: platformFee },
-            ].map(({ label, value, zero }) => (
-              <div key={label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, fontSize: 14 }}>
-                <span style={{ color: "var(--text-secondary)" }}>{label}</span>
-                <span style={{ color: zero ? "var(--accent-green)" : "var(--text-primary)", fontWeight: 500 }}>
-                  {zero ? "FREE" : `₹${value}`}
+              { label: `Items (${cart.itemCount})`, value: totalPrice, style: {} },
+              { label: "Delivery fee", value: 0, style: { color: "var(--accent-green)" }, display: "FREE" },
+              { label: "Platform fee", value: platformFee, style: {} },
+              ...(codFee > 0 ? [{ label: "COD fee", value: codFee, style: { color: "#EF4444" } }] : []),
+            ].map((row) => (
+              <div key={row.label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, fontSize: 14 }}>
+                <span style={{ color: "var(--text-secondary)" }}>{row.label}</span>
+                <span style={{ fontWeight: 500, ...(row.style) }}>
+                  {"display" in row ? row.display : `₹${row.value}`}
                 </span>
               </div>
             ))}
             <div style={{ borderTop: "1px solid var(--border)", marginTop: 10, paddingTop: 14, display: "flex", justifyContent: "space-between" }}>
               <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16 }}>Total</span>
-              <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20 }}>
-                ₹{totalPrice + platformFee}
-              </span>
+              <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20 }}>₹{grandTotal}</span>
             </div>
           </div>
 
-          {/* Delivery ETA chip */}
+          {/* ETA chip */}
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
             <div className="badge badge-teal" style={{ fontSize: 14, padding: "10px 20px", borderRadius: 24 }}>
               ⚡ Estimated delivery in {cart.estimatedEta} minutes
@@ -237,8 +583,16 @@ function CheckoutPage() {
 
           {/* Confirm error */}
           {confirmError && (
-            <div style={{ marginBottom: 16, padding: "10px 16px", borderRadius: 12, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontSize: 14 }}>
-              {confirmError}
+            <div style={{ marginBottom: 16, padding: "12px 16px", borderRadius: 12, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontSize: 14 }}>
+              <div style={{ fontWeight: 600, marginBottom: 2 }}>⚠️ Confirmation failed</div>
+              <div style={{ fontSize: 13 }}>{confirmError}</div>
+              <button
+                className="btn-ghost"
+                style={{ marginTop: 8, fontSize: 12, color: "#EF4444" }}
+                onClick={handleConfirm}
+              >
+                Try again →
+              </button>
             </div>
           )}
         </>
@@ -253,16 +607,16 @@ function CheckoutPage() {
               className="btn-primary"
               style={{ width: "100%", fontSize: 17, padding: "18px 32px", opacity: confirming ? 0.7 : 1 }}
               onClick={handleConfirm}
-              disabled={confirming}
+              disabled={confirming || editingAddress || editingPayment}
             >
               {confirming ? (
                 <><span style={{ display: "inline-block", animation: "rotate-slow 0.8s linear infinite" }}>⚙️</span> Confirming…</>
               ) : (
-                `✓ Confirm & Place Order · ₹${totalPrice + platformFee}`
+                `✓ Confirm & Place Order · ₹${grandTotal}`
               )}
             </button>
             <p style={{ textAlign: "center", color: "var(--text-faint)", fontSize: 11, marginTop: 8 }}>
-              By placing this order you agree to Amazon Now OS terms
+              By placing this order you agree to Amazon Now OS terms of service
             </p>
           </div>
         </div>
