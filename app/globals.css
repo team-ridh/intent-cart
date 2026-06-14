@@ -1181,10 +1181,8 @@ input, textarea, select { font-size: max(16px, 1em); }
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(245, 246, 250, 0.97);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
+  background: transparent;
+  border-bottom: none;
 }
 
 .navbar__inner {
