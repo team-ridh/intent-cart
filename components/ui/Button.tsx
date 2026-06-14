@@ -1,6 +1,7 @@
 "use client";
 
 import { ButtonHTMLAttributes, forwardRef, ReactNode } from "react";
+import { Spinner } from "@phosphor-icons/react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "ghost";
@@ -26,12 +27,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading ? (
-          <>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
             <span style={{ display: "inline-block", animation: "rotate-slow 0.8s linear infinite" }}>
-              ⚙️
+              <Spinner size={16} weight="bold" />
             </span>{" "}
             {children}
-          </>
+          </span>
         ) : (
           children
         )}

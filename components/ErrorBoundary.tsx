@@ -1,6 +1,7 @@
 "use client";
 
 import { Component, ErrorInfo, ReactNode } from "react";
+import { WarningCircle } from "@phosphor-icons/react";
 
 interface Props {
   children: ReactNode;
@@ -46,7 +47,9 @@ export class ErrorBoundary extends Component<Props, State> {
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: 56, marginBottom: 20 }}>⚠️</div>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
+            <WarningCircle size={56} weight="fill" color="#EF4444" />
+          </div>
           <h2
             style={{
               fontFamily: "var(--font-display)",

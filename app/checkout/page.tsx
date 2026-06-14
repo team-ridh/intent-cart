@@ -7,6 +7,20 @@ import { useCartStore } from "@/store/cartStore";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Logo } from "@/components/Logo";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
+import {
+  House,
+  Buildings,
+  MapPin,
+  PencilSimple,
+  WarningCircle,
+  Sparkle,
+  CheckCircle,
+  Lightning,
+  ArrowCounterClockwise,
+  ArrowLeft,
+  GearSix,
+  Package,
+} from "@phosphor-icons/react";
 
 // ─── Address types ────────────────────────────────────────────────
 type AddressType = "Home" | "Work" | "Other";
@@ -103,9 +117,18 @@ function AddressEditor({ address, onChange, onSave, onCancel }: AddressEditorPro
               fontSize: 13,
               cursor: "pointer",
               transition: "all 0.15s ease",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 5,
             }}
           >
-            {t === "Home" ? "🏠" : t === "Work" ? "🏢" : "📍"} {t}
+            {t === "Home"
+              ? <House size={13} weight="bold" />
+              : t === "Work"
+              ? <Buildings size={13} weight="bold" />
+              : <MapPin size={13} weight="bold" />
+            } {t}
           </button>
         ))}
       </div>
@@ -113,8 +136,8 @@ function AddressEditor({ address, onChange, onSave, onCancel }: AddressEditorPro
         <button className="btn-secondary" style={{ flex: 1, fontSize: 13 }} onClick={onCancel}>
           Cancel
         </button>
-        <button className="btn-primary" id="addr-save-btn" style={{ flex: 1, fontSize: 13 }} onClick={onSave}>
-          ✓ Save Address
+        <button className="btn-primary" id="addr-save-btn" style={{ flex: 1, fontSize: 13, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5 }} onClick={onSave}>
+          <CheckCircle size={13} weight="fill" /> Save Address
         </button>
       </div>
     </div>
@@ -255,12 +278,12 @@ function OrderItemRow({ item }: { item: CartItem }) {
             onError={(e) => { e.currentTarget.style.display = "none"; }}
           />
         ) : (
-          <span style={{ fontSize: 24 }}>{item.image || "📦"}</span>
+          <Package size={24} weight="light" color="var(--text-muted)" />
         )}
         <div>
           <div style={{ fontWeight: 500, fontSize: 14 }}>{item.name}</div>
           <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
-            {item.brand} · ×{item.quantity} · ⚡{item.eta} min
+            {item.brand} · ×{item.quantity} · <Lightning size={10} weight="fill" color="var(--accent-teal)" style={{ display: "inline", verticalAlign: "middle" }} />{item.eta} min
           </div>
         </div>
       </div>
@@ -348,12 +371,18 @@ function CheckoutPage() {
   if (error && !isLoading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, textAlign: "center" }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+          <WarningCircle size={48} weight="fill" color="#EF4444" />
+        </div>
         <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, marginBottom: 10 }}>Failed to load checkout</h2>
         <p style={{ color: "var(--text-muted)", fontSize: 14, maxWidth: 380, marginBottom: 24 }}>{error}</p>
         <div style={{ display: "flex", gap: 12 }}>
-          <button className="btn-secondary" onClick={() => loadFromServer()}>↺ Try Again</button>
-          <button className="btn-primary" onClick={() => router.push("/")}>← Start Over</button>
+          <button className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: 6 }} onClick={() => loadFromServer()}>
+            <ArrowCounterClockwise size={14} weight="bold" /> Try Again
+          </button>
+          <button className="btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: 6 }} onClick={() => router.push("/")}>
+            <ArrowLeft size={14} weight="bold" /> Start Over
+          </button>
         </div>
       </div>
     );
@@ -373,7 +402,9 @@ function CheckoutPage() {
 
     return (
       <main className="min-h-screen flex flex-col items-center justify-center px-4" style={{ textAlign: "center" }}>
-        <div style={{ fontSize: 72, marginBottom: 20, animation: "float-in 0.5s ease-out" }}>✅</div>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 20, animation: "float-in 0.5s ease-out" }}>
+          <CheckCircle size={72} weight="fill" color="var(--accent-green)" />
+        </div>
         <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 28, marginBottom: 10 }}>
           Order <span className="gradient-text">Confirmed!</span>
         </h1>
@@ -394,8 +425,8 @@ function CheckoutPage() {
           <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{cart?.itemCount} items · {intent?.scenarioLabel}</div>
         </div>
 
-        <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 32 }}>
-          📍 Delivering to {address.line1}, {address.line2} · {address.type}
+        <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 32, display: "flex", alignItems: "center", gap: 5, justifyContent: "center" }}>
+          <MapPin size={13} weight="bold" /> Delivering to {address.line1}, {address.line2} · {address.type}
         </div>
 
         <button className="btn-secondary" onClick={() => { useCartStore.getState().reset(); router.push("/"); }}>
@@ -433,7 +464,9 @@ function CheckoutPage() {
           {/* Intent badge */}
           {intent && (
             <div className="glass-elevated animate-float-in" style={{ padding: "16px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ fontSize: 24 }}>✦</span>
+            <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg,rgba(232,93,42,0.15),rgba(0,153,187,0.08))", flexShrink: 0 }}>
+              <Sparkle size={14} weight="fill" color="var(--accent)" />
+            </span>
               <div>
                 <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15 }}>
                   {intent.scenarioLabel} order · {intent.urgency} urgency
@@ -442,7 +475,7 @@ function CheckoutPage() {
                   {intent.confidence}% confident · via Amazon Bedrock
                 </div>
               </div>
-              {intent.usedBedrock && <span className="badge badge-purple" style={{ marginLeft: "auto" }}>AI ✓</span>}
+              {intent.usedBedrock && <span className="badge badge-purple" style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 3 }}><CheckCircle size={10} weight="fill" /> AI</span>}
             </div>
           )}
 
@@ -460,10 +493,12 @@ function CheckoutPage() {
           <div className="card" style={{ marginBottom: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>
-                  📍 Delivery Address
+                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>
+                  <MapPin size={14} weight="bold" color="var(--accent)" /> Delivery Address
                   {addressSaved && (
-                    <span style={{ marginLeft: 8, color: "var(--accent-green)", fontSize: 12 }}>✓ Saved</span>
+                    <span style={{ marginLeft: 8, color: "var(--accent-green)", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 3 }}>
+                      <CheckCircle size={11} weight="fill" /> Saved
+                    </span>
                   )}
                 </div>
                 {!editingAddress && (
@@ -477,10 +512,10 @@ function CheckoutPage() {
                 <button
                   id="change-address-btn"
                   className="btn-ghost"
-                  style={{ fontSize: 12, flexShrink: 0 }}
+                  style={{ fontSize: 12, flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4 }}
                   onClick={() => { setPendingAddress(address); setEditingAddress(true); }}
                 >
-                  ✏️ Change
+                  <PencilSimple size={11} weight="bold" /> Change
                 </button>
               )}
             </div>
@@ -498,7 +533,9 @@ function CheckoutPage() {
           <div className="card" style={{ marginBottom: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>💳 Payment</div>
+                <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>
+                  <CheckCircle size={14} weight="bold" color="var(--accent)" /> Payment
+                </div>
                 {!editingPayment && (
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
                     <div style={{
@@ -533,10 +570,10 @@ function CheckoutPage() {
                 <button
                   id="change-payment-btn"
                   className="btn-ghost"
-                  style={{ fontSize: 12, flexShrink: 0 }}
+                  style={{ fontSize: 12, flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4 }}
                   onClick={() => setEditingPayment(true)}
                 >
-                  ✏️ Change
+                  <PencilSimple size={11} weight="bold" /> Change
                 </button>
               )}
             </div>
@@ -578,14 +615,16 @@ function CheckoutPage() {
           {/* ETA chip */}
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
             <div className="badge badge-teal" style={{ fontSize: 14, padding: "10px 20px", borderRadius: 24 }}>
-              ⚡ Estimated delivery in {cart.estimatedEta} minutes
+              <Lightning size={14} weight="fill" /> Estimated delivery in {cart.estimatedEta} minutes
             </div>
           </div>
 
           {/* Confirm error */}
           {confirmError && (
             <div style={{ marginBottom: 16, padding: "12px 16px", borderRadius: 12, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontSize: 14 }}>
-              <div style={{ fontWeight: 600, marginBottom: 2 }}>⚠️ Confirmation failed</div>
+              <div style={{ fontWeight: 600, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>
+              <WarningCircle size={14} weight="fill" /> Confirmation failed
+            </div>
               <div style={{ fontSize: 13 }}>{confirmError}</div>
               <button
                 className="btn-ghost"
@@ -611,9 +650,9 @@ function CheckoutPage() {
               disabled={confirming || editingAddress || editingPayment}
             >
               {confirming ? (
-                <><span style={{ display: "inline-block", animation: "rotate-slow 0.8s linear infinite" }}>⚙️</span> Confirming…</>
+                <><span style={{ display: "inline-block", animation: "rotate-slow 0.8s linear infinite" }}><GearSix size={16} weight="bold" /></span> Confirming…</>
               ) : (
-                `✓ Confirm & Place Order · ₹${grandTotal}`
+                `Confirm & Place Order · ₹${grandTotal}`
               )}
             </button>
             <p style={{ textAlign: "center", color: "var(--text-faint)", fontSize: 11, marginTop: 8 }}>

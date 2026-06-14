@@ -1,5 +1,7 @@
 "use client";
 
+import { Lightning } from "@phosphor-icons/react";
+
 export function Logo() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -12,12 +14,11 @@ export function Logo() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: 18,
           boxShadow: "0 4px 16px rgba(255,107,53,0.4)",
           flexShrink: 0,
         }}
       >
-        ⚡
+        <Lightning size={20} weight="fill" color="#fff" />
       </div>
       <div>
         <div

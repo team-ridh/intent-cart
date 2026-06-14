@@ -1,6 +1,8 @@
 "use client";
 
 import type { CartItem } from "@/lib/types";
+import { Lightning, CurrencyDollar, ShieldCheck, Sparkle, X } from "@phosphor-icons/react";
+import type { ReactNode } from "react";
 
 const TYPE_COLOR: Record<string, string> = {
   fastest: "var(--accent-teal)",
@@ -9,11 +11,18 @@ const TYPE_COLOR: Record<string, string> = {
   best: "var(--accent)",
 };
 
+const TYPE_ICON: Record<string, ReactNode> = {
+  fastest:  <Lightning size={11} weight="fill" />,
+  cheapest: <CurrencyDollar size={11} weight="bold" />,
+  trusted:  <ShieldCheck size={11} weight="fill" />,
+  best:     <Sparkle size={11} weight="fill" />,
+};
+
 const TYPE_LABEL: Record<string, string> = {
-  fastest: "⚡ Fastest",
-  cheapest: "💰 Cheapest",
-  trusted: "⭐ Trusted",
-  best: "✦ Best Match",
+  fastest:  "Fastest",
+  cheapest: "Cheapest",
+  trusted:  "Trusted",
+  best:     "Best Match",
 };
 
 interface SubstituteDrawerProps {
@@ -96,7 +105,7 @@ export function SubstituteDrawer({
             id="close-substitute-drawer"
             aria-label="Close substitutes drawer"
           >
-            ✕
+            <X size={16} weight="bold" />
           </button>
         </div>
 
@@ -110,7 +119,9 @@ export function SubstituteDrawer({
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                <span className="badge badge-orange">✦ Best Match</span>
+                <span className="badge badge-orange" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <Sparkle size={10} weight="fill" /> Best Match
+                </span>
                 {!selectedId && (
                   <span style={{ fontSize: 11, color: "var(--accent)" }}>Selected</span>
                 )}
@@ -122,7 +133,9 @@ export function SubstituteDrawer({
               <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }}>
                 ₹{item.price}
               </div>
-              <div style={{ color: "var(--accent-teal)", fontSize: 12 }}>⚡ {item.eta} min</div>
+              <div style={{ color: "var(--accent-teal)", fontSize: 12, display: "flex", alignItems: "center", gap: 3 }}>
+                <Lightning size={11} weight="fill" /> {item.eta} min
+              </div>
             </div>
           </div>
         </div>
@@ -160,9 +173,12 @@ export function SubstituteDrawer({
                       color: TYPE_COLOR[sub.type],
                       border: `1px solid ${TYPE_COLOR[sub.type]}40`,
                       flexShrink: 0,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
                     }}
                   >
-                    {TYPE_LABEL[sub.type]}
+                    {TYPE_ICON[sub.type]} {TYPE_LABEL[sub.type]}
                   </span>
                   {selectedId === sub.id && (
                     <span style={{ fontSize: 11, color: "var(--accent)" }}>Selected</span>
@@ -200,7 +216,9 @@ export function SubstituteDrawer({
                     <span style={{ color: "#5cb85c", fontWeight: 600 }}>{sub.discount}% off</span>
                   </div>
                 )}
-                <div style={{ color: "var(--accent-teal)", fontSize: 12 }}>⚡ {sub.eta} min</div>
+                <div style={{ color: "var(--accent-teal)", fontSize: 12, display: "flex", alignItems: "center", gap: 3 }}>
+                  <Lightning size={11} weight="fill" /> {sub.eta} min
+                </div>
               </div>
             </div>
           </div>

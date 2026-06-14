@@ -1,5 +1,7 @@
 "use client";
 
+import { Sparkle } from "@phosphor-icons/react";
+
 interface IntentPreviewProps {
   preview: string;
   confidence: number;
@@ -21,7 +23,7 @@ export function IntentPreview({ preview, confidence, urgencyMode }: IntentPrevie
         gap: 10,
       }}
     >
-      <span style={{ fontSize: 18 }}>✦</span>
+      <Sparkle size={18} weight="fill" color="var(--accent)" />
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 13, color: "var(--accent)", fontWeight: 600 }}>{preview}</div>
         <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>

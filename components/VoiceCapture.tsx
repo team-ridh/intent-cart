@@ -1,5 +1,7 @@
 "use client";
 
+import { Microphone, StopCircle, X } from "@phosphor-icons/react";
+
 interface VoiceCaptureProps {
   isListening: boolean;
   isSupported: boolean;
@@ -29,7 +31,9 @@ export function VoiceCapture({
           fontSize: 14,
         }}
       >
-        <div style={{ fontSize: 32, marginBottom: 12 }}>🎙</div>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+          <Microphone size={32} weight="light" />
+        </div>
         <div style={{ fontWeight: 500, marginBottom: 6 }}>Voice not available</div>
         <div style={{ fontSize: 12 }}>
           Web Speech API requires Chrome on desktop. Please use the Type tab instead.
@@ -77,7 +81,6 @@ export function VoiceCapture({
               ? "linear-gradient(135deg,#E85D2A,#F97316)"
               : "var(--bg-elevated)",
             border: `2px solid ${isListening ? "var(--accent)" : "var(--border)"}`,
-            fontSize: 36,
             cursor: "pointer",
             transition: "all 0.2s ease",
             boxShadow: isListening ? "var(--shadow-glow)" : "none",
@@ -87,7 +90,10 @@ export function VoiceCapture({
           }}
           aria-label={isListening ? "Stop recording" : "Start recording"}
         >
-          {isListening ? "🛑" : "🎙"}
+          {isListening
+            ? <StopCircle size={36} weight="fill" color="#fff" />
+            : <Microphone size={36} weight="regular" color="var(--text-secondary)" />
+          }
         </button>
       </div>
 
@@ -125,8 +131,12 @@ export function VoiceCapture({
       )}
 
       {transcript && (
-        <button className="btn-ghost" style={{ marginTop: 12 }} onClick={onReset}>
-          ✕ Clear
+        <button
+          className="btn-ghost"
+          style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 6 }}
+          onClick={onReset}
+        >
+          <X size={14} weight="bold" /> Clear
         </button>
       )}
     </div>

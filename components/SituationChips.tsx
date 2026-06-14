@@ -1,20 +1,32 @@
 "use client";
 
+import type { ReactNode } from "react";
+import {
+  UsersThree,
+  CloudRain,
+  Coffee,
+  Lightning,
+  Backpack,
+  Thermometer,
+  Airplane,
+  Flame,
+} from "@phosphor-icons/react";
+
 interface Chip {
-  emoji: string;
+  icon: ReactNode;
   label: string;
   text: string;
 }
 
 const CHIPS: Chip[] = [
-  { emoji: "👥", label: "Guests arriving",  text: "Guests are arriving in 30 minutes" },
-  { emoji: "🌧️", label: "Rainy day",       text: "It's raining heavily outside today" },
-  { emoji: "☕", label: "Tea break",        text: "Time for an afternoon tea break" },
-  { emoji: "⚡", label: "Power cut",        text: "Power outage, need emergency items" },
-  { emoji: "🎒", label: "School project",   text: "My child has a school project due tomorrow" },
-  { emoji: "🤒", label: "Fever care",       text: "Feeling sick with fever and cold" },
-  { emoji: "✈️", label: "Travel prep",      text: "Leaving for a trip in 2 hours" },
-  { emoji: "🪔", label: "Pooja essentials", text: "Need pooja items before evening" },
+  { icon: <UsersThree size={14} weight="bold" />, label: "Guests arriving",  text: "Guests are arriving in 30 minutes" },
+  { icon: <CloudRain  size={14} weight="bold" />, label: "Rainy day",        text: "It's raining heavily outside today" },
+  { icon: <Coffee     size={14} weight="bold" />, label: "Tea break",        text: "Time for an afternoon tea break" },
+  { icon: <Lightning  size={14} weight="bold" />, label: "Power cut",        text: "Power outage, need emergency items" },
+  { icon: <Backpack   size={14} weight="bold" />, label: "School project",   text: "My child has a school project due tomorrow" },
+  { icon: <Thermometer size={14} weight="bold" />, label: "Fever care",      text: "Feeling sick with fever and cold" },
+  { icon: <Airplane   size={14} weight="bold" />, label: "Travel prep",      text: "Leaving for a trip in 2 hours" },
+  { icon: <Flame      size={14} weight="bold" />, label: "Pooja essentials", text: "Need pooja items before evening" },
 ];
 
 interface SituationChipsProps {
@@ -43,8 +55,9 @@ export function SituationChips({ activeText, onSelect }: SituationChipsProps) {
             id={`chip-${c.label.toLowerCase().replace(/\s+/g, "-")}`}
             className={`chip animate-float-in${activeText === c.text ? " active" : ""}`}
             onClick={() => onSelect(c.text)}
+            style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
           >
-            <span>{c.emoji}</span> {c.label}
+            {c.icon} {c.label}
           </button>
         ))}
       </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { CartItem } from "@/lib/types";
+import { Lightning, X, ArrowsLeftRight, Trophy, CheckCircle, Package } from "@phosphor-icons/react";
 
 const TAG_COLORS: Record<string, string> = {
   "Hosting essential": "orange",
@@ -99,12 +100,16 @@ export function CartItemCard({
             style={{ width: "100%", height: "100%", objectFit: "contain", padding: 6 }}
             onError={(e) => {
               e.currentTarget.style.display = "none";
-              if (e.currentTarget.parentElement)
-                e.currentTarget.parentElement.textContent = "📦";
+              const parent = e.currentTarget.parentElement;
+              if (parent) {
+                const icon = document.createElement("div");
+                icon.style.cssText = "display:flex;align-items:center;justify-content:center;width:100%;height:100%";
+                parent.appendChild(icon);
+              }
             }}
           />
         ) : (
-          item.image
+          <Package size={28} weight="light" color="var(--text-muted)" />
         )}
       </div>
 
@@ -113,8 +118,14 @@ export function CartItemCard({
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             {item.badge && (
-              <div style={{ fontSize: 10, fontWeight: 700, color: "#FF9900", marginBottom: 2, letterSpacing: "0.04em" }}>
-                {item.badge === "Best Seller" ? "🏆 " : item.badge === "Amazon's Choice" ? "✓ " : ""}{item.badge}
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#FF9900", marginBottom: 2, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 3 }}>
+                {item.badge === "Best Seller"
+                  ? <Trophy size={10} weight="fill" color="#FF9900" />
+                  : item.badge === "Amazon's Choice"
+                  ? <CheckCircle size={10} weight="fill" color="#FF9900" />
+                  : null
+                }
+                {item.badge}
               </div>
             )}
             <div style={{ fontWeight: 600, fontSize: 15, lineHeight: 1.3 }}>{displayName}</div>
@@ -162,7 +173,7 @@ export function CartItemCard({
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
           {/* ETA */}
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <span style={{ color: "var(--accent-teal)", fontSize: 12 }}>⚡</span>
+            <Lightning size={12} weight="fill" color="var(--accent-teal)" />
             <span style={{ color: "var(--accent-teal)", fontSize: 12, fontWeight: 600 }}>
               {displayEta} min
             </span>
@@ -202,12 +213,16 @@ export function CartItemCard({
                 fontSize: 12,
                 padding: "4px 10px",
                 color: activeSub ? "var(--accent)" : "var(--text-muted)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
               }}
               onClick={onOpenSubs}
             >
               {activeSub
-                ? `✓ ${activeSub.name.split(" ")[0]}`
-                : `⇄ Substitutes (${item.substitutes.length})`}
+                ? <><CheckCircle size={12} weight="fill" /> {activeSub.name.split(" ")[0]}</>
+                : <><ArrowsLeftRight size={12} weight="bold" /> Substitutes ({item.substitutes.length})</>
+              }
             </button>
           )}
 
@@ -215,11 +230,11 @@ export function CartItemCard({
           <button
             id={`remove-${item.id}`}
             className="btn-ghost"
-            style={{ fontSize: 12, padding: "4px 8px", color: "var(--text-faint)", marginLeft: "auto" }}
+            style={{ fontSize: 12, padding: "4px 8px", color: "var(--text-faint)", marginLeft: "auto", display: "inline-flex", alignItems: "center" }}
             onClick={handleRemove}
             aria-label={`Remove ${item.name}`}
           >
-            ✕
+            <X size={14} weight="bold" />
           </button>
         </div>
       </div>
