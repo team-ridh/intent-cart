@@ -11,7 +11,9 @@ export type Scenario =
   | "power_cut"
   | "school"
   | "tea_break"
-  | "general";
+  | "general"
+  | "cooking"
+  | "home_repair";
 
 export interface ParsedIntent {
   scenario: Scenario;

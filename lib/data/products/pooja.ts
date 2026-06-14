@@ -168,3 +168,31 @@ export const EVEREST_TURMERIC = item(
   "Haldi for tilak and purification ritual", "Purification ritual", 14,
   [], false, true
 );
+
+export const DIYA_CLAY = item(
+  "pja_008", "Clay Diyas for Puja", "Amazon Local",
+  "Puja Needs",
+  35, 40, 1, "pack of 10 diyas",
+  CDN("71VpPHiWqjL"),
+  "B07WDHKN6L", 4.2, 8923,
+  "",
+  "Handmade unglazed terracotta diyas — traditional oil lamps for puja and festivals",
+  "Traditional oil lamps for aarti and puja ritual", "Diya lamp", 16,
+  [
+    sub("pja_008_s1", "Wax Tea Light Candles (24 pack)", "Generic",
+      65, 75, "fastest", "Fastest", "No oil needed, instant light, widely stocked",
+      12, CDN("71vPHiWqiL"), "B07WDKH6TR", 4.3, 15678),
+  ]
+);
+
+export const KUMKUM = item(
+  "pja_009", "Mangalya Kumkum Powder", "Mangalya",
+  "Puja Needs",
+  25, 30, 1, "50 g",
+  CDN("71qMdn9PbXL"),
+  "B07XKHQM1P", 4.4, 12345,
+  "Amazon's Choice",
+  "Pure vermilion kumkum for tilak and puja rituals — bright red, finely ground",
+  "Tilak and ritual kumkum application", "Ritual essential", 14,
+  [], false, true
+);

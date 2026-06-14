@@ -14,3 +14,4 @@ export * from "./products/pooja";
 export * from "./products/emergency";
 export * from "./products/stationery";
 export * from "./products/travel";
+export * from "./products/household";

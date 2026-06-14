@@ -154,3 +154,22 @@ export const LIMCEE_VITAMIN_C = item(
   "Vitamin C boost and natural immunity support", "Immunity boost", 15,
   [], false, true
 );
+
+export const OMRON_THERMOMETER = item(
+  "med_007", "Dr. Trust Digital Thermometer", "Dr. Trust",
+  "Health & Personal Care",
+  249, 299, 1, "piece",
+  CDN("71T2pNFY2vL"),
+  "B07XKHQT5Q", 4.5, 45231,
+  "Amazon's Choice",
+  "Fast 60-second digital thermometer with fever alert — accurate ±0.1°C, memory function",
+  "Monitor fever accurately at home", "Fever monitoring", 16,
+  [
+    sub("med_007_s1", "Omron MC-246 Digital Thermometer", "Omron Healthcare",
+      395, 450, "trusted", "Most Trusted", "Hospital-grade accuracy, 10-year warranty",
+      18, CDN("71UMK7VPkTL"), "B08JKQ6D2P", 4.6, 34521),
+    sub("med_007_s2", "Beurer FT09 Thermometer", "Beurer",
+      199, 249, "cheapest", "Best Value", "₹50 cheaper, same 60-second measurement",
+      16, CDN("71EFjHq8xGL"), "B07PQV7T3L", 4.3, 18923),
+  ]
+);

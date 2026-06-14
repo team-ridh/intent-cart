@@ -12,7 +12,6 @@ import {
   AMUL_TAAZA_MILK,
   CADBURY_DRINKING_CHOCOLATE,
   BISLERI_WATER_1L,
-  BRU_INSTANT_COFFEE,
 } from "./products/beverages";
 
 import {
@@ -24,9 +23,10 @@ import {
   BRITANNIA_BREAD,
   AMUL_BUTTER,
   FARM_EGGS_6PCS,
-  DABUR_HONEY,
-  YOGA_BAR_ENERGY,
   HALDIRAMS_BHUJIA,
+  PAPER_CUPS,
+  PAPER_NAPKINS,
+  SUGAR_500G,
 } from "./products/food";
 
 import {
@@ -36,6 +36,7 @@ import {
   ELECTRAL_ORS,
   DABUR_HONEY_MED,
   LIMCEE_VITAMIN_C,
+  OMRON_THERMOMETER,
 } from "./products/medicines";
 
 import {
@@ -46,7 +47,21 @@ import {
   AMUL_GHEE,
   INDIA_GATE_RICE,
   EVEREST_TURMERIC,
+  DIYA_CLAY,
+  KUMKUM,
 } from "./products/pooja";
+
+import {
+  FORTUNE_SUNFLOWER_OIL,
+  TATA_SALT,
+  INDIA_GATE_RICE_5KG,
+  TOOR_DAL_1KG,
+  ONIONS_1KG,
+  TOMATOES_500G,
+  WIPRO_LED_BULB,
+  SCOTCH_TAPE,
+  VIM_DISHWASH,
+} from "./products/household";
 
 import {
   EVEREADY_TORCH,
@@ -144,6 +159,7 @@ const TEA_BREAK_MILK = {
   eta: 10,
 };
 
+
 // ─── SCENARIO_CARTS ────────────────────────────────────────────────
 export const SCENARIO_CARTS: Record<Scenario, CartItem[]> = {
 
@@ -151,14 +167,18 @@ export const SCENARIO_CARTS: Record<Scenario, CartItem[]> = {
   hosting: [
     TATA_TEA_GOLD,
     AMUL_TAAZA_MILK,
+    SUGAR_500G,
     BRITANNIA_MARIE_GOLD,
     HALDIRAMS_BHUJIA,
     PARLE_KHARI,
+    PAPER_CUPS,
+    PAPER_NAPKINS,
   ],
 
   // ── Fever Care ─────────────────────────────────────────────────
   fever: [
     DOLO_650,
+    OMRON_THERMOMETER,
     VICKS_VAPORUB,
     KLEENEX_TISSUES,
     ELECTRAL_ORS,
@@ -171,15 +191,19 @@ export const SCENARIO_CARTS: Record<Scenario, CartItem[]> = {
   pooja: [
     CYCLE_AGARBATTI,
     MANGALDEEP_CAMPHOR,
+    DIYA_CLAY,
     POOJA_FLOWERS,
     COCONUT_POOJA,
     AMUL_GHEE,
     INDIA_GATE_RICE,
     EVEREST_TURMERIC,
+    KUMKUM,
   ],
 
   // ── Rainy Day ─────────────────────────────────────────────────
   rainy: [
+    RAINY_TEA,
+    RAINY_MILK,
     CADBURY_DRINKING_CHOCOLATE,
     BRITANNIA_BREAD,
     AMUL_BUTTER,
@@ -233,6 +257,26 @@ export const SCENARIO_CARTS: Record<Scenario, CartItem[]> = {
     BRITANNIA_BREAD,
     GENERAL_MILK,
     GENERAL_EGGS,
+    ONIONS_1KG,
+    TOMATOES_500G,
+    TATA_SALT,
     GENERAL_MAGGI,
+  ],
+
+  // ── Cooking out of ingredients ────────────────────────────────
+  cooking: [
+    FORTUNE_SUNFLOWER_OIL,
+    TATA_SALT,
+    ONIONS_1KG,
+    TOMATOES_500G,
+    TOOR_DAL_1KG,
+    INDIA_GATE_RICE_5KG,
+  ],
+
+  // ── Home Repair ───────────────────────────────────────────────
+  home_repair: [
+    WIPRO_LED_BULB,
+    SCOTCH_TAPE,
+    VIM_DISHWASH,
   ],
 };

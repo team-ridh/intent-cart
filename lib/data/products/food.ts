@@ -259,3 +259,50 @@ export const YOGA_BAR_ENERGY = item(
       10, IMG.snickers, "B07PQ9V5RL", 4.4, 67234),
   ]
 );
+
+export const PAPER_CUPS = item(
+  "food_012", "Disposable Paper Cups", "Solo India",
+  "Disposables & Packaging",
+  65, 75, 1, "pack of 50",
+  CDN("71SKKjG4WRL"),
+  "B07WDHKQ9L", 4.2, 28934,
+  "Amazon's Choice",
+  "Food-grade single-use 150ml paper cups — ideal for serving hot and cold beverages",
+  "Essential for serving guests without washing up", "Serving essential", 10,
+  [
+    sub("food_012_s1", "Chuk Compostable Paper Cups", "Chuk",
+      89, 99, "trusted", "Most Trusted", "100% compostable, eco-friendly alternative",
+      12, CDN("71vOHiVMhRL"), "B08JKQD3P1", 4.4, 12456),
+    sub("food_012_s2", "Plastic Shot Glasses (50ml)", "Generic",
+      45, 50, "cheapest", "Best Value", "₹20 cheaper, reusable for future gatherings",
+      10, CDN("71EFjHq7xGL"), "B07PQV5T8L", 4.0, 8923),
+  ]
+);
+
+export const PAPER_NAPKINS = item(
+  "food_013", "Scotts 2-Ply Paper Napkins", "Kimberly-Clark",
+  "Disposables & Packaging",
+  55, 62, 1, "pack of 50",
+  CDN("81yPcGk2LzL"),
+  "B07XKHQM7P", 4.3, 19234,
+  "",
+  "2-ply white napkins — soft and absorbent, great for serving snacks and meals",
+  "Convenience item for guest hosting", "Hosting convenience", 10,
+  [], false, true
+);
+
+export const SUGAR_500G = item(
+  "food_014", "Uttam Sugar", "Uttam Sugar Mills",
+  "Sugar, Salt & Jaggery",
+  32, 35, 1, "500 g",
+  CDN("71I4Y1KNABL"),
+  "B07WDHKQ2L", 4.3, 34521,
+  "Best Seller",
+  "Refined white crystal sugar — essential for tea, coffee and sweet preparations",
+  "Required for sweetened beverages", "Tea essential", 10,
+  [
+    sub("food_014_s1", "Patanjali Mishri Crystal Sugar", "Patanjali Ayurved",
+      35, 40, "trusted", "Most Trusted", "Rock candy sugar preferred for traditional chai",
+      12, CDN("71I4Y2KNABL"), "B07PQV5T7L", 4.4, 18923),
+  ]
+);
