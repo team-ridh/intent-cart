@@ -112,7 +112,14 @@ export const MATCHBOX = item(
   "",
   "Safety matchbox with 50 wax sticks — weather-resistant, reliable fire starter",
   "Fire starter for candles and emergency use", "Fire starter", 12,
-  []
+  [
+    sub("emer_004_s1", "Aim Safety Matchbox", "Wimco Limited",
+      12, 15, "fastest", "Fastest", "Lighter pack, fastest available at nearby kirana stores",
+      8, IMG.matchbox, "B07WDKH4TR", 4.2, 5678),
+    sub("emer_004_s2", "Onida Safety Lighter", "Onida India",
+      35, 40, "trusted", "Most Trusted", "Refillable gas lighter, more reliable than matchbox in humid conditions",
+      12, IMG.matchbox, "B07PQV4T5L", 4.4, 12345),
+  ]
 );
 
 export const MI_POWERBANK_20000 = item(
@@ -143,5 +150,12 @@ export const BISLERI_2L = item(
   "Best Seller",
   "Large 2L bottle — stock up when the water pump may fail during an outage",
   "Stock water in case pump fails", "Water backup", 12,
-  []
+  [
+    sub("emer_006_s1", "Kinley Packaged Drinking Water 2L", "Coca-Cola India",
+      55, 55, "cheapest", "Best Value", "₹10 cheaper for 2L, widely available",
+      10, IMG.bisleriLarge, "B07WDKH9TR", 4.3, 18923),
+    sub("emer_006_s2", "Aquafina Drinking Water 2L", "PepsiCo India",
+      58, 58, "fastest", "Fastest", "Fastest available 2L stock, same safety standards",
+      8, IMG.bisleriLarge, "B07PQV5T2L", 4.3, 14567),
+  ]
 );

@@ -109,7 +109,14 @@ export const COCONUT_POOJA = item(
   "Amazon Fresh",
   "Fresh, husk-trimmed coconuts for ritual offerings — selected for proper size and weight",
   "Auspicious offering for pooja ritual", "Sacred offering", 18,
-  []
+  [
+    sub("pja_004_s1", "Coconut Pooja Pack (Husk-free)", "Amazon Fresh",
+      55, 65, "fastest", "Fastest", "Pre-husked, ready to use — no preparation needed",
+      14, IMG.coconut, "B07XKHQP7E", 4.2, 3456),
+    sub("pja_004_s2", "Dry Coconut (Khopar) for Pooja", "Amazon Fresh",
+      45, 50, "trusted", "Most Trusted", "Traditionally preferred for longer rituals, better shelf life",
+      18, IMG.coconut, "B08JKQ4D2P", 4.4, 8923),
+  ]
 );
 
 export const AMUL_GHEE = item(
@@ -137,7 +144,17 @@ export const INDIA_GATE_RICE = item(
   "Best Seller",
   "Extra-long aged Basmati rice — perfect as akshat (raw rice) for ritual offerings",
   "Akshat (raw rice) for ritual offering", "Ritual offering", 14,
-  []
+  [
+    sub("pja_006_s1", "Daawat Rozana Basmati Rice 1kg", "LT Foods",
+      65, 72, "cheapest", "Best Value", "₹10 cheaper, long-grain basmati, widely available",
+      12, IMG.indiaGate, "B07PQV3T4L", 4.3, 45231),
+    sub("pja_006_s2", "India Gate Feast Rozzana Rice", "KRBL Limited",
+      59, 65, "fastest", "Fastest", "Same brand, smaller pack, fastest dark store availability",
+      10, IMG.indiaGate, "B07WDHKP7L", 4.3, 34521),
+    sub("pja_006_s3", "Kohinoor Super Value Basmati Rice", "McCormick India",
+      89, 99, "trusted", "Most Trusted", "Premium aged basmati, preferred for ceremonial use",
+      14, IMG.indiaGate, "B07XKHQM2P", 4.5, 67234),
+  ]
 );
 
 export const EVEREST_TURMERIC = item(

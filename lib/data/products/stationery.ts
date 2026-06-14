@@ -118,7 +118,14 @@ export const CLASSMATE_SCISSORS = item(
   "",
   "Stainless steel blades with comfortable moulded grip — child-safe rounded tip",
   "Cutting tool for craft and project work", "Craft tool", 14,
-  []
+  [
+    sub("sta_005_s1", "Faber-Castell Comfort Grip Scissors", "Faber-Castell",
+      65, 75, "trusted", "Most Trusted", "Premium ergonomic grip, sharper stainless steel blades",
+      14, IMG.classmateScis, "B07WDHKQ3L", 4.6, 22345),
+    sub("sta_005_s2", "Camlin Craft Scissors", "Kokuyo Camlin",
+      35, 40, "cheapest", "Best Value", "₹14 cheaper, same child-safe design",
+      12, IMG.classmateScis, "B07PQV5T4L", 4.2, 12456),
+  ]
 );
 
 export const DRAWING_SHEETS_ITC = item(
@@ -130,7 +137,11 @@ export const DRAWING_SHEETS_ITC = item(
   "",
   "200 GSM thick cartridge paper — bright white, perfect for poster & project display",
   "Extra display sheets for project presentation", "Display sheets", 12,
-  []
+  [
+    sub("sta_006_s1", "Maplitho A3 Drawing Paper Sheets", "Maplitho",
+      15, 18, "cheapest", "Best Value", "₹7 cheaper for 5 sheets, same 150 GSM thickness",
+      12, IMG.drawingSheet, "B07PQV5T3L", 4.1, 6234),
+  ]
 );
 
 export const CAMLIN_RULER = item(

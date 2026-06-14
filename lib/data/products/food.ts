@@ -9,10 +9,16 @@ const IMG = {
   monaco:        CDN("81cO5N7QVNL"),   // Parle Monaco
   khari:         CDN("71vN5xKBP4L"),   // Parle Khari Biscuit
   maggi:         CDN("71SKKjG1WRL"),   // Maggi Noodles 2-Min
+
   yippee:        CDN("71Uf5n8KPNL"),   // Sunfeast YiPPee Noodles
+  knorrSoupy:    CDN("71VqOHiVqkL"),   // Knorr Soupy Noodles
+  maggiNutri:    CDN("71SKKjG2WRL"),   // Maggi Nutri-licious Oats
   britanniaBread:CDN("81Uh3KpVDmL"),   // Britannia White Bread
   modernBread:   CDN("71hG5xkQWRL"),   // Modern Bread
+  harvestGold:   CDN("71vN6xKCP4L"),   // Harvest Gold Bread
   amulButter:    CDN("61UMK6VPiTL"),   // Amul Butter 100g
+  britanniaButter:CDN("71SKKjG3WRL"),  // Britannia Winkin' Cow Butter
+  amulGoldButter: CDN("71LMFhF+uUL"),  // Amul Gold Butter
   eggs:          CDN("71N5xKFBPRL"),   // Farm Fresh Eggs
   haldirams:     CDN("81yPcFk1LzL"),   // Haldirams Bhujia
   bikajiMix:     CDN("71vOHiVKhRL"),   // Bikaji Namkeen Mix
@@ -137,6 +143,9 @@ export const MAGGI_NOODLES = item(
     sub("food_005_s1", "Sunfeast YiPPee! Magic Masala Noodles", "ITC Limited",
       48, 56, "cheapest", "Best Value", "₹9 cheaper for 4 packs, thicker noodles",
       10, IMG.yippee, "B08JKQ9D2P", 4.3, 98234),
+    sub("food_005_s2", "Knorr Soupy Noodles", "Hindustan Unilever",
+      62, 70, "trusted", "Most Trusted", "Soup + noodles in one, higher protein & nutrition",
+      12, IMG.knorrSoupy, "B07WDHKQ7L", 4.4, 56782),
   ]
 );
 
@@ -153,6 +162,12 @@ export const KNORR_SOUP = item(
     sub("food_006_s1", "Ching's Secret Hot & Sour Soup", "Capital Foods",
       45, 52, "cheapest", "Best Value", "₹24 cheaper per pack, spicy Indo-Chinese",
       10, IMG.chingsSoup, "B07VPH8KQR", 4.2, 18234),
+    sub("food_006_s2", "Maggi Nutri-licious Masala Oats", "Nestlé India",
+      62, 70, "fastest", "Fastest", "8 min ETA, widely stocked across all dark stores",
+      8, IMG.maggiNutri, "B07WDHKP5L", 4.3, 34521),
+    sub("food_006_s3", "Knorr Tomato Ketchup Soup", "Hindustan Unilever",
+      79, 85, "trusted", "Most Trusted", "Most reviewed HUL soup — rich tomato base",
+      12, IMG.knorrSoup, "B07XKHQT3P", 4.5, 52341),
   ]
 );
 
@@ -171,6 +186,9 @@ export const BRITANNIA_BREAD = item(
     sub("food_007_s1", "Modern Bread Classic Sliced", "Hindustan Unilever",
       38, 40, "cheapest", "Best Value", "₹6 cheaper, same soft freshness",
       10, IMG.modernBread, "B07WDKH7TR", 4.2, 18923),
+    sub("food_007_s2", "Harvest Gold Sandwich Bread", "Harvest Gold",
+      39, 42, "fastest", "Fastest", "8 min ETA, widely available in most dark stores",
+      8, IMG.harvestGold, "B07PQV6T5L", 4.2, 14567),
   ]
 );
 
@@ -183,7 +201,17 @@ export const AMUL_BUTTER = item(
   "Best Seller",
   "The original Amul butter — made from fresh pasteurised cream, no preservatives",
   "Pairs with bread for a quick warm snack", "Snack pairing", 12,
-  []
+  [
+    sub("food_008_s1", "Britannia Winkin' Cow Butter", "Britannia Industries",
+      52, 56, "cheapest", "Best Value", "₹6 cheaper, same quality pasteurised butter",
+      10, IMG.britanniaButter, "B07WDHKQ8L", 4.3, 23456),
+    sub("food_008_s2", "Mother Dairy Butter 100g", "Mother Dairy",
+      55, 58, "fastest", "Fastest", "8 min ETA, widely available at nearby dark stores",
+      8, IMG.amulButter, "B07XKHQP8E", 4.3, 18234),
+    sub("food_008_s3", "Amul Gold Butter 100g", "Amul (GCMMF)",
+      68, 72, "trusted", "Most Trusted", "Premium Amul Gold — richer, creamier texture",
+      12, IMG.amulGoldButter, "B07XKHQT8P", 4.6, 62341),
+  ]
 );
 
 export const FARM_EGGS_6PCS = item(

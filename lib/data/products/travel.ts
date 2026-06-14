@@ -9,6 +9,7 @@ const IMG = {
   tooyumm:       CDN("71lniJyDMjL"),   // Too Yumm Trail Mix
   yogabar:       CDN("81H5xDYFpjL"),   // Yoga Bar Oats & Berries
   snickers:      CDN("71LMFhG+uXL"),   // Snickers Bar
+  haldirams:     CDN("81yPcFk1LzL"),   // Haldirams Bhujia (for cheapest sub)
   dettol:        CDN("71SKKjG2WRL"),   // Dettol Hand Sanitizer
   purell:        CDN("81yPcGk1LzL"),   // Purell Hand Sanitizer
   syska:         CDN("61qNanBQ9bXL"),  // Syska Travel Charger
@@ -78,7 +79,14 @@ export const TOOYUMM_TRAIL_MIX = item(
   "Amazon's Choice",
   "Baked not fried multigrain crisps — 40% less fat, great for on-the-go snacking",
   "Healthy travel snack to avoid airport prices", "Travel snack", 12,
-  []
+  [
+    sub("trv_002_s1", "Haldiram's Aloo Bhujia 150g", "Haldiram's",
+      55, 60, "cheapest", "Best Value", "₹10 cheaper, India's most beloved namkeen",
+      10, IMG.tooyumm, "B07VPH3KQR", 4.5, 52341),
+    sub("trv_002_s2", "Yoga Bar Multigrain Energy Bar", "ITC Limited",
+      75, 85, "trusted", "Most Trusted", "High protein, no preservatives, cleaner nutrition",
+      12, IMG.yogabar, "B07XKHQM8P", 4.4, 29876),
+  ]
 );
 
 export const YOGA_BAR_TRAVEL = item(

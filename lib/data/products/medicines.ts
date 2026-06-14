@@ -7,9 +7,12 @@ const IMG = {
   crocin:        CDN("71T2pMFW2vL"),   // Crocin Advance 500mg
   calpol:        CDN("71vOHiVqiL"),    // Calpol 500 Paracetamol
   vicks:         CDN("71SKKjG0WRL"),   // Vicks VapoRub 25g
+  moov:          CDN("71qKanBPeXL"),   // Moov Fast Pain Relief
+  zanduBalm:     CDN("71T3pMFW3vL"),   // Zandu Balm
   kleenex:       CDN("81lniJyDSjL"),   // Kleenex Tissues
   puffs:         CDN("71UMK6VPjTL"),   // P&G Puffs Tissues
   electral:      CDN("71I2X0KNABL"),   // Electral ORS Sachets
+  enerzal:       CDN("71MBrJFnEZL"),   // Enerzal ORS Powder
   glucose:       CDN("71MBrJFmEZL"),   // Glucon-D Glucose Powder
   knorrChicken:  CDN("71VqOHiVqjL"),   // Knorr Chicken Soup
   chingsSoup:    CDN("71EFjHq5xGL"),   // Ching's Manchow Soup
@@ -77,7 +80,17 @@ export const VICKS_VAPORUB = item(
   "Best Seller",
   "Medicated chest, throat & back rub for symptomatic relief of cold & cough",
   "Chest rub for cold and congestion relief", "Congestion relief", 10,
-  []
+  [
+    sub("med_002_s1", "Moov Fast Pain Relief Cream", "Reckitt Benckiser India",
+      79, 89, "fastest", "Fastest", "8 min ETA, widely stocked, fast-acting relief",
+      8, IMG.moov, "B07WDHKQ9L", 4.3, 38912),
+    sub("med_002_s2", "Zandu Balm", "Emami Limited",
+      59, 65, "cheapest", "Best Value", "₹35 cheaper, multi-purpose pain + cold relief",
+      10, IMG.zanduBalm, "B07PQV7T2L", 4.4, 91234),
+    sub("med_002_s3", "Vicks VapoRub 50g (Large)", "Procter & Gamble",
+      155, 170, "trusted", "Most Trusted", "Same trusted formula, larger pack for longer recovery",
+      10, IMG.vicks, "B07QPVK4NT", 4.7, 145678),
+  ]
 );
 
 export const KLEENEX_TISSUES = item(
@@ -106,9 +119,15 @@ export const ELECTRAL_ORS = item(
   "WHO-approved oral rehydration salts — replaces electrolytes lost during fever & diarrhoea",
   "Electrolyte replacement to prevent dehydration", "Hydration", 10,
   [
-    sub("med_004_s1", "Glucon-D Orange Glucose Powder", "Heinz India",
-      65, 72, "trusted", "Most Trusted", "Instant glucose energy + Vitamin C",
+    sub("med_004_s1", "Enerzal ORS Powder (Orange)", "Franco-Indian Pharmaceuticals",
+      45, 50, "fastest", "Fastest", "Same manufacturer, fastest available at nearby stores",
+      8, IMG.enerzal, "B08JKQ5D2P", 4.4, 19234),
+    sub("med_004_s2", "Glucon-D Orange Glucose Powder", "Heinz India",
+      65, 72, "cheapest", "Best Value", "Affordable glucose + energy boost, widely available",
       12, IMG.glucose, "B07WDK4Q9R", 4.3, 28923),
+    sub("med_004_s3", "Pedialyte ORS Sachet", "Abbott India",
+      95, 105, "trusted", "Most Trusted", "Paediatrician-recommended, precise WHO formula",
+      14, IMG.electral, "B08TQRK7PL", 4.6, 34521),
   ]
 );
 
