@@ -1,6 +1,88 @@
 /* ─── Google Fonts ──────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* ─── Amazon Ember Display (self-hosted) ────────────────────── */
+@font-face {
+  font-family: 'Amazon Ember Display';
+  src: url('/fonts/Ember Display/AmazonEmberDisplay_Lt.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Amazon Ember Display';
+  src: url('/fonts/Ember Display/AmazonEmberDisplay_Rg.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Amazon Ember Display';
+  src: url('/fonts/Ember Display/AmazonEmberDisplay_Md.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Amazon Ember Display';
+  src: url('/fonts/Ember Display/AmazonEmberDisplay_Bd.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Amazon Ember Display';
+  src: url('/fonts/Ember Display/AmazonEmberDisplay_He.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ─── Amazon Ember (self-hosted) ────────────────────────────── */
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/Ember/AmazonEmber_Lt.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/Ember/AmazonEmber_LtIt.ttf') format('truetype');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/Ember/AmazonEmber_Rg.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/Ember/Amazon-Ember-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/Ember/AmazonEmber_Bd.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @import "tailwindcss";
 
 /* ─── Design Tokens ─────────────────────────────────────────── */
@@ -40,8 +122,9 @@
   --shadow-card:     0 2px 16px rgba(0, 0, 0, 0.08);
   --shadow-elevated: 0 8px 40px rgba(0, 0, 0, 0.12);
 
-  --font-display:    'Outfit', sans-serif;
-  --font-body:       'Inter', sans-serif;
+  --font-display:    'Amazon Ember Display', 'Outfit', sans-serif;
+  --font-body:       'Amazon Ember', 'Inter', sans-serif;
+  --font-ember:      'Amazon Ember Display', 'Amazon Ember', 'Outfit', sans-serif;
 }
 
 /* ─── Reset ─────────────────────────────────────────────────── */
@@ -52,11 +135,18 @@ html { scroll-behavior: smooth; }
 body {
   background-color: var(--bg-base);
   color: var(--text-primary);
-  font-family: var(--font-body);
+  font-family: 'Amazon Ember', 'Inter', sans-serif;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+/* ─── Headings — Amazon Ember Display per brand guidelines ──── */
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: 0;
+  line-height: 1.2;
 }
 
 /* ─── Background Grid ───────────────────────────────────────── */
