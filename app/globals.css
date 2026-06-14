@@ -534,6 +534,60 @@ input, textarea, select { font-size: max(16px, 1em); }
 }
 .animate-fade-backdrop { animation: fade-backdrop 0.2s ease; }
 
+/* ─── Cart page two-column layout ───────────────────────────── */
+
+/* Mobile: single column — sidebar stacks below items */
+.cart-layout {
+  grid-template-columns: 1fr !important;
+}
+
+/* Hide sidebar on mobile (order summary is embedded inline) */
+.cart-sidebar {
+  display: none;
+}
+
+/* Show the mobile subtotal line below cart items on mobile */
+.cart-mobile-subtotal {
+  display: block;
+}
+
+/* Hide the mobile fixed bottom bar on desktop */
+.cart-bottom-bar {
+  display: flex;
+}
+
+/* Desktop: two columns, sidebar pinned — matches Amazon's ~300px sidebar */
+@media (min-width: 860px) {
+  .cart-layout {
+    grid-template-columns: 1fr 316px !important;
+  }
+
+  .cart-sidebar {
+    display: block;
+    position: sticky;
+    top: 64px; /* sits just below the sticky header */
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  /* Hide mobile subtotal — sidebar has it */
+  .cart-mobile-subtotal {
+    display: none;
+  }
+
+  /* Hide the fixed bottom bar on desktop — sidebar has checkout */
+  .cart-bottom-bar {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .cart-layout {
+    grid-template-columns: 1fr 360px !important;
+  }
+}
+
 /* ─── Small screens (≤ 480px) ───────────────────────────────── */
 @media (max-width: 480px) {
   /* Tighter heading tracking on narrow screens */

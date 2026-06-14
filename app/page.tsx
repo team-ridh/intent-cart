@@ -512,7 +512,7 @@ function SituationPage() {
         minHeight: "100svh",
         display: "flex",
         flexDirection: "column",
-        padding: "0 16px",
+        padding: 0,
         position: "relative",
         overflow: "hidden",
       }}
@@ -557,14 +557,15 @@ function SituationPage() {
       <div
         style={{
           width: "100%",
-          maxWidth: 640,
+          maxWidth: 1100,
           margin: "0 auto",
           position: "relative",
           zIndex: 1,
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          paddingBottom: 100, // clearance for fixed CTA
+          paddingBottom: 100,
+          padding: "0 clamp(16px, 5vw, 80px)",
         }}
       >
         {/* Nav */}
@@ -761,7 +762,7 @@ function SituationPage() {
           zIndex: 20,
         }}
       >
-        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 clamp(16px, 5vw, 80px)", width: "100%" }}>
           <Button
             id="build-cart-btn"
             variant="primary"

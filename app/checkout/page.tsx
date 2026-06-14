@@ -450,7 +450,7 @@ function CheckoutPage() {
   }
 
   return (
-    <main style={{ minHeight: "100vh", paddingBottom: "max(160px, calc(140px + env(safe-area-inset-bottom)))", maxWidth: 680, margin: "0 auto", padding: "0 16px" }}>
+    <main style={{ minHeight: "100vh", paddingBottom: "max(160px, calc(140px + env(safe-area-inset-bottom)))", padding: "0 clamp(16px, 5vw, 80px)" }}>
 
       {/* Demo mode banner */}
       <div style={{
@@ -487,10 +487,11 @@ function CheckoutPage() {
       </div>
 
       {isLoading ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ maxWidth: 760, margin: "0 auto", display: "flex", flexDirection: "column", gap: 12 }}>
           {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : cart && (
+        <div style={{ maxWidth: 760, margin: "0 auto" }}>
         <>
           {/* Intent badge */}
           {intent && (
@@ -667,12 +668,13 @@ function CheckoutPage() {
             </div>
           )}
         </>
+        </div>
       )}
 
       {/* Bottom CTA */}
       {!isLoading && cart && !confirmed && (
         <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, padding: "16px 20px", paddingBottom: "max(20px, env(safe-area-inset-bottom))", background: "rgba(245,246,250,0.97)", backdropFilter: "blur(20px)", borderTop: "1px solid var(--border)", zIndex: 20 }}>
-          <div style={{ maxWidth: 680, margin: "0 auto" }}>
+          <div style={{ padding: "0 clamp(16px, 5vw, 80px)" }}>
             <button
               id="confirm-order-btn"
               className="btn-primary"
