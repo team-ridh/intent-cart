@@ -81,7 +81,7 @@ function CartPage() {
     <main className="min-h-screen pb-32" style={{ maxWidth: 680, margin: "0 auto", padding: "0 16px" }}>
 
       {/* Sticky header */}
-      <div style={{ position: "sticky", top: 0, zIndex: 30, background: "rgba(10,11,15,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--border)", marginBottom: 24, padding: "16px 0" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 30, background: "rgba(245,246,250,0.9)", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--border)", marginBottom: 24, padding: "16px 0" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <button id="cart-back-btn" className="btn-ghost" style={{ padding: "8px 12px" }} onClick={() => router.push("/")}>
             ← Back
@@ -102,7 +102,7 @@ function CartPage() {
       {!isLoading && intent && (
         <div className="glass-elevated animate-float-in" style={{ padding: 20, marginBottom: 20 }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, background: "linear-gradient(135deg,rgba(255,107,53,0.2),rgba(0,212,255,0.1))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>✦</div>
+            <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, background: "linear-gradient(135deg,rgba(232,93,42,0.15),rgba(0,153,187,0.08))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>✦</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 17, marginBottom: 4 }}>
                 {cart?.summaryLine}
@@ -156,7 +156,7 @@ function CartPage() {
 
       {/* Bottom CTA */}
       {!isLoading && cart && (
-        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, padding: "16px 20px", background: "rgba(10,11,15,0.9)", backdropFilter: "blur(20px)", borderTop: "1px solid var(--border)", zIndex: 20 }}>
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, padding: "16px 20px", background: "rgba(245,246,250,0.95)", backdropFilter: "blur(20px)", borderTop: "1px solid var(--border)", zIndex: 20 }}>
           <div style={{ maxWidth: 680, margin: "0 auto" }}>
             {/* Price summary */}
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, padding: "10px 16px", borderRadius: 12, background: "var(--bg-raised)", border: "1px solid var(--border)" }}>
