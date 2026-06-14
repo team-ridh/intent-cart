@@ -1,4 +1,5 @@
 import type { GeneratedCart, ParsedIntent, Scenario } from "../types";
+import type { ContextSignals } from "@/hooks/useContextSignals";
 
 // ─── Scenario metadata (used server-side to validate Bedrock response) ───
 export const SCENARIO_META: Record<
@@ -109,7 +110,12 @@ export const SCENARIO_META: Record<
 // ─── Client-side intent parse via Bedrock API route ──────────────
 // Throws on any error — no silent fallback.
 // Returns intent, the server-generated cart, and initial substitute selections.
-export async function parseIntent(input: string, photoS3Key?: string): Promise<{
+export async function parseIntent(
+  input: string,
+  photoS3Key?: string,
+  recentOrders?: string[],
+  contextSignals?: ContextSignals
+): Promise<{
   intent: ParsedIntent;
   cart: GeneratedCart;
   initialSelections: Record<string, string>;
@@ -117,7 +123,14 @@ export async function parseIntent(input: string, photoS3Key?: string): Promise<{
   const res = await fetch("/api/interpret", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ input, photoS3Key }),
+    body: JSON.stringify({
+      input,
+      ...(photoS3Key ? { photoS3Key } : {}),
+      ...(recentOrders && recentOrders.length > 0 ? { recentOrders } : {}),
+      ...(contextSignals?.weather || contextSignals?.location
+        ? { contextSignals }
+        : {}),
+    }),
     credentials: "include",
   });
 

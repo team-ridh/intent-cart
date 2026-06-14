@@ -7,6 +7,8 @@ import { parseIntent } from "@/lib/ai/intentParser";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { Navbar } from "@/components/Navbar";
 import { SituationChips } from "@/components/SituationChips";
+import { ContextSignals } from "@/components/ContextSignals";
+import { useContextSignals } from "@/hooks/useContextSignals";
 import { VoiceCapture } from "@/components/VoiceCapture";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { UrgencyBar } from "@/components/UrgencyBar";
@@ -25,6 +27,7 @@ import {
   SparkleIcon,
 } from "@phosphor-icons/react";
 import type { GeneratedCart, ParsedIntent, UrgencyMode } from "@/lib/types";
+import { getOrderHistory } from "@/lib/orderHistory";
 
 const PLACEHOLDER_CYCLE = [
   "Guests are arriving in 30 minutes…",
@@ -205,6 +208,15 @@ function SituationPage() {
     start, stop, reset: resetSpeech,
   } = useSpeechRecognition();
 
+  const {
+    location, weather,
+    status: contextStatus,
+    error: contextError,
+    request: requestContext,
+    clear: clearContext,
+    getSignals,
+  } = useContextSignals();
+
   // Reset store — but NOT if we came here via Refine (preserve the situation text)
   useEffect(() => {
     if (!isRefining) reset();
@@ -269,7 +281,18 @@ function SituationPage() {
     setIsLoading(true);
 
     try {
-      const { intent, cart, initialSelections } = await parseIntent(input, photoS3Key ?? undefined);
+      // Pull up to 2 recent situationTexts from localStorage for Bedrock context
+      const recentOrders = getOrderHistory()
+        .slice(0, 2)
+        .map((o) => o.situationText)
+        .filter(Boolean);
+
+      const { intent, cart, initialSelections } = await parseIntent(
+        input,
+        photoS3Key ?? undefined,
+        recentOrders,
+        getSignals()
+      );
 
       // If confidence is low, show a clarifying question instead of proceeding
       if (intent.confidence < 65) {
@@ -473,9 +496,22 @@ function SituationPage() {
 
         </div>
 
-        {/* Situation chips — fills text box on tap */}
-        <div style={{ marginBottom: 14 }}>
-          <SituationChips activeText={situationText} onSelect={handleChipSelect} />
+        {/* Situation chips + Context signals — side by side */}
+        <div style={{ marginBottom: 14, display: "flex", gap: 12, alignItems: "flex-start" }}>
+          {/* Chips — flex-grow so it fills available space */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <SituationChips activeText={situationText} onSelect={handleChipSelect} />
+          </div>
+
+          {/* Context signal cards — fixed column on the right */}
+          <ContextSignals
+            location={location}
+            weather={weather}
+            status={contextStatus}
+            error={contextError}
+            onRequest={requestContext}
+            onClear={clearContext}
+          />
         </div>
 
         {/* Urgency mode */}

@@ -117,10 +117,136 @@ async function fetchImageFromS3(
   }
 }
 
-// ─── System prompts ───────────────────────────────────────────────
-const SYSTEM_PROMPT_TEXT_ONLY = `You are a deterministic e-commerce intent extraction engine for a quick-commerce app in India called "Amazon Now OS".
-Analyse the user's situation and return ONLY a valid JSON object with these exact fields — no markdown, no explanation, no code blocks:
-{
+// ─── Time-of-day context ──────────────────────────────────────────
+/**
+ * Returns a concise time context string for the Bedrock prompt.
+ * Uses IST (UTC+5:30) since the app targets India.
+ */
+function buildTimeContext(): string {
+  const now = new Date();
+  // Convert to IST by adding 5h30m offset
+  const istOffsetMs = 5.5 * 60 * 60 * 1000;
+  const ist = new Date(now.getTime() + istOffsetMs);
+  const hour = ist.getUTCHours();
+  const minutes = ist.getUTCMinutes();
+  const timeStr = `${String(hour).padStart(2, "0")}:${String(minutes).padStart(2, "0")} IST`;
+
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const dayName = days[ist.getUTCDay()];
+  const isWeekend = ist.getUTCDay() === 0 || ist.getUTCDay() === 6;
+
+  let period: string;
+  let hint: string;
+  if (hour >= 5 && hour < 9) {
+    period = "early morning";
+    hint = "morning routine, tea/coffee prep, school prep likely";
+  } else if (hour >= 9 && hour < 12) {
+    period = "late morning";
+    hint = "cooking, grocery restocking, home chores likely";
+  } else if (hour >= 12 && hour < 14) {
+    period = "midday";
+    hint = "lunch prep, cooking essentials likely";
+  } else if (hour >= 14 && hour < 17) {
+    period = "afternoon";
+    hint = "tea break, snacks, school project likely";
+  } else if (hour >= 17 && hour < 20) {
+    period = "evening";
+    hint = "hosting guests, pooja rituals, dinner prep likely";
+  } else if (hour >= 20 && hour < 23) {
+    period = "night";
+    hint = "late dinner, medicine/fever care, power emergency likely";
+  } else {
+    period = "late night";
+    hint = "emergency, fever care, or power outage most likely";
+  }
+
+  return `Current time: ${timeStr} (${dayName}, ${period}${isWeekend ? ", weekend" : ""}). Time hint: ${hint}.`;
+}
+
+// ─── Weather context (from client-provided signals) ───────────────
+interface ClientContextSignals {
+  location?: { city: string; region: string; lat: number; lon: number } | null;
+  weather?: {
+    tempC: number;
+    condition: string;
+    conditionLabel: string;
+    precipMmPerHr: number;
+    city: string;
+    region: string;
+    isExtreme: boolean;
+  } | null;
+}
+
+function buildWeatherContext(signals: ClientContextSignals): string {
+  const { weather, location } = signals;
+  if (!weather && !location) return "";
+
+  const parts: string[] = [];
+
+  if (location) {
+    parts.push(`User location: ${location.city}${location.region ? `, ${location.region}` : ""}.`);
+  }
+
+  if (weather) {
+    const precipStr =
+      weather.precipMmPerHr > 0 ? ` (${weather.precipMmPerHr}mm/hr)` : "";
+    parts.push(
+      `Current weather: ${weather.conditionLabel}${precipStr}, ${weather.tempC}°C` +
+        (weather.city && !location ? ` in ${weather.city}` : "") +
+        "."
+    );
+
+    // Derive scenario hints from weather
+    const hints: string[] = [];
+    if (["rain", "heavy_rain", "storm"].includes(weather.condition)) {
+      hints.push("rainy day and power_cut scenarios are elevated");
+      hints.push("fever risk is higher in wet weather");
+    }
+    if (weather.condition === "storm") {
+      hints.push("power_cut scenario is very likely");
+    }
+    if (weather.condition === "hot" || weather.tempC >= 38) {
+      hints.push("heat wave — ORS, cold drinks, and cooling items are relevant");
+    }
+    if (weather.condition === "cold" || weather.tempC <= 10) {
+      hints.push("cold weather — warm beverages, blankets, and fever care are relevant");
+    }
+    if (weather.condition === "fog") {
+      hints.push("foggy conditions — travel preparations may be relevant");
+    }
+    if (hints.length > 0) {
+      parts.push(`Weather signals: ${hints.join("; ")}.`);
+    }
+  }
+
+  return parts.join(" ");
+}
+/**
+ * Builds a concise recent-orders string for the Bedrock prompt.
+ * Receives the last 1-2 situationTexts passed by the client.
+ */
+function buildRecentOrdersContext(recentOrders: string[]): string {
+  if (!recentOrders || recentOrders.length === 0) return "";
+  const lines = recentOrders
+    .slice(0, 2)
+    .map((t, i) => `  - ${i === 0 ? "Most recent" : "Previous"}: "${t.slice(0, 120)}"`)
+    .join("\n");
+  return `User's recent order situations (for context — only use if relevant to current request):\n${lines}`;
+}
+
+// ─── System prompt builder ────────────────────────────────────────
+const BASE_RULES = `Rules:
+- Return ONLY the JSON object. No other text.
+- confidence should reflect how clearly the situation maps to a scenario (95+ = very clear, 70-90 = likely, 50-70 = uncertain, use "general" below 50).
+- For Indian contexts: "pooja" includes puja, prayer, festival rituals. "hosting" includes guests, visitors, parties.
+- "cooking" includes ran out of ingredients, need groceries, cooking essentials, oil/salt/onions.
+- "home_repair" includes broken bulb, fuse gone, need tape, repair, fix, maintenance.
+- Use the current time-of-day hint to boost confidence when it matches the scenario (e.g. evening + hosting, late night + fever, afternoon + tea_break).
+- If recent orders show a repeat need (e.g. fever supplies again), raise urgency to High.
+- If the user's situation clearly involves two scenarios (e.g. sick guest at home = "fever" + "hosting"), set secondaryScenario and secondaryConfidence. Only set secondaryScenario if secondaryConfidence >= 30.
+- If there is no clear secondary scenario, omit both fields.`;
+
+const JSON_SCHEMA = `{
   "scenario": one of ["hosting","fever","pooja","rainy","travel","power_cut","school","tea_break","general","cooking","home_repair"],
   "scenarioLabel": human-readable label e.g. "Hosting" or "Fever Care",
   "urgency": one of ["High","Medium","Low"],
@@ -131,51 +257,44 @@ Analyse the user's situation and return ONLY a valid JSON object with these exac
   "suggestedItems": array of 4-6 item names the user likely needs right now,
   "secondaryScenario": optional — a second scenario from the same list if the situation spans two needs (e.g. "fever" AND "hosting"). Omit if no secondary scenario is relevant.
   "secondaryConfidence": integer 0-100, required only if secondaryScenario is set. How confident are you that the secondary scenario applies?
+}`;
+
+function buildSystemPrompt(isMultimodal: boolean, timeContext: string, recentOrdersContext: string, weatherContext: string): string {
+  const contextBlock = [timeContext, weatherContext, recentOrdersContext].filter(Boolean).join("\n");
+  const imageInstructions = isMultimodal
+    ? "You are given a photo the user uploaded of their current situation, along with a text description they provided.\nAnalyse BOTH the image and the text together to understand what they need, and return ONLY a valid JSON object with these exact fields — no markdown, no explanation, no code blocks:"
+    : "Analyse the user's situation and return ONLY a valid JSON object with these exact fields — no markdown, no explanation, no code blocks:";
+  const imageRule = isMultimodal
+    ? "- Use visual cues from the image (e.g. a dinner table, a sick person in bed, candles, textbooks) to raise your confidence.\n"
+    : "";
+
+  return `You are a deterministic e-commerce intent extraction engine for a quick-commerce app in India called "Amazon Now OS".
+${imageInstructions}
+${JSON_SCHEMA}
+
+${contextBlock}
+
+${BASE_RULES.replace(
+  "- If the user",
+  `${imageRule}- If the user`
+)}`;
 }
-
-Rules:
-- Return ONLY the JSON object. No other text.
-- confidence should reflect how clearly the situation maps to a scenario (95+ = very clear, 70-90 = likely, 50-70 = uncertain, use "general" below 50).
-- For Indian contexts: "pooja" includes puja, prayer, festival rituals. "hosting" includes guests, visitors, parties.
-- "cooking" includes ran out of ingredients, need groceries, cooking essentials, oil/salt/onions.
-- "home_repair" includes broken bulb, fuse gone, need tape, repair, fix, maintenance.
-- If the user's situation clearly involves two scenarios (e.g. sick guest at home = "fever" + "hosting"), set secondaryScenario and secondaryConfidence. Only set secondaryScenario if secondaryConfidence >= 30.
-- If there is no clear secondary scenario, omit both fields.`;
-
-const SYSTEM_PROMPT_MULTIMODAL = `You are a deterministic e-commerce intent extraction engine for a quick-commerce app in India called "Amazon Now OS".
-You are given a photo the user uploaded of their current situation, along with a text description they provided.
-Analyse BOTH the image and the text together to understand what they need, and return ONLY a valid JSON object with these exact fields — no markdown, no explanation, no code blocks:
-{
-  "scenario": one of ["hosting","fever","pooja","rainy","travel","power_cut","school","tea_break","general","cooking","home_repair"],
-  "scenarioLabel": human-readable label e.g. "Hosting" or "Fever Care",
-  "urgency": one of ["High","Medium","Low"],
-  "category": primary product category e.g. "Food & Beverage",
-  "confidence": integer 0-100 representing how confident you are about the scenario,
-  "summary": 6-10 word description of the shopping need,
-  "deliveryMode": one of ["fastest","value","trusted"],
-  "suggestedItems": array of 4-6 item names the user likely needs right now,
-  "secondaryScenario": optional — a second scenario from the same list if the situation spans two needs (e.g. "fever" AND "hosting"). Omit if no secondary scenario is relevant.
-  "secondaryConfidence": integer 0-100, required only if secondaryScenario is set. How confident are you that the secondary scenario applies?
-}
-
-Rules:
-- Return ONLY the JSON object. No other text.
-- Use visual cues from the image (e.g. a dinner table, a sick person in bed, candles, textbooks) to raise your confidence.
-- confidence should reflect how clearly the situation maps to a scenario (95+ = very clear, 70-90 = likely, 50-70 = uncertain, use "general" below 50).
-- For Indian contexts: "pooja" includes puja, prayer, festival rituals. "hosting" includes guests, visitors, parties.
-- "cooking" includes ran out of ingredients, need groceries, cooking essentials, oil/salt/onions.
-- "home_repair" includes broken bulb, fuse gone, need tape, repair, fix, maintenance.
-- If the user's situation clearly involves two scenarios (e.g. sick guest at home = "fever" + "hosting"), set secondaryScenario and secondaryConfidence. Only set secondaryScenario if secondaryConfidence >= 30.
-- If there is no clear secondary scenario, omit both fields.`;
 
 // ─── Call Bedrock with optional image ────────────────────────────
 async function invokeBedrockForIntent(
   situationText: string,
-  photoS3Key?: string
+  photoS3Key?: string,
+  recentOrders?: string[],
+  contextSignals?: ClientContextSignals
 ): Promise<ParsedIntent> {
   // Try to fetch the image if a key was provided
   const imageData = photoS3Key ? await fetchImageFromS3(photoS3Key) : null;
   const isMultimodal = !!imageData;
+
+  // Build contextual signals for the prompt
+  const timeContext = buildTimeContext();
+  const recentOrdersContext = buildRecentOrdersContext(recentOrders ?? []);
+  const weatherContext = buildWeatherContext(contextSignals ?? {});
 
   // Build the message content array
   const content: ContentBlock[] = [];
@@ -197,7 +316,7 @@ async function invokeBedrockForIntent(
 
   const command = new ConverseCommand({
     modelId: getModelId(),
-    system: [{ text: isMultimodal ? SYSTEM_PROMPT_MULTIMODAL : SYSTEM_PROMPT_TEXT_ONLY }],
+    system: [{ text: buildSystemPrompt(isMultimodal, timeContext, recentOrdersContext, weatherContext) }],
     messages: [{ role: "user", content }],
     inferenceConfig: {
       maxTokens: 512,
@@ -295,8 +414,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = (await req.json()) as { input?: string; photoS3Key?: string };
-    const { input, photoS3Key } = body;
+    const body = (await req.json()) as {
+      input?: string;
+      photoS3Key?: string;
+      recentOrders?: string[];
+      contextSignals?: ClientContextSignals;
+    };
+    const { input, photoS3Key, recentOrders, contextSignals } = body;
 
     if (!input || typeof input !== "string" || input.trim().length < 2) {
       return NextResponse.json(
@@ -322,11 +446,66 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // ─── Sanitise recent orders (client-supplied, treat as untrusted) ─
+    const sanitizedRecentOrders = Array.isArray(recentOrders)
+      ? recentOrders
+          .filter((s): s is string => typeof s === "string")
+          .map((s) =>
+            s
+              .trim()
+              .replace(/<[^>]*>/g, "")
+              .replace(/[<>{}[\]\\]/g, "")
+              .slice(0, 200)
+              .trim()
+          )
+          .filter((s) => s.length >= 2)
+          .slice(0, 2)
+      : [];
+
+    // ─── Sanitise context signals (client-supplied, treat as untrusted) ─
+    // Only pass through if the shape looks valid; any weirdness → drop it.
+    const sanitizedSignals: ClientContextSignals = {};
+    if (contextSignals && typeof contextSignals === "object") {
+      if (
+        contextSignals.location &&
+        typeof contextSignals.location.lat === "number" &&
+        typeof contextSignals.location.lon === "number" &&
+        typeof contextSignals.location.city === "string"
+      ) {
+        sanitizedSignals.location = {
+          lat: contextSignals.location.lat,
+          lon: contextSignals.location.lon,
+          city: String(contextSignals.location.city).slice(0, 80),
+          region: String(contextSignals.location.region ?? "").slice(0, 80),
+        };
+      }
+      if (
+        contextSignals.weather &&
+        typeof contextSignals.weather.tempC === "number" &&
+        typeof contextSignals.weather.condition === "string"
+      ) {
+        sanitizedSignals.weather = {
+          tempC: Math.round(contextSignals.weather.tempC),
+          condition: String(contextSignals.weather.condition).slice(0, 30),
+          conditionLabel: String(contextSignals.weather.conditionLabel ?? "").slice(0, 60),
+          precipMmPerHr: Math.abs(Number(contextSignals.weather.precipMmPerHr) || 0),
+          city: String(contextSignals.weather.city ?? "").slice(0, 80),
+          region: String(contextSignals.weather.region ?? "").slice(0, 80),
+          isExtreme: Boolean(contextSignals.weather.isExtreme),
+        };
+      }
+    }
+
     // ─── Always create a fresh session for each new intent ───────
     const sessionId = uuidv4();
 
-    // ─── Call Bedrock (with optional image) ───────────────────────
-    const intent = await invokeBedrockForIntent(sanitizedInput, photoS3Key);
+    // ─── Call Bedrock (with optional image + context signals) ─────
+    const intent = await invokeBedrockForIntent(
+      sanitizedInput,
+      photoS3Key,
+      sanitizedRecentOrders,
+      sanitizedSignals
+    );
 
     // ─── Generate cart server-side ─────────────────────────────────
     const urgencyMode: UrgencyMode = "fastest";
