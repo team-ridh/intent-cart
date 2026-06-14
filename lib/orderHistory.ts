@@ -4,6 +4,14 @@
  * Max 20 entries, newest first.
  */
 
+export interface OrderHistoryItem {
+  name: string;
+  brand: string;
+  price: number;
+  quantity: number;
+  image: string;
+}
+
 export interface OrderHistoryEntry {
   sessionId: string;
   situationText: string;
@@ -12,6 +20,7 @@ export interface OrderHistoryEntry {
   totalPrice: number;
   estimatedEta: number;
   confirmedAt: number; // epoch ms
+  items?: OrderHistoryItem[]; // optional — added for history page detail view
 }
 
 const KEY = "ic_order_history";
