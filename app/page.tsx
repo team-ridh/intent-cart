@@ -23,6 +23,7 @@ import {
   WarningCircleIcon,
   LightningIcon,
   SparkleIcon,
+  UserCircleIcon,
 } from "@phosphor-icons/react";
 import { getOrderHistory, type OrderHistoryEntry } from "@/lib/orderHistory";
 import type { GeneratedCart, ParsedIntent, UrgencyMode } from "@/lib/types";
@@ -501,40 +502,6 @@ function SituationPage() {
     [setSituationText]
   );
 
-  // ─── Chip submit — tapping a chip fills text AND submits immediately ──
-  const handleChipSubmit = useCallback(
-    async (text: string) => {
-      setError(null);
-      setPendingIntent(null);
-      setPendingCart(null);
-      setPendingSelections({});
-      setIsSubmitting(true);
-      setIsLoading(true);
-      try {
-        const { intent, cart, initialSelections } = await parseIntent(text, undefined);
-        if (intent.confidence < 65) {
-          setPendingIntent(intent);
-          setPendingCart(cart);
-          setPendingSelections(initialSelections);
-          setIsSubmitting(false);
-          setIsLoading(false);
-        } else {
-          await proceedWithIntent(intent, cart, initialSelections);
-        }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : "Something went wrong";
-        if (msg.includes("429") || msg.includes("Too many")) {
-          setError("Too many requests — please wait a moment and try again.");
-        } else {
-          setError(msg);
-        }
-        setIsSubmitting(false);
-        setIsLoading(false);
-      }
-    },
-    [setIsLoading, proceedWithIntent]
-  );
-
   const handleUrgencyChange = (mode: UrgencyMode) => setUrgencyMode(mode);
 
   const canSubmit = situationText.trim().length > 3 && !isSubmitting;
@@ -610,6 +577,54 @@ function SituationPage() {
               </span>
             )}
             <span className="badge badge-teal">Beta</span>
+            {orderHistory.length > 0 && !isRefining && (
+              <button
+                id="profile-btn"
+                aria-label="View order history"
+                onClick={() => setShowOrderHistory(true)}
+                style={{
+                  position: "relative",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 6,
+                  borderRadius: "50%",
+                  border: "1px solid var(--border)",
+                  background: "var(--bg-raised)",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = "var(--accent)";
+                  (e.currentTarget as HTMLElement).style.background = "var(--accent-dim)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
+                  (e.currentTarget as HTMLElement).style.background = "var(--bg-raised)";
+                }}
+              >
+                <UserCircleIcon size={22} weight="regular" color="var(--text-secondary)" />
+                {/* Order count badge */}
+                <span style={{
+                  position: "absolute",
+                  top: -4,
+                  right: -4,
+                  width: 16,
+                  height: 16,
+                  borderRadius: "50%",
+                  background: "var(--accent)",
+                  color: "#fff",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  lineHeight: 1,
+                }}>
+                  {orderHistory.length > 9 ? "9+" : orderHistory.length}
+                </span>
+              </button>
+            )}
           </div>
         </nav>
 
@@ -706,9 +721,9 @@ function SituationPage() {
           )}
         </div>
 
-        {/* Situation chips — tapping submits directly */}
+        {/* Situation chips — fills text box on tap */}
         <div style={{ marginBottom: 14 }}>
-          <SituationChips activeText={situationText} onSelect={handleChipSelect} onSubmit={handleChipSubmit} />
+          <SituationChips activeText={situationText} onSelect={handleChipSelect} />
         </div>
 
         {/* Urgency mode */}
@@ -747,63 +762,6 @@ function SituationPage() {
         }}
       >
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
-          {/* Previous orders — compact scrollable row */}
-          {orderHistory.length > 0 && !isRefining && (
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 7 }}>
-                Previous orders
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  gap: 8,
-                  overflowX: "auto",
-                  paddingBottom: 2,
-                  scrollbarWidth: "none",
-                  msOverflowStyle: "none",
-                  WebkitOverflowScrolling: "touch" as React.CSSProperties["WebkitOverflowScrolling"],
-                }}
-              >
-                {orderHistory.map((order, i) => (
-                  <button
-                    key={order.sessionId || i}
-                    onClick={() => handleReorder(order)}
-                    style={{
-                      flexShrink: 0,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "7px 12px",
-                      borderRadius: 50,
-                      border: "1px solid var(--border)",
-                      background: "var(--bg-raised)",
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                      whiteSpace: "nowrap",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.borderColor = "var(--accent)";
-                      (e.currentTarget as HTMLElement).style.background = "var(--accent-dim)";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
-                      (e.currentTarget as HTMLElement).style.background = "var(--bg-raised)";
-                    }}
-                  >
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)" }}>
-                      {order.scenarioLabel}
-                    </span>
-                    <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                      ₹{order.totalPrice}
-                    </span>
-                    <span style={{ fontSize: 10, color: "var(--text-faint)" }}>
-                      {formatRelativeTime(order.confirmedAt)}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
           <Button
             id="build-cart-btn"
             variant="primary"

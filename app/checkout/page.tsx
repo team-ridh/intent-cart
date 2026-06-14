@@ -333,18 +333,17 @@ function CheckoutPage() {
         credentials: "include",
       });
 
+      // Read body once — branching on ok/error afterwards
+      const data = await res.json().catch(() => ({ error: "Confirmation failed" }));
+
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "Confirmation failed" }));
-        throw new Error(err.error ?? "Confirmation failed");
+        throw new Error(data.error ?? "Confirmation failed");
       }
 
-      setConfirmed(true);
-
-      // Persist to local order history so home page can show previous orders
+      // Persist to local order history before setting confirmed state
       if (cart && intent) {
-        const data = await res.json().catch(() => ({}));
         saveOrderToHistory({
-          sessionId: data.sessionId ?? "",
+          sessionId: data.sessionId ?? crypto.randomUUID(),
           situationText: useCartStore.getState().situationText,
           scenarioLabel: intent.scenarioLabel,
           itemCount: cart.itemCount,
@@ -353,6 +352,8 @@ function CheckoutPage() {
           confirmedAt: Date.now(),
         });
       }
+
+      setConfirmed(true);
     } catch (err) {
       setConfirmError(err instanceof Error ? err.message : "Confirmation failed");
     } finally {

@@ -32,10 +32,9 @@ const CHIPS: Chip[] = [
 interface SituationChipsProps {
   activeText: string;
   onSelect: (text: string) => void;
-  onSubmit?: (text: string) => void; // if provided, tapping a chip submits immediately
 }
 
-export function SituationChips({ activeText, onSelect, onSubmit }: SituationChipsProps) {
+export function SituationChips({ activeText, onSelect }: SituationChipsProps) {
   return (
     <div>
       {/* Section label */}
@@ -72,7 +71,6 @@ export function SituationChips({ activeText, onSelect, onSubmit }: SituationChip
               id={`chip-${c.label.toLowerCase().replace(/\s+/g, "-")}`}
               onClick={() => {
                 onSelect(c.text);
-                onSubmit?.(c.text);
               }}
               style={{
                 flexShrink: 0,
