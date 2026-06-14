@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import { parseIntent } from "@/lib/ai/intentParser";
-import { generateCart } from "@/lib/ai/cartGenerator";
+import { generateCart, generateInitialSelections } from "@/lib/ai/cartGenerator";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { Logo } from "@/components/Logo";
 import { SituationChips } from "@/components/SituationChips";
@@ -183,7 +183,7 @@ function SituationPage() {
     situationText, setSituationText,
     urgencyMode, setUrgencyMode,
     photoS3Key, setPhotoS3Key,
-    setIntent, setCart, setIsLoading,
+    setIntent, setCart, setIsLoading, setSelectedSubstitutes,
     reset,
   } = useCartStore();
 
@@ -278,11 +278,14 @@ function SituationPage() {
   const proceedWithIntent = useCallback(
     async (intent: ParsedIntent) => {
       const cart = generateCart(intent, urgencyMode);
+      // Auto-select the best substitute per item for the initial mode
+      const autoSelections = generateInitialSelections(cart.items, urgencyMode);
       setIntent(intent);
       setCart(cart);
+      setSelectedSubstitutes(autoSelections);
       router.push("/cart");
     },
-    [urgencyMode, setIntent, setCart, router]
+    [urgencyMode, setIntent, setCart, setSelectedSubstitutes, router]
   );
 
   // ─── Submit — calls Bedrock via /api/interpret ───────────────────

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse, connection } from "next/server";
-import { generateCart } from "@/lib/ai/cartGenerator";
-import { applyUrgencyMode } from "@/lib/ai/substituteRanker";
+import { generateCart, generateInitialSelections } from "@/lib/ai/cartGenerator";
+import { applyUrgencyMode, sortItemsByMode, computeAutoSelections } from "@/lib/ai/substituteRanker";
 import {
   getSession,
   saveCart,
@@ -60,6 +60,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
+
 // ─── POST /api/cart — generate and save cart to DynamoDB ─────────
 export async function POST(req: NextRequest) {
   try {
@@ -87,9 +88,13 @@ export async function POST(req: NextRequest) {
     const urgencyMode: UrgencyMode = body.urgencyMode ?? session.urgencyMode ?? "fastest";
 
     const cart = generateCart(session.intent, urgencyMode);
+
+    // Auto-select the best substitute for each item based on the initial mode
+    const initialSelections = generateInitialSelections(cart.items, urgencyMode);
+
     await saveCart(sessionId, cart, urgencyMode);
 
-    return NextResponse.json({ cart, urgencyMode });
+    return NextResponse.json({ cart, urgencyMode, selectedSubstitutes: initialSelections });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[POST /api/cart] Error:", message);
@@ -99,6 +104,8 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+
 
 // ─── PATCH /api/cart — update urgency, qty, substitutes ──────────
 export async function PATCH(req: NextRequest) {
@@ -127,11 +134,17 @@ export async function PATCH(req: NextRequest) {
     let urgencyMode: UrgencyMode = session.urgencyMode;
     let selectedSubstitutes: Record<string, string> = session.selectedSubstitutes;
 
-    // Apply urgency mode change (re-ranks substitutes)
+    // Apply urgency mode change:
+    // 1. Re-sort substitutes drawer for the new mode
+    // 2. Sort cart items by the mode's primary metric
+    // 3. Compute which substitute is best for each item — auto-select it
     if (body.urgencyMode && body.urgencyMode !== urgencyMode) {
       urgencyMode = body.urgencyMode;
       const rerankedItems = applyUrgencyMode(cart.items, urgencyMode);
-      cart = { ...cart, items: rerankedItems };
+      const sortedItems = sortItemsByMode(rerankedItems, urgencyMode);
+      cart = { ...cart, items: sortedItems, estimatedEta: sortedItems.length > 0 ? Math.max(...sortedItems.map((i) => i.eta)) : 0 };
+      // Auto-select the best substitute per item for the new mode
+      selectedSubstitutes = computeAutoSelections(sortedItems, urgencyMode);
     }
 
     // Update selected substitutes
