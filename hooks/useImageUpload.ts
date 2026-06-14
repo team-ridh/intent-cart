@@ -83,10 +83,19 @@ export function useImageUpload(): UseImageUploadReturn {
 
     try {
       // 1. Get presigned PUT URL from our API
-      const uploadUrlRes = await fetch(
-        `/api/upload?filename=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`,
-        { credentials: "include" }
-      );
+      let uploadUrlRes: Response;
+      try {
+        uploadUrlRes = await fetch(
+          `/api/upload?filename=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}`,
+          { credentials: "include" }
+        );
+      } catch {
+        throw new Error("Could not reach the server. Check your internet connection.");
+      }
+
+      if (uploadUrlRes.status === 401) {
+        throw new Error("Please select a situation first before uploading a photo.");
+      }
 
       if (!uploadUrlRes.ok) {
         const err = await uploadUrlRes.json().catch(() => ({ error: "Upload URL request failed" }));
@@ -100,11 +109,20 @@ export function useImageUpload(): UseImageUploadReturn {
       };
 
       // 2. Upload file directly to S3 via presigned PUT
-      const uploadRes = await fetch(presignedUrl, {
-        method: "PUT",
-        body: file,
-        headers: { "Content-Type": file.type },
-      });
+      let uploadRes: Response;
+      try {
+        uploadRes = await fetch(presignedUrl, {
+          method: "PUT",
+          body: file,
+          headers: { "Content-Type": file.type },
+        });
+      } catch {
+        // Network-level failure here is almost always an S3 CORS misconfiguration
+        throw new Error(
+          "Photo upload blocked — S3 CORS may not be configured for this domain. " +
+          "Check the S3 bucket CORS policy in the AWS console."
+        );
+      }
 
       if (!uploadRes.ok) {
         throw new Error(`S3 upload failed: ${uploadRes.status} ${uploadRes.statusText}`);
