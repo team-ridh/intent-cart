@@ -37,7 +37,7 @@ export function SubstituteDrawer({
         style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(0,0,0,0.6)",
+          background: "rgba(0,0,0,0.35)",
           backdropFilter: "blur(4px)",
           zIndex: 40,
         }}

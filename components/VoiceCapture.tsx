@@ -74,7 +74,7 @@ export function VoiceCapture({
             height: "100%",
             borderRadius: "50%",
             background: isListening
-              ? "linear-gradient(135deg,#FF6B35,#FF4500)"
+              ? "linear-gradient(135deg,#E85D2A,#F97316)"
               : "var(--bg-elevated)",
             border: `2px solid ${isListening ? "var(--accent)" : "var(--border)"}`,
             fontSize: 36,
