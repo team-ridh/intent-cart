@@ -2,14 +2,14 @@
 
 import type { ReactNode } from "react";
 import {
-  UsersThree,
-  CloudRain,
-  Coffee,
-  Lightning,
-  Backpack,
-  Thermometer,
-  Airplane,
-  Flame,
+  UsersThreeIcon,
+  CloudRainIcon,
+  CoffeeIcon,
+  LightningIcon,
+  BackpackIcon,
+  ThermometerIcon,
+  AirplaneIcon,
+  FlameIcon,
 } from "@phosphor-icons/react";
 
 interface Chip {
@@ -19,49 +19,125 @@ interface Chip {
 }
 
 const CHIPS: Chip[] = [
-  { icon: <UsersThree size={14} weight="bold" />, label: "Guests arriving",  text: "Guests are arriving in 30 minutes" },
-  { icon: <CloudRain  size={14} weight="bold" />, label: "Rainy day",        text: "It's raining heavily outside today" },
-  { icon: <Coffee     size={14} weight="bold" />, label: "Tea break",        text: "Time for an afternoon tea break" },
-  { icon: <Lightning  size={14} weight="bold" />, label: "Power cut",        text: "Power outage, need emergency items" },
-  { icon: <Backpack   size={14} weight="bold" />, label: "School project",   text: "My child has a school project due tomorrow" },
-  { icon: <Thermometer size={14} weight="bold" />, label: "Fever care",      text: "Feeling sick with fever and cold" },
-  { icon: <Airplane   size={14} weight="bold" />, label: "Travel prep",      text: "Leaving for a trip in 2 hours" },
-  { icon: <Flame      size={14} weight="bold" />, label: "Pooja essentials", text: "Need pooja items before evening" },
+  { icon: <UsersThreeIcon size={24} weight="regular" />, label: "Guests Arriving",  text: "Guests are arriving in 30 minutes" },
+  { icon: <CoffeeIcon     size={24} weight="regular" />, label: "Tea Time",         text: "Time for an afternoon tea break" },
+  { icon: <CloudRainIcon  size={24} weight="regular" />, label: "Rainy Day",        text: "It's raining heavily outside today" },
+  { icon: <LightningIcon  size={24} weight="regular" />, label: "Power Cut",        text: "Power outage, need emergency items" },
+  { icon: <BackpackIcon   size={24} weight="regular" />, label: "School Project",   text: "My child has a school project due tomorrow" },
+  { icon: <ThermometerIcon size={24} weight="regular" />, label: "Fever Care",      text: "Feeling sick with fever and cold" },
+  { icon: <AirplaneIcon   size={24} weight="regular" />, label: "Travel Prep",      text: "Leaving for a trip in 2 hours" },
+  { icon: <FlameIcon      size={24} weight="regular" />, label: "Pooja Essentials", text: "Need pooja items before evening" },
 ];
 
 interface SituationChipsProps {
   activeText: string;
   onSelect: (text: string) => void;
+  onSubmit?: (text: string) => void; // if provided, tapping a chip submits immediately
 }
 
-export function SituationChips({ activeText, onSelect }: SituationChipsProps) {
+export function SituationChips({ activeText, onSelect, onSubmit }: SituationChipsProps) {
   return (
     <div>
+      {/* Section label */}
       <div
         style={{
-          fontSize: 12,
-          color: "var(--text-muted)",
-          textTransform: "uppercase",
-          letterSpacing: "0.1em",
+          fontSize: 14,
+          fontWeight: 600,
+          color: "var(--text-primary)",
           marginBottom: 12,
+          fontFamily: "var(--font-display)",
         }}
       >
-        Quick situations
-      </div>
-      <div className="chips-scroll">
-        {CHIPS.map((c) => (
-          <button
-            key={c.label}
-            id={`chip-${c.label.toLowerCase().replace(/\s+/g, "-")}`}
-            className={`chip${activeText === c.text ? " active" : ""}`}
-            onClick={() => onSelect(c.text)}
-            style={{ display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0 }}
-          >
-            {c.icon} {c.label}
-          </button>
-        ))}
+        Quick Situations
       </div>
 
+      {/* Horizontally scrollable grid of cards */}
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          overflowX: "auto",
+          paddingBottom: 4,
+          WebkitOverflowScrolling: "touch" as React.CSSProperties["WebkitOverflowScrolling"],
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+        }}
+        className="chips-scroll"
+      >
+        {CHIPS.map((c) => {
+          const isActive = activeText === c.text;
+          return (
+            <button
+              key={c.label}
+              id={`chip-${c.label.toLowerCase().replace(/\s+/g, "-")}`}
+              onClick={() => {
+                onSelect(c.text);
+                onSubmit?.(c.text);
+              }}
+              style={{
+                flexShrink: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 10,
+                width: 90,
+                height: 90,
+                borderRadius: 14,
+                border: `1.5px solid ${isActive ? "var(--accent)" : "var(--border)"}`,
+                background: isActive
+                  ? "var(--accent-dim)"
+                  : "var(--bg-raised)",
+                color: isActive ? "var(--accent)" : "var(--text-secondary)",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+                padding: "12px 8px 10px",
+                boxShadow: isActive
+                  ? "0 0 0 3px var(--accent-glow)"
+                  : "0 1px 3px rgba(0,0,0,0.06)",
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  (e.currentTarget as HTMLElement).style.borderColor = "var(--accent)";
+                  (e.currentTarget as HTMLElement).style.color = "var(--accent)";
+                  (e.currentTarget as HTMLElement).style.background = "var(--accent-dim)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
+                  (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
+                  (e.currentTarget as HTMLElement).style.background = "var(--bg-raised)";
+                }
+              }}
+            >
+              {/* Icon */}
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {c.icon}
+              </span>
+
+              {/* Label — wraps at 2 lines max */}
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 500,
+                  textAlign: "center",
+                  lineHeight: 1.3,
+                  maxWidth: "100%",
+                  overflow: "hidden",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical" as React.CSSProperties["WebkitBoxOrient"],
+                  wordBreak: "break-word",
+                  fontFamily: "var(--font-body)",
+                }}
+              >
+                {c.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -13,17 +13,18 @@ import { UrgencyBar } from "@/components/UrgencyBar";
 import { Button } from "@/components/ui/Button";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import {
-  Question,
-  PencilSimple,
-  CheckCircle,
-  WifiSlash,
-  Keyboard,
-  Microphone,
-  Camera,
-  WarningCircle,
-  Lightning,
-  Sparkle,
+  QuestionIcon,
+  PencilSimpleIcon,
+  CheckCircleIcon,
+  WifiSlashIcon,
+  KeyboardIcon,
+  MicrophoneIcon,
+  CameraIcon,
+  WarningCircleIcon,
+  LightningIcon,
+  SparkleIcon,
 } from "@phosphor-icons/react";
+import { getOrderHistory, type OrderHistoryEntry } from "@/lib/orderHistory";
 import type { GeneratedCart, ParsedIntent, UrgencyMode } from "@/lib/types";
 
 const PLACEHOLDER_CYCLE = [
@@ -34,6 +35,179 @@ const PLACEHOLDER_CYCLE = [
   "School project due tomorrow…",
   "Tea time! Need snacks…",
 ];
+
+// ─── Order history helpers ─────────────────────────────────────────
+function formatRelativeTime(epochMs: number): string {
+  const diff = Date.now() - epochMs;
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 60) return mins <= 1 ? "just now" : `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return days === 1 ? "yesterday" : `${days}d ago`;
+}
+
+// ─── Previous orders drawer ────────────────────────────────────────
+interface OrderHistoryDrawerProps {
+  orders: OrderHistoryEntry[];
+  onReorder: (order: OrderHistoryEntry) => void;
+  onClose: () => void;
+}
+
+function OrderHistoryDrawer({ orders, onReorder, onClose }: OrderHistoryDrawerProps) {
+  return (
+    <>
+      <div
+        onClick={onClose}
+        style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)", zIndex: 60 }}
+        aria-hidden
+      />
+      <div
+        className="animate-slide-up"
+        role="dialog"
+        aria-label="Previous orders"
+        style={{
+          position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 70,
+          background: "var(--bg-surface)",
+          borderTop: "1px solid var(--border)",
+          borderRadius: "24px 24px 0 0",
+          padding: "24px 20px",
+          maxHeight: "75vh",
+          overflowY: "auto",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+          <div>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }}>
+              Previous Orders
+            </div>
+            <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 2 }}>
+              Tap any order to re-order it
+            </div>
+          </div>
+          <button className="btn-ghost" onClick={onClose} aria-label="Close">✕</button>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {orders.map((order, i) => (
+            <div
+              key={order.sessionId || i}
+              style={{
+                padding: "14px 16px",
+                borderRadius: 14,
+                background: "var(--bg-raised)",
+                border: "1px solid var(--border)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
+                  <span className="badge badge-orange" style={{ fontSize: 10 }}>
+                    {order.scenarioLabel}
+                  </span>
+                  <span style={{ fontSize: 11, color: "var(--text-faint)" }}>
+                    {formatRelativeTime(order.confirmedAt)}
+                  </span>
+                </div>
+                <div style={{
+                  fontSize: 13,
+                  color: "var(--text-secondary)",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  maxWidth: "100%",
+                }}>
+                  {order.situationText}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+                  {order.itemCount} items · ₹{order.totalPrice}
+                </div>
+              </div>
+              <button
+                className="btn-secondary"
+                style={{ fontSize: 13, padding: "7px 14px", flexShrink: 0 }}
+                onClick={() => onReorder(order)}
+              >
+                Re-order
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ─── Recent orders bar (shows latest + "See all" link) ─────────────
+interface RecentOrdersBarProps {
+  orders: OrderHistoryEntry[];
+  onReorder: (order: OrderHistoryEntry) => void;
+  onShowAll: () => void;
+}
+
+function RecentOrdersBar({ orders, onReorder, onShowAll }: RecentOrdersBarProps) {
+  const latest = orders[0];
+  if (!latest) return null;
+
+  return (
+    <div
+      style={{
+        marginBottom: 20,
+        padding: "14px 16px",
+        borderRadius: 16,
+        background: "linear-gradient(135deg, rgba(0,153,187,0.08) 0%, rgba(0,153,187,0.04) 100%)",
+        border: "1px solid rgba(0,153,187,0.2)",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "var(--accent-teal)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>
+            Last order · {formatRelativeTime(latest.confirmedAt)}
+          </div>
+          <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>
+            {latest.scenarioLabel}
+          </div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+            {latest.itemCount} items · ₹{latest.totalPrice}
+          </div>
+        </div>
+        <button
+          id="reorder-btn"
+          className="btn-secondary"
+          style={{ fontSize: 13, padding: "8px 16px", flexShrink: 0 }}
+          onClick={() => onReorder(latest)}
+        >
+          Re-order →
+        </button>
+      </div>
+
+      {orders.length > 1 && (
+        <button
+          id="show-all-orders-btn"
+          onClick={onShowAll}
+          style={{
+            marginTop: 10,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            fontSize: 12,
+            color: "var(--accent-teal)",
+            fontWeight: 600,
+            padding: "4px 0",
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
+          See all orders ({orders.length}) →
+        </button>
+      )}
+    </div>
+  );
+}
 
 // ─── Low-confidence clarify modal ────────────────────────────────
 interface ClarifyModalProps {
@@ -76,7 +250,7 @@ function ClarifyModal({ intent, onConfirm, onRefine }: ClarifyModalProps) {
       >
         <div style={{ textAlign: "center", marginBottom: 24 }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
-            <Question size={44} weight="fill" color="var(--accent)" />
+            <QuestionIcon size={44} weight="fill" color="var(--accent)" />
           </div>
           <div
             style={{
@@ -114,7 +288,7 @@ function ClarifyModal({ intent, onConfirm, onRefine }: ClarifyModalProps) {
             style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             onClick={onRefine}
           >
-            <PencilSimple size={14} weight="bold" /> Let me clarify
+            <PencilSimpleIcon size={14} weight="bold" /> Let me clarify
           </button>
           <button
             id="clarify-confirm-btn"
@@ -122,7 +296,7 @@ function ClarifyModal({ intent, onConfirm, onRefine }: ClarifyModalProps) {
             style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             onClick={onConfirm}
           >
-            <CheckCircle size={14} weight="fill" /> Yes, build it!
+            <CheckCircleIcon size={14} weight="fill" /> Yes, build it!
           </button>
         </div>
       </div>
@@ -167,7 +341,7 @@ function OfflineBanner() {
         gap: 8,
       }}
     >
-      <WifiSlash size={16} weight="bold" /> You&apos;re offline — check your connection before submitting
+      <WifiSlashIcon size={16} weight="bold" /> You&apos;re offline — check your connection before submitting
     </div>
   );
 }
@@ -195,6 +369,9 @@ function SituationPage() {
   const [pendingIntent, setPendingIntent] = useState<ParsedIntent | null>(null);
   const [pendingCart, setPendingCart] = useState<GeneratedCart | null>(null);
   const [pendingSelections, setPendingSelections] = useState<Record<string, string>>({});
+  // Order history — loaded from localStorage
+  const [orderHistory, setOrderHistory] = useState<OrderHistoryEntry[]>([]);
+  const [showOrderHistory, setShowOrderHistory] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const {
@@ -249,6 +426,29 @@ function SituationPage() {
     [setIntent, setCart, setSelectedSubstitutes, router]
   );
 
+  // ─── Load order history from localStorage (client-only) ────────
+  useEffect(() => {
+    setOrderHistory(getOrderHistory());
+  }, []);
+
+  // ─── Re-order handler — replays any previous order ──────────────
+  const handleReorder = useCallback(async (order: OrderHistoryEntry) => {
+    setShowOrderHistory(false);
+    setSituationText(order.situationText);
+    setIsSubmitting(true);
+    setIsLoading(true);
+    try {
+      const { intent, cart, initialSelections } = await parseIntent(order.situationText, undefined);
+      await proceedWithIntent(intent, cart, initialSelections);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      setError(msg);
+    } finally {
+      setIsSubmitting(false);
+      setIsLoading(false);
+    }
+  }, [setSituationText, setIsLoading, proceedWithIntent]);
+
   // ─── Submit — calls Bedrock via /api/interpret ───────────────────
   const handleSubmit = useCallback(async () => {
     const input = situationText.trim();
@@ -301,12 +501,55 @@ function SituationPage() {
     [setSituationText]
   );
 
+  // ─── Chip submit — tapping a chip fills text AND submits immediately ──
+  const handleChipSubmit = useCallback(
+    async (text: string) => {
+      setError(null);
+      setPendingIntent(null);
+      setPendingCart(null);
+      setPendingSelections({});
+      setIsSubmitting(true);
+      setIsLoading(true);
+      try {
+        const { intent, cart, initialSelections } = await parseIntent(text, undefined);
+        if (intent.confidence < 65) {
+          setPendingIntent(intent);
+          setPendingCart(cart);
+          setPendingSelections(initialSelections);
+          setIsSubmitting(false);
+          setIsLoading(false);
+        } else {
+          await proceedWithIntent(intent, cart, initialSelections);
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Something went wrong";
+        if (msg.includes("429") || msg.includes("Too many")) {
+          setError("Too many requests — please wait a moment and try again.");
+        } else {
+          setError(msg);
+        }
+        setIsSubmitting(false);
+        setIsLoading(false);
+      }
+    },
+    [setIsLoading, proceedWithIntent]
+  );
+
   const handleUrgencyChange = (mode: UrgencyMode) => setUrgencyMode(mode);
 
   const canSubmit = situationText.trim().length > 3 && !isSubmitting;
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-start px-4 pb-16 pt-8 relative overflow-hidden">
+    <main
+      style={{
+        minHeight: "100svh",
+        display: "flex",
+        flexDirection: "column",
+        padding: "0 16px",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
       <OfflineBanner />
 
       {/* Low-confidence clarify modal */}
@@ -329,44 +572,63 @@ function SituationPage() {
         />
       )}
 
+      {showOrderHistory && (
+        <OrderHistoryDrawer
+          orders={orderHistory}
+          onReorder={handleReorder}
+          onClose={() => setShowOrderHistory(false)}
+        />
+      )}
+
       {/* Ambient blobs */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
         <div style={{ position: "absolute", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(232,93,42,0.07) 0%, transparent 70%)", top: -200, left: -200, filter: "blur(60px)" }} />
         <div style={{ position: "absolute", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,153,187,0.06) 0%, transparent 70%)", bottom: -100, right: -100, filter: "blur(60px)" }} />
       </div>
 
-      <div style={{ width: "100%", maxWidth: 640, position: "relative", zIndex: 1 }}>
-
+      {/* ── Scrollable content area — grows to fill space above fixed CTA ── */}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 640,
+          margin: "0 auto",
+          position: "relative",
+          zIndex: 1,
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          paddingBottom: 100, // clearance for fixed CTA
+        }}
+      >
         {/* Nav */}
-        <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 48 }}>
+        <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 16, paddingBottom: 16 }}>
           <Logo />
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {isRefining && (
               <span className="badge badge-amber" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                <PencilSimple size={10} weight="bold" /> Refining
+                <PencilSimpleIcon size={10} weight="bold" /> Refining
               </span>
             )}
             <span className="badge badge-teal">Beta</span>
           </div>
         </nav>
 
-        {/* Hero */}
-        <div style={{ textAlign: "center", marginBottom: 40 }} className="animate-float-in">
-          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "clamp(28px, 6vw, 44px)", lineHeight: 1.15, letterSpacing: "-0.03em", marginBottom: 14 }}>
+        {/* Hero — compact */}
+        <div style={{ textAlign: "center", marginBottom: 16 }} className="animate-float-in">
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "clamp(22px, 5vw, 34px)", lineHeight: 1.2, letterSpacing: "-0.03em", marginBottom: 6 }}>
             What is happening{" "}
             <span className="gradient-text">right now?</span>
           </h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: 16, maxWidth: 480, margin: "0 auto", lineHeight: 1.6 }}>
-            Describe your situation — we&apos;ll build your cart in seconds.
-            <br />No search. No browsing. Just say the need.
+          <p style={{ color: "var(--text-secondary)", fontSize: 14, maxWidth: 420, margin: "0 auto", lineHeight: 1.5 }}>
+            Describe your situation — cart builds in seconds. No search. No browsing.
           </p>
         </div>
 
         {/* Input card */}
-        <div className="glass-elevated animate-slide-up" style={{ padding: 24, marginBottom: 20 }}>
+        <div className="glass-elevated animate-slide-up" style={{ padding: 16, marginBottom: 14 }}>
 
           {/* Tab bar */}
-          <div className="tab-bar" style={{ marginBottom: 20 }}>
+          <div className="tab-bar" style={{ marginBottom: 14 }}>
             {(["type", "voice", "photo"] as const).map((t) => (
               <button
                 key={t}
@@ -379,10 +641,10 @@ function SituationPage() {
                 style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
               >
                 {t === "type"
-                  ? <><Keyboard size={13} weight="bold" /> Type</>
+                  ? <><KeyboardIcon size={13} weight="bold" /> Type</>
                   : t === "voice"
-                  ? <><Microphone size={13} weight="bold" /> Voice</>
-                  : <><Camera size={13} weight="bold" /> Photo</>
+                  ? <><MicrophoneIcon size={13} weight="bold" /> Voice</>
+                  : <><CameraIcon size={13} weight="bold" /> Photo</>
                 }
               </button>
             ))}
@@ -395,15 +657,17 @@ function SituationPage() {
                 ref={textareaRef}
                 id="situation-text-input"
                 className="input-glass"
-                style={{ minHeight: 120, lineHeight: 1.6 }}
+                style={{ minHeight: 72, maxHeight: 100, lineHeight: 1.5, fontSize: 15 }}
                 placeholder={placeholderText || "Type your situation here…"}
                 value={situationText}
                 onChange={(e) => setSituationText(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSubmit(); }}
               />
-              <div style={{ display: "flex", justifyContent: "flex-end", fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}>
-                {situationText.length > 0 && <span>{situationText.length} chars</span>}
-              </div>
+              {situationText.length > 0 && (
+                <div style={{ display: "flex", justifyContent: "flex-end", fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
+                  {situationText.length} chars · ⌘↵ to submit
+                </div>
+              )}
             </div>
           )}
 
@@ -425,8 +689,6 @@ function SituationPage() {
             <PhotoUpload
               onUploaded={(s3Key, _publicUrl, filename) => {
                 setPhotoS3Key(s3Key);
-                // Set a clean description of what was uploaded — Bedrock will analyse the actual image,
-                // no need to inject instructions into the text field.
                 const cleanName = filename.replace(/\.[^.]+$/, "").replace(/[_-]/g, " ");
                 setSituationText(cleanName.length > 4 ? cleanName : "photo of my situation");
                 setActiveTab("type");
@@ -434,25 +696,25 @@ function SituationPage() {
             />
           )}
 
-          {/* Typing hint — shown when user has typed something, not while submitting */}
+          {/* Typing hint */}
           {situationText.length > 10 && !isSubmitting && (
-            <div style={{ marginTop: 10, padding: "8px 12px", borderRadius: 8, background: "var(--bg-raised)", border: "1px solid var(--border)" }}>
-              <span style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
-                <Sparkle size={12} weight="fill" color="var(--accent)" />
+            <div style={{ marginTop: 8, padding: "6px 12px", borderRadius: 8, background: "var(--bg-raised)", border: "1px solid var(--border)" }}>
+              <span style={{ fontSize: 11, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
+                <SparkleIcon size={11} weight="fill" color="var(--accent)" />
                 AI will analyse your situation when you submit →
               </span>
             </div>
           )}
         </div>
 
-        {/* Situation chips */}
-        <div style={{ marginBottom: 28 }}>
-          <SituationChips activeText={situationText} onSelect={handleChipSelect} />
+        {/* Situation chips — tapping submits directly */}
+        <div style={{ marginBottom: 14 }}>
+          <SituationChips activeText={situationText} onSelect={handleChipSelect} onSubmit={handleChipSubmit} />
         </div>
 
         {/* Urgency mode */}
-        <div style={{ marginBottom: 32 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>
             Delivery preference
           </div>
           <UrgencyBar value={urgencyMode} onChange={handleUrgencyChange} idPrefix="urgency" showDescription />
@@ -460,33 +722,106 @@ function SituationPage() {
 
         {/* Error */}
         {error && (
-          <div style={{ marginBottom: 16, padding: "12px 16px", borderRadius: 12, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontSize: 14, display: "flex", alignItems: "center", gap: 10 }}>
-            <WarningCircle size={18} weight="fill" style={{ flexShrink: 0 }} />
+          <div style={{ marginBottom: 10, padding: "10px 14px", borderRadius: 12, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontSize: 13, display: "flex", alignItems: "center", gap: 10 }}>
+            <WarningCircleIcon size={16} weight="fill" style={{ flexShrink: 0 }} />
             <div>
-              <div style={{ fontWeight: 600, marginBottom: 2 }}>Something went wrong</div>
-              <div style={{ fontSize: 13 }}>{error}</div>
+              <div style={{ fontWeight: 600, marginBottom: 1 }}>Something went wrong</div>
+              <div style={{ fontSize: 12 }}>{error}</div>
             </div>
           </div>
         )}
+      </div>
 
-        {/* CTA */}
-        <Button
-          id="build-cart-btn"
-          variant="primary"
-          loading={isSubmitting}
-          disabled={!canSubmit}
-          style={{
-            width: "100%", fontSize: 17, padding: "17px 32px",
-            animation: canSubmit && !isSubmitting ? "glow-pulse 2s ease-in-out infinite" : "none",
-          }}
-          onClick={handleSubmit}
-        >
-          <Lightning size={16} weight="fill" style={{ display: "inline", verticalAlign: "middle" }} /> Build My Cart →
-        </Button>
-
-        <p style={{ textAlign: "center", color: "var(--text-faint)", fontSize: 12, marginTop: 12 }}>
-          Developed by Team RIDH
-        </p>
+      {/* ── Fixed CTA bar — always visible at bottom ── */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: "12px 16px",
+          paddingBottom: "max(12px, env(safe-area-inset-bottom))",
+          background: "rgba(245,246,250,0.97)",
+          backdropFilter: "blur(20px)",
+          borderTop: "1px solid var(--border)",
+          zIndex: 20,
+        }}
+      >
+        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+          {/* Previous orders — compact scrollable row */}
+          {orderHistory.length > 0 && !isRefining && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 7 }}>
+                Previous orders
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  overflowX: "auto",
+                  paddingBottom: 2,
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                  WebkitOverflowScrolling: "touch" as React.CSSProperties["WebkitOverflowScrolling"],
+                }}
+              >
+                {orderHistory.map((order, i) => (
+                  <button
+                    key={order.sessionId || i}
+                    onClick={() => handleReorder(order)}
+                    style={{
+                      flexShrink: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "7px 12px",
+                      borderRadius: 50,
+                      border: "1px solid var(--border)",
+                      background: "var(--bg-raised)",
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                      whiteSpace: "nowrap",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.borderColor = "var(--accent)";
+                      (e.currentTarget as HTMLElement).style.background = "var(--accent-dim)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
+                      (e.currentTarget as HTMLElement).style.background = "var(--bg-raised)";
+                    }}
+                  >
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)" }}>
+                      {order.scenarioLabel}
+                    </span>
+                    <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                      ₹{order.totalPrice}
+                    </span>
+                    <span style={{ fontSize: 10, color: "var(--text-faint)" }}>
+                      {formatRelativeTime(order.confirmedAt)}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <Button
+            id="build-cart-btn"
+            variant="primary"
+            loading={isSubmitting}
+            disabled={!canSubmit}
+            style={{
+              width: "100%", fontSize: 16, padding: "15px 32px",
+              animation: canSubmit && !isSubmitting ? "glow-pulse 2s ease-in-out infinite" : "none",
+            }}
+            onClick={handleSubmit}
+          >
+            <LightningIcon size={15} weight="fill" style={{ display: "inline", verticalAlign: "middle" }} /> Build My Cart →
+          </Button>
+          <p style={{ textAlign: "center", color: "var(--text-faint)", fontSize: 11, marginTop: 6 }}>
+            Developed by Team RIDH
+          </p>
+        </div>
       </div>
     </main>
   );

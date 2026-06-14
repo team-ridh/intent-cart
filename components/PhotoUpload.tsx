@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { useImageUpload } from "@/hooks/useImageUpload";
-import { Camera, ArrowDown, Spinner, CheckCircle, X } from "@phosphor-icons/react";
+import { CameraIcon, ArrowDownIcon, SpinnerIcon, CheckCircleIcon, XIcon } from "@phosphor-icons/react";
 
 interface PhotoUploadProps {
   onUploaded: (s3Key: string, publicUrl: string, filename: string) => void;
@@ -73,8 +73,8 @@ export function PhotoUpload({ onUploaded }: PhotoUploadProps) {
         >
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
             {isDragging
-              ? <ArrowDown size={40} weight="bold" color="var(--accent)" />
-              : <Camera size={40} weight="light" color="var(--text-muted)" />
+              ? <ArrowDownIcon size={40} weight="bold" color="var(--accent)" />
+              : <CameraIcon size={40} weight="light" color="var(--text-muted)" />
             }
           </div>
           <div>
@@ -109,20 +109,20 @@ export function PhotoUpload({ onUploaded }: PhotoUploadProps) {
             {isUploading ? (
               <div style={{ textAlign: "center", color: "#fff" }}>
                 <div style={{ display: "flex", justifyContent: "center", marginBottom: 6, animation: "rotate-slow 1s linear infinite" }}>
-                  <Spinner size={24} weight="bold" />
+                  <SpinnerIcon size={24} weight="bold" />
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 500 }}>Uploading to S3…</div>
               </div>
             ) : s3Key ? (
               <div style={{ textAlign: "center", color: "#fff" }}>
                 <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
-                  <CheckCircle size={24} weight="fill" color="#4ade80" />
+                  <CheckCircleIcon size={24} weight="fill" color="#4ade80" />
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 500 }}>Uploaded successfully</div>
               </div>
             ) : (
               <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#fff", fontWeight: 500 }}>
-                <Camera size={16} weight="regular" /> {file?.name}
+                <CameraIcon size={16} weight="regular" /> {file?.name}
               </div>
             )}
           </div>
@@ -147,7 +147,7 @@ export function PhotoUpload({ onUploaded }: PhotoUploadProps) {
             }}
             aria-label="Remove photo"
           >
-            <X size={14} weight="bold" color="#fff" />
+            <XIcon size={14} weight="bold" color="#fff" />
           </button>
         </div>
       )}
