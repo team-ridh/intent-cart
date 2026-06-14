@@ -30,11 +30,16 @@ export interface Substitute {
   name: string;
   brand: string;
   price: number;
+  mrp?: number;           // original MRP for showing discount
+  discount?: number;      // % off
   type: "best" | "fastest" | "cheapest" | "trusted";
   label: string;
   reason: string;
   eta: number; // minutes
   image: string;
+  asin?: string;          // Amazon Standard Identification Number
+  rating?: number;        // e.g. 4.3
+  reviewCount?: number;   // e.g. 12847
 }
 
 export interface CartItem {
@@ -43,9 +48,16 @@ export interface CartItem {
   brand: string;
   category: string;
   price: number;
+  mrp?: number;           // original MRP (shown as ~~strikethrough~~)
+  discount?: number;      // % off from MRP
   quantity: number;
   unit: string;
   image: string;
+  asin?: string;          // Amazon Standard Identification Number e.g. "B07GNHK45P"
+  rating?: number;        // star rating e.g. 4.4
+  reviewCount?: number;   // number of reviews e.g. 58234
+  badge?: string;         // "Best Seller" | "Amazon's Choice" | "#1 in category"
+  description?: string;   // short product description
   reason: string;
   reasonTag: string;
   eta: number; // minutes
