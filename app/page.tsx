@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import { parseIntent } from "@/lib/ai/intentParser";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
-import { Logo } from "@/components/Logo";
+import { Navbar } from "@/components/Navbar";
 import { SituationChips } from "@/components/SituationChips";
 import { VoiceCapture } from "@/components/VoiceCapture";
 import { PhotoUpload } from "@/components/PhotoUpload";
@@ -23,9 +23,7 @@ import {
   WarningCircleIcon,
   LightningIcon,
   SparkleIcon,
-  UserCircleIcon,
 } from "@phosphor-icons/react";
-import { getOrderHistory, type OrderHistoryEntry } from "@/lib/orderHistory";
 import type { GeneratedCart, ParsedIntent, UrgencyMode } from "@/lib/types";
 
 const PLACEHOLDER_CYCLE = [
@@ -37,178 +35,7 @@ const PLACEHOLDER_CYCLE = [
   "Tea time! Need snacks…",
 ];
 
-// ─── Order history helpers ─────────────────────────────────────────
-function formatRelativeTime(epochMs: number): string {
-  const diff = Date.now() - epochMs;
-  const mins = Math.floor(diff / 60_000);
-  if (mins < 60) return mins <= 1 ? "just now" : `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return days === 1 ? "yesterday" : `${days}d ago`;
-}
-
-// ─── Previous orders drawer ────────────────────────────────────────
-interface OrderHistoryDrawerProps {
-  orders: OrderHistoryEntry[];
-  onReorder: (order: OrderHistoryEntry) => void;
-  onClose: () => void;
-}
-
-function OrderHistoryDrawer({ orders, onReorder, onClose }: OrderHistoryDrawerProps) {
-  return (
-    <>
-      <div
-        onClick={onClose}
-        style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)", zIndex: 60 }}
-        aria-hidden
-      />
-      <div
-        className="animate-slide-up"
-        role="dialog"
-        aria-label="Previous orders"
-        style={{
-          position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 70,
-          background: "var(--bg-surface)",
-          borderTop: "1px solid var(--border)",
-          borderRadius: "24px 24px 0 0",
-          padding: "24px 20px",
-          maxHeight: "75vh",
-          overflowY: "auto",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-          <div>
-            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }}>
-              Previous Orders
-            </div>
-            <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 2 }}>
-              Tap any order to re-order it
-            </div>
-          </div>
-          <button className="btn-ghost" onClick={onClose} aria-label="Close">✕</button>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {orders.map((order, i) => (
-            <div
-              key={order.sessionId || i}
-              style={{
-                padding: "14px 16px",
-                borderRadius: 14,
-                background: "var(--bg-raised)",
-                border: "1px solid var(--border)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-              }}
-            >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-                  <span className="badge badge-orange" style={{ fontSize: 10 }}>
-                    {order.scenarioLabel}
-                  </span>
-                  <span style={{ fontSize: 11, color: "var(--text-faint)" }}>
-                    {formatRelativeTime(order.confirmedAt)}
-                  </span>
-                </div>
-                <div style={{
-                  fontSize: 13,
-                  color: "var(--text-secondary)",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  maxWidth: "100%",
-                }}>
-                  {order.situationText}
-                </div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
-                  {order.itemCount} items · ₹{order.totalPrice}
-                </div>
-              </div>
-              <button
-                className="btn-secondary"
-                style={{ fontSize: 13, padding: "7px 14px", flexShrink: 0 }}
-                onClick={() => onReorder(order)}
-              >
-                Re-order
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    </>
-  );
-}
-
-// ─── Recent orders bar (shows latest + "See all" link) ─────────────
-interface RecentOrdersBarProps {
-  orders: OrderHistoryEntry[];
-  onReorder: (order: OrderHistoryEntry) => void;
-  onShowAll: () => void;
-}
-
-function RecentOrdersBar({ orders, onReorder, onShowAll }: RecentOrdersBarProps) {
-  const latest = orders[0];
-  if (!latest) return null;
-
-  return (
-    <div
-      style={{
-        marginBottom: 20,
-        padding: "14px 16px",
-        borderRadius: 16,
-        background: "linear-gradient(135deg, rgba(0,153,187,0.08) 0%, rgba(0,153,187,0.04) 100%)",
-        border: "1px solid rgba(0,153,187,0.2)",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: "var(--accent-teal)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>
-            Last order · {formatRelativeTime(latest.confirmedAt)}
-          </div>
-          <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>
-            {latest.scenarioLabel}
-          </div>
-          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-            {latest.itemCount} items · ₹{latest.totalPrice}
-          </div>
-        </div>
-        <button
-          id="reorder-btn"
-          className="btn-secondary"
-          style={{ fontSize: 13, padding: "8px 16px", flexShrink: 0 }}
-          onClick={() => onReorder(latest)}
-        >
-          Re-order →
-        </button>
-      </div>
-
-      {orders.length > 1 && (
-        <button
-          id="show-all-orders-btn"
-          onClick={onShowAll}
-          style={{
-            marginTop: 10,
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontSize: 12,
-            color: "var(--accent-teal)",
-            fontWeight: 600,
-            padding: "4px 0",
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-          }}
-        >
-          See all orders ({orders.length}) →
-        </button>
-      )}
-    </div>
-  );
-}
+// ─── (Order history helpers and drawer moved to Navbar component) ──
 
 // ─── Low-confidence clarify modal ────────────────────────────────
 interface ClarifyModalProps {
@@ -370,9 +197,6 @@ function SituationPage() {
   const [pendingIntent, setPendingIntent] = useState<ParsedIntent | null>(null);
   const [pendingCart, setPendingCart] = useState<GeneratedCart | null>(null);
   const [pendingSelections, setPendingSelections] = useState<Record<string, string>>({});
-  // Order history — loaded from localStorage
-  const [orderHistory, setOrderHistory] = useState<OrderHistoryEntry[]>([]);
-  const [showOrderHistory, setShowOrderHistory] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const {
@@ -427,28 +251,7 @@ function SituationPage() {
     [setIntent, setCart, setSelectedSubstitutes, router]
   );
 
-  // ─── Load order history from localStorage (client-only) ────────
-  useEffect(() => {
-    setOrderHistory(getOrderHistory());
-  }, []);
 
-  // ─── Re-order handler — replays any previous order ──────────────
-  const handleReorder = useCallback(async (order: OrderHistoryEntry) => {
-    setShowOrderHistory(false);
-    setSituationText(order.situationText);
-    setIsSubmitting(true);
-    setIsLoading(true);
-    try {
-      const { intent, cart, initialSelections } = await parseIntent(order.situationText, undefined);
-      await proceedWithIntent(intent, cart, initialSelections);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Something went wrong";
-      setError(msg);
-    } finally {
-      setIsSubmitting(false);
-      setIsLoading(false);
-    }
-  }, [setSituationText, setIsLoading, proceedWithIntent]);
 
   // ─── Submit — calls Bedrock via /api/interpret ───────────────────
   const handleSubmit = useCallback(async () => {
@@ -514,10 +317,21 @@ function SituationPage() {
         flexDirection: "column",
         padding: 0,
         position: "relative",
-        overflow: "hidden",
       }}
     >
       <OfflineBanner />
+      {/* Navbar — full width, sticky */}
+      <Navbar
+        rightSlot={
+          isRefining ? (
+            <span className="badge badge-amber" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+              <PencilSimpleIcon size={10} weight="bold" /> Refining
+            </span>
+          ) : (
+            <span className="badge badge-teal">Beta</span>
+          )
+        }
+      />
 
       {/* Low-confidence clarify modal */}
       {pendingIntent && (
@@ -536,14 +350,6 @@ function SituationPage() {
             setPendingIntent(null);
             textareaRef.current?.focus();
           }}
-        />
-      )}
-
-      {showOrderHistory && (
-        <OrderHistoryDrawer
-          orders={orderHistory}
-          onReorder={handleReorder}
-          onClose={() => setShowOrderHistory(false)}
         />
       )}
 
@@ -568,66 +374,6 @@ function SituationPage() {
           padding: "0 clamp(16px, 5vw, 80px)",
         }}
       >
-        {/* Nav */}
-        <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 16, paddingBottom: 16 }}>
-          <Logo />
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {isRefining && (
-              <span className="badge badge-amber" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                <PencilSimpleIcon size={10} weight="bold" /> Refining
-              </span>
-            )}
-            <span className="badge badge-teal">Beta</span>
-            {orderHistory.length > 0 && !isRefining && (
-              <button
-                id="profile-btn"
-                aria-label="View order history"
-                onClick={() => setShowOrderHistory(true)}
-                style={{
-                  position: "relative",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: 6,
-                  borderRadius: "50%",
-                  border: "1px solid var(--border)",
-                  background: "var(--bg-raised)",
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "var(--accent)";
-                  (e.currentTarget as HTMLElement).style.background = "var(--accent-dim)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
-                  (e.currentTarget as HTMLElement).style.background = "var(--bg-raised)";
-                }}
-              >
-                <UserCircleIcon size={22} weight="regular" color="var(--text-secondary)" />
-                {/* Order count badge */}
-                <span style={{
-                  position: "absolute",
-                  top: -4,
-                  right: -4,
-                  width: 16,
-                  height: 16,
-                  borderRadius: "50%",
-                  background: "var(--accent)",
-                  color: "#fff",
-                  fontSize: 10,
-                  fontWeight: 700,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  lineHeight: 1,
-                }}>
-                  {orderHistory.length > 9 ? "9+" : orderHistory.length}
-                </span>
-              </button>
-            )}
-          </div>
-        </nav>
 
         {/* Hero — compact */}
         <div style={{ textAlign: "center", marginBottom: 16 }} className="animate-float-in">
@@ -679,8 +425,16 @@ function SituationPage() {
                 onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSubmit(); }}
               />
               {situationText.length > 0 && (
-                <div style={{ display: "flex", justifyContent: "flex-end", fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
-                  {situationText.length} chars · ⌘↵ to submit
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 11, color: "var(--text-muted)", marginTop: 4, gap: 8 }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                    {situationText.length > 10 && !isSubmitting && (
+                      <>
+                        <SparkleIcon size={11} weight="fill" color="var(--accent)" />
+                        AI will analyse your situation when you submit
+                      </>
+                    )}
+                  </span>
+                  <span style={{ flexShrink: 0 }}>{situationText.length} chars · ⌘↵ to submit</span>
                 </div>
               )}
             </div>
@@ -709,16 +463,6 @@ function SituationPage() {
                 setActiveTab("type");
               }}
             />
-          )}
-
-          {/* Typing hint */}
-          {situationText.length > 10 && !isSubmitting && (
-            <div style={{ marginTop: 8, padding: "6px 12px", borderRadius: 8, background: "var(--bg-raised)", border: "1px solid var(--border)" }}>
-              <span style={{ fontSize: 11, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
-                <SparkleIcon size={11} weight="fill" color="var(--accent)" />
-                AI will analyse your situation when you submit →
-              </span>
-            </div>
           )}
         </div>
 

@@ -9,7 +9,7 @@ import { SubstituteDrawer } from "@/components/SubstituteDrawer";
 import { UrgencyBar } from "@/components/UrgencyBar";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { Logo } from "@/components/Logo";
+import { Navbar } from "@/components/Navbar";
 import { getFeaturedItems, type FeaturedItem } from "@/lib/featuredItems";
 import {
   LightningIcon,
@@ -558,28 +558,15 @@ function CartPage() {
       )}
 
       {/* ── Sticky top nav ─────────────────────────────────────── */}
-      <header className="cart-nav">
-        <div className="cart-nav__inner">
-          <Logo />
-          <div className="cart-nav__title-group">
-            <span className="cart-nav__title">
-              {isLoading ? "Building cart…" : "Shopping Cart"}
-            </span>
-            {!isLoading && cart && (
-              <span className="cart-nav__count">
-                {itemCount} item{itemCount !== 1 ? "s" : ""}
-              </span>
-            )}
-          </div>
-          <button
-            id="cart-back-btn"
-            className="btn-ghost cart-nav__back"
-            onClick={() => router.push("/")}
-          >
-            ← Back
-          </button>
-        </div>
-      </header>
+      <Navbar
+        title={isLoading ? "Building cart…" : "Shopping Cart"}
+        subtitle={
+          !isLoading && cart
+            ? `${itemCount} item${itemCount !== 1 ? "s" : ""}`
+            : undefined
+        }
+        cartItemCount={itemCount}
+      />
 
       {/* ── Page body ──────────────────────────────────────────── */}
       <div className="cart-body">
