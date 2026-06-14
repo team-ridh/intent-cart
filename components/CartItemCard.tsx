@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { CartItem } from "@/lib/types";
-import { LightningIcon, XIcon, ArrowsLeftRightIcon, TrophyIcon, CheckCircleIcon, PackageIcon, StarIcon } from "@phosphor-icons/react";
+import { Lightning, X, ArrowsLeftRight, Trophy, CheckCircle, Package, StarIcon } from "@phosphor-icons/react";
 
 const TAG_COLORS: Record<string, string> = {
   "Hosting essential": "orange",
@@ -109,7 +109,7 @@ export function CartItemCard({
             }}
           />
         ) : (
-          <PackageIcon size={28} weight="light" color="var(--text-muted)" />
+          <Package size={28} weight="light" color="var(--text-muted)" />
         )}
       </div>
 
@@ -120,9 +120,9 @@ export function CartItemCard({
             {item.badge && (
               <div style={{ fontSize: 10, fontWeight: 700, color: "#FF9900", marginBottom: 2, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 3 }}>
                 {item.badge === "Best Seller"
-                  ? <TrophyIcon size={10} weight="fill" color="#FF9900" />
+                  ? <Trophy size={10} weight="fill" color="#FF9900" />
                   : item.badge === "Amazon's Choice"
-                  ? <CheckCircleIcon size={10} weight="fill" color="#FF9900" />
+                  ? <CheckCircle size={10} weight="fill" color="#FF9900" />
                   : null
                 }
                 {item.badge}
@@ -181,7 +181,7 @@ export function CartItemCard({
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
           {/* ETA */}
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <LightningIcon size={12} weight="fill" color="var(--accent-teal)" />
+            <Lightning size={12} weight="fill" color="var(--accent-teal)" />
             <span style={{ color: "var(--accent-teal)", fontSize: 12, fontWeight: 600 }}>
               ~{displayEta}-{displayEta + 5} min est.
             </span>
@@ -228,8 +228,8 @@ export function CartItemCard({
               onClick={onOpenSubs}
             >
               {activeSub
-                ? <><CheckCircleIcon size={12} weight="fill" /> {activeSub.name.split(" ")[0]}</>
-                : <><ArrowsLeftRightIcon size={12} weight="bold" /> Substitutes ({item.substitutes.length})</>
+                ? <><CheckCircle size={12} weight="fill" /> {activeSub.name.split(" ")[0]}</>
+                : <><ArrowsLeftRight size={12} weight="bold" /> Substitutes ({item.substitutes.length})</>
               }
             </button>
           )}
@@ -242,7 +242,7 @@ export function CartItemCard({
             onClick={handleRemove}
             aria-label={`Remove ${item.name}`}
           >
-            <XIcon size={14} weight="bold" />
+            <X size={14} weight="bold" />
           </button>
         </div>
       </div>

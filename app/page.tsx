@@ -13,16 +13,16 @@ import { UrgencyBar } from "@/components/UrgencyBar";
 import { Button } from "@/components/ui/Button";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import {
-  QuestionIcon,
-  PencilSimpleIcon,
-  CheckCircleIcon,
-  WifiSlashIcon,
-  KeyboardIcon,
-  MicrophoneIcon,
-  CameraIcon,
-  WarningCircleIcon,
-  LightningIcon,
-  SparkleIcon,
+  Question,
+  PencilSimple,
+  CheckCircle,
+  WifiSlash,
+  Keyboard,
+  Microphone,
+  Camera,
+  WarningCircle,
+  Lightning,
+  Sparkle,
 } from "@phosphor-icons/react";
 import type { GeneratedCart, ParsedIntent, UrgencyMode } from "@/lib/types";
 
@@ -76,7 +76,7 @@ function ClarifyModal({ intent, onConfirm, onRefine }: ClarifyModalProps) {
       >
         <div style={{ textAlign: "center", marginBottom: 24 }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
-            <QuestionIcon size={44} weight="fill" color="var(--accent)" />
+            <Question size={44} weight="fill" color="var(--accent)" />
           </div>
           <div
             style={{
@@ -114,7 +114,7 @@ function ClarifyModal({ intent, onConfirm, onRefine }: ClarifyModalProps) {
             style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             onClick={onRefine}
           >
-            <PencilSimpleIcon size={14} weight="bold" /> Let me clarify
+            <PencilSimple size={14} weight="bold" /> Let me clarify
           </button>
           <button
             id="clarify-confirm-btn"
@@ -122,7 +122,7 @@ function ClarifyModal({ intent, onConfirm, onRefine }: ClarifyModalProps) {
             style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             onClick={onConfirm}
           >
-            <CheckCircleIcon size={14} weight="fill" /> Yes, build it!
+            <CheckCircle size={14} weight="fill" /> Yes, build it!
           </button>
         </div>
       </div>
@@ -167,7 +167,7 @@ function OfflineBanner() {
         gap: 8,
       }}
     >
-      <WifiSlashIcon size={16} weight="bold" /> You&apos;re offline — check your connection before submitting
+      <WifiSlash size={16} weight="bold" /> You&apos;re offline — check your connection before submitting
     </div>
   );
 }
@@ -343,7 +343,7 @@ function SituationPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {isRefining && (
               <span className="badge badge-amber" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                <PencilSimpleIcon size={10} weight="bold" /> Refining
+                <PencilSimple size={10} weight="bold" /> Refining
               </span>
             )}
             <span className="badge badge-teal">Beta</span>
@@ -379,10 +379,10 @@ function SituationPage() {
                 style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
               >
                 {t === "type"
-                  ? <><KeyboardIcon size={13} weight="bold" /> Type</>
+                  ? <><Keyboard size={13} weight="bold" /> Type</>
                   : t === "voice"
-                  ? <><MicrophoneIcon size={13} weight="bold" /> Voice</>
-                  : <><CameraIcon size={13} weight="bold" /> Photo</>
+                  ? <><Microphone size={13} weight="bold" /> Voice</>
+                  : <><Camera size={13} weight="bold" /> Photo</>
                 }
               </button>
             ))}
@@ -402,7 +402,7 @@ function SituationPage() {
                 onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSubmit(); }}
               />
               <div style={{ display: "flex", justifyContent: "flex-end", fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}>
-                {situationText.length > 0 && <span>{situationText.length} chars · ⌘↵ to submit</span>}
+                {situationText.length > 0 && <span>{situationText.length} chars</span>}
               </div>
             </div>
           )}
@@ -438,7 +438,7 @@ function SituationPage() {
           {situationText.length > 10 && !isSubmitting && (
             <div style={{ marginTop: 10, padding: "8px 12px", borderRadius: 8, background: "var(--bg-raised)", border: "1px solid var(--border)" }}>
               <span style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
-                <SparkleIcon size={12} weight="fill" color="var(--accent)" />
+                <Sparkle size={12} weight="fill" color="var(--accent)" />
                 AI will analyse your situation when you submit →
               </span>
             </div>
@@ -452,16 +452,16 @@ function SituationPage() {
 
         {/* Urgency mode */}
         <div style={{ marginBottom: 32 }}>
-          <div style={{ fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
             Delivery preference
           </div>
-          <UrgencyBar value={urgencyMode} onChange={handleUrgencyChange} idPrefix="urgency" />
+          <UrgencyBar value={urgencyMode} onChange={handleUrgencyChange} idPrefix="urgency" showDescription />
         </div>
 
         {/* Error */}
         {error && (
           <div style={{ marginBottom: 16, padding: "12px 16px", borderRadius: 12, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontSize: 14, display: "flex", alignItems: "center", gap: 10 }}>
-            <WarningCircleIcon size={18} weight="fill" style={{ flexShrink: 0 }} />
+            <WarningCircle size={18} weight="fill" style={{ flexShrink: 0 }} />
             <div>
               <div style={{ fontWeight: 600, marginBottom: 2 }}>Something went wrong</div>
               <div style={{ fontSize: 13 }}>{error}</div>
@@ -481,7 +481,7 @@ function SituationPage() {
           }}
           onClick={handleSubmit}
         >
-          <LightningIcon size={16} weight="fill" style={{ display: "inline", verticalAlign: "middle" }} /> Build My Cart →
+          <Lightning size={16} weight="fill" style={{ display: "inline", verticalAlign: "middle" }} /> Build My Cart →
         </Button>
 
         <p style={{ textAlign: "center", color: "var(--text-faint)", fontSize: 12, marginTop: 12 }}>
