@@ -148,14 +148,16 @@ export async function PATCH(req: NextRequest) {
         )
         .filter((i) => i.quantity > 0);
       const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-      cart = { ...cart, items, totalPrice, itemCount: items.length };
+      const estimatedEta = items.length > 0 ? Math.max(...items.map((i) => i.eta)) : 0;
+      cart = { ...cart, items, totalPrice, itemCount: items.length, estimatedEta };
     }
 
     // Remove item
     if (body.removeItem) {
       const items = cart.items.filter((i) => i.id !== body.removeItem);
       const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-      cart = { ...cart, items, totalPrice, itemCount: items.length };
+      const estimatedEta = items.length > 0 ? Math.max(...items.map((i) => i.eta)) : 0;
+      cart = { ...cart, items, totalPrice, itemCount: items.length, estimatedEta };
     }
 
     await updateCartState(sessionId, { cart, urgencyMode, selectedSubstitutes });

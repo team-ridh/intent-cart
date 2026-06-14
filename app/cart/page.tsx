@@ -272,13 +272,16 @@ function CartPage() {
       )}
 
       {/* Intent summary banner */}
-      {!isLoading && intent && (
+      {!isLoading && intent && cart && (
         <div className="glass-elevated animate-float-in" style={{ padding: 20, marginBottom: 20 }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
             <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, background: "linear-gradient(135deg,rgba(232,93,42,0.15),rgba(0,153,187,0.08))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>✦</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 17, marginBottom: 4 }}>
-                {cart?.summaryLine}
+                {/* Rebuild dynamically — cart.summaryLine is stale after item changes */}
+                {cart.itemCount} item{cart.itemCount !== 1 ? "s" : ""} curated for your{" "}
+                {intent.urgency === "High" ? "urgent" : intent.urgency === "Medium" ? "time-sensitive" : "relaxed"}{" "}
+                {intent.scenarioLabel.toLowerCase()} need · arrives in ~{cart.estimatedEta} min
               </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <span className="badge badge-orange">{intent.scenarioLabel}</span>
@@ -336,6 +339,7 @@ function CartPage() {
               <div>
                 <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Total</div>
                 <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22 }}>₹{totalPrice}</div>
+                <div style={{ fontSize: 10, color: "var(--text-faint)" }}>+₹3 platform fee</div>
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Items</div>

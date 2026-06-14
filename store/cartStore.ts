@@ -184,7 +184,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
       )
       .filter((i) => i.quantity > 0);
     const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-    const optimisticCart = { ...cart, items, totalPrice, itemCount: items.length };
+    const estimatedEta = items.length > 0 ? Math.max(...items.map((i) => i.eta)) : 0;
+    const optimisticCart = { ...cart, items, totalPrice, itemCount: items.length, estimatedEta };
     set({ cart: optimisticCart });
 
     try {
@@ -204,7 +205,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
     const items = cart.items.filter((i) => i.id !== itemId);
     const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-    const optimisticCart = { ...cart, items, totalPrice, itemCount: items.length };
+    const estimatedEta = items.length > 0 ? Math.max(...items.map((i) => i.eta)) : 0;
+    const optimisticCart = { ...cart, items, totalPrice, itemCount: items.length, estimatedEta };
     set({ cart: optimisticCart });
 
     try {

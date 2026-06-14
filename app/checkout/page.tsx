@@ -35,7 +35,7 @@ const PAYMENT_OPTIONS: Array<{
   sub: string;
   fee: number;
 }> = [
-  { id: "amazonpay", label: "Amazon Pay Balance", icon: "AP", sub: "₹2,450.00 available", fee: 0 },
+  { id: "amazonpay", label: "Amazon Pay Balance", icon: "AP", sub: "₹2,450.00 (demo)", fee: 0 },
   { id: "upi",       label: "UPI / Google Pay",   icon: "UPI", sub: "Pay instantly via UPI", fee: 0 },
   { id: "cod",       label: "Cash on Delivery",   icon: "₹",  sub: "Pay when delivered",   fee: 50 },
 ];
@@ -328,7 +328,8 @@ function CheckoutPage() {
       }
 
       setConfirmed(true);
-      setCountdown(cart?.estimatedEta ?? 15);
+      // estimatedEta is in MINUTES — convert to seconds for the countdown
+      setCountdown((cart?.estimatedEta ?? 15) * 60);
     } catch (err) {
       setConfirmError(err instanceof Error ? err.message : "Confirmation failed");
     } finally {
