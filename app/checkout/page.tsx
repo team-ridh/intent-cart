@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import type { CartItem } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
@@ -8,18 +8,19 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Logo } from "@/components/Logo";
 import { SkeletonCard } from "@/components/ui/SkeletonCard";
 import {
-  House,
-  Buildings,
-  MapPin,
-  PencilSimple,
-  WarningCircle,
-  Sparkle,
-  CheckCircle,
-  Lightning,
-  ArrowCounterClockwise,
-  ArrowLeft,
-  GearSix,
-  Package,
+  HouseIcon,
+  BuildingsIcon,
+  MapPinIcon,
+  PencilSimpleIcon,
+  WarningCircleIcon,
+  SparkleIcon,
+  CheckCircleIcon,
+  LightningIcon,
+  ArrowCounterClockwiseIcon,
+  ArrowLeftIcon,
+  GearSixIcon,
+  PackageIcon,
+  WarningIcon,
 } from "@phosphor-icons/react";
 
 // ─── Address types ────────────────────────────────────────────────
@@ -49,9 +50,9 @@ const PAYMENT_OPTIONS: Array<{
   sub: string;
   fee: number;
 }> = [
-  { id: "amazonpay", label: "Amazon Pay Balance", icon: "AP", sub: "₹2,450.00 (demo)", fee: 0 },
-  { id: "upi",       label: "UPI / Google Pay",   icon: "UPI", sub: "Pay instantly via UPI", fee: 0 },
-  { id: "cod",       label: "Cash on Delivery",   icon: "₹",  sub: "Pay when delivered",   fee: 50 },
+  { id: "amazonpay", label: "Amazon Pay Balance", icon: "AP", sub: "₹2,450.00 · demo balance", fee: 0 },
+  { id: "upi",       label: "UPI / Google Pay",   icon: "UPI", sub: "demo — no real transaction", fee: 0 },
+  { id: "cod",       label: "Cash on Delivery",   icon: "₹",  sub: "demo — no real delivery",   fee: 50 },
 ];
 
 // ─── Address editor ───────────────────────────────────────────────
@@ -124,10 +125,10 @@ function AddressEditor({ address, onChange, onSave, onCancel }: AddressEditorPro
             }}
           >
             {t === "Home"
-              ? <House size={13} weight="bold" />
+              ? <HouseIcon size={13} weight="bold" />
               : t === "Work"
-              ? <Buildings size={13} weight="bold" />
-              : <MapPin size={13} weight="bold" />
+              ? <BuildingsIcon size={13} weight="bold" />
+              : <MapPinIcon size={13} weight="bold" />
             } {t}
           </button>
         ))}
@@ -137,7 +138,7 @@ function AddressEditor({ address, onChange, onSave, onCancel }: AddressEditorPro
           Cancel
         </button>
         <button className="btn-primary" id="addr-save-btn" style={{ flex: 1, fontSize: 13, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5 }} onClick={onSave}>
-          <CheckCircle size={13} weight="fill" /> Save Address
+          <CheckCircleIcon size={13} weight="fill" /> Save Address
         </button>
       </div>
     </div>
@@ -251,7 +252,7 @@ function PaymentSelector({ selected, upiId, onUpiIdChange, onSelect, onClose }: 
         style={{ width: "100%", fontSize: 14, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5 }}
         onClick={onClose}
       >
-        <CheckCircle size={14} weight="fill" /> Confirm Payment Method
+        <CheckCircleIcon size={14} weight="fill" /> Confirm Payment Method
       </button>
     </div>
   );
@@ -278,12 +279,12 @@ function OrderItemRow({ item }: { item: CartItem }) {
             onError={(e) => { e.currentTarget.style.display = "none"; }}
           />
         ) : (
-          <Package size={24} weight="light" color="var(--text-muted)" />
+          <PackageIcon size={24} weight="light" color="var(--text-muted)" />
         )}
         <div>
           <div style={{ fontWeight: 500, fontSize: 14 }}>{item.name}</div>
           <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
-            {item.brand} · ×{item.quantity} · <Lightning size={10} weight="fill" color="var(--accent-teal)" style={{ display: "inline", verticalAlign: "middle" }} />{item.eta} min
+            {item.brand} · ×{item.quantity} · <LightningIcon size={10} weight="fill" color="var(--accent-teal)" style={{ display: "inline", verticalAlign: "middle" }} />~{item.eta} min est.
           </div>
         </div>
       </div>
@@ -303,8 +304,6 @@ function CheckoutPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ─── Address state ───────────────────────────────────────────────
   const [address, setAddress] = useState<Address>(DEFAULT_ADDRESS);
@@ -323,18 +322,6 @@ function CheckoutPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Countdown after confirmation
-  useEffect(() => {
-    if (!confirmed || countdown <= 0) return;
-    timerRef.current = setInterval(() => {
-      setCountdown((c) => {
-        if (c <= 1) { clearInterval(timerRef.current!); return 0; }
-        return c - 1;
-      });
-    }, 1000);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [confirmed, countdown]);
-
   const handleConfirm = async () => {
     setConfirming(true);
     setConfirmError(null);
@@ -351,8 +338,6 @@ function CheckoutPage() {
       }
 
       setConfirmed(true);
-      // estimatedEta is in MINUTES — convert to seconds for the countdown
-      setCountdown((cart?.estimatedEta ?? 15) * 60);
     } catch (err) {
       setConfirmError(err instanceof Error ? err.message : "Confirmation failed");
     } finally {
@@ -372,16 +357,16 @@ function CheckoutPage() {
     return (
       <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, textAlign: "center" }}>
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-          <WarningCircle size={48} weight="fill" color="#EF4444" />
+          <WarningCircleIcon size={48} weight="fill" color="#EF4444" />
         </div>
         <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, marginBottom: 10 }}>Failed to load checkout</h2>
         <p style={{ color: "var(--text-muted)", fontSize: 14, maxWidth: 380, marginBottom: 24 }}>{error}</p>
         <div style={{ display: "flex", gap: 12 }}>
           <button className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: 6 }} onClick={() => loadFromServer()}>
-            <ArrowCounterClockwise size={14} weight="bold" /> Try Again
+            <ArrowCounterClockwiseIcon size={14} weight="bold" /> Try Again
           </button>
           <button className="btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: 6 }} onClick={() => router.push("/")}>
-            <ArrowLeft size={14} weight="bold" /> Start Over
+            <ArrowLeftIcon size={14} weight="bold" /> Start Over
           </button>
         </div>
       </div>
@@ -397,36 +382,48 @@ function CheckoutPage() {
 
   // ─── Confirmed state ─────────────────────────────────────────────
   if (confirmed) {
-    const mm = String(Math.floor(countdown / 60)).padStart(2, "0");
-    const ss = String(countdown % 60).padStart(2, "0");
-
     return (
       <main className="min-h-screen flex flex-col items-center justify-center px-4" style={{ textAlign: "center" }}>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 20, animation: "float-in 0.5s ease-out" }}>
-          <CheckCircle size={72} weight="fill" color="var(--accent-green)" />
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
+          <CheckCircleIcon size={72} weight="fill" color="var(--accent-green)" />
         </div>
         <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 28, marginBottom: 10 }}>
-          Order <span className="gradient-text">Confirmed!</span>
+          Demo Order <span className="gradient-text">Placed!</span>
         </h1>
-        <p style={{ color: "var(--text-secondary)", fontSize: 16, marginBottom: 32 }}>
-          Your cart is on its way. Estimated arrival:
+        <p style={{ color: "var(--text-secondary)", fontSize: 15, marginBottom: 12, maxWidth: 360, lineHeight: 1.6 }}>
+          Your cart has been saved. In a live deployment, this would initiate quick commerce delivery.
         </p>
-
-        <div className="glass-elevated" style={{ padding: "24px 48px", marginBottom: 32 }}>
-          <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 52, color: "var(--accent-teal)", letterSpacing: "-0.03em" }}>
-            {countdown > 0 ? `${mm}:${ss}` : "Arriving soon"}
-          </div>
-          <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4 }}>minutes remaining</div>
+        <div
+          style={{
+            marginBottom: 28,
+            padding: "10px 20px",
+            borderRadius: 12,
+            background: "rgba(217,119,6,0.08)",
+            border: "1px solid rgba(217,119,6,0.25)",
+            color: "var(--accent-amber)",
+            fontSize: 13,
+            maxWidth: 380,
+          }}
+        >
+          Demo mode — no payment processed · no delivery dispatched
         </div>
 
-        <div style={{ marginBottom: 16, padding: "16px 24px", borderRadius: 16, background: "var(--bg-surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", minWidth: 260 }}>
+        <div className="glass-elevated" style={{ padding: "20px 40px", marginBottom: 28 }}>
+          <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 4 }}>Typical delivery for this order</div>
+          <div style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 36, color: "var(--accent-teal)", letterSpacing: "-0.03em" }}>
+            ~{cart?.estimatedEta ?? 15} min
+          </div>
+          <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 2 }}>catalogue estimate · not tracked</div>
+        </div>
+
+        <div style={{ marginBottom: 16, padding: "16px 24px", borderRadius: 16, background: "var(--bg-surface)", border: "1px solid var(--border)", minWidth: 260 }}>
           <div style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 8 }}>Order summary</div>
           <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22 }}>₹{grandTotal}</div>
           <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{cart?.itemCount} items · {intent?.scenarioLabel}</div>
         </div>
 
         <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 32, display: "flex", alignItems: "center", gap: 5, justifyContent: "center" }}>
-          <MapPin size={13} weight="bold" /> Delivering to {address.line1}, {address.line2} · {address.type}
+          <MapPinIcon size={13} weight="bold" /> {address.line1}, {address.line2} · {address.type}
         </div>
 
         <button className="btn-secondary" onClick={() => { useCartStore.getState().reset(); router.push("/"); }}>
@@ -438,6 +435,24 @@ function CheckoutPage() {
 
   return (
     <main className="min-h-screen pb-32" style={{ maxWidth: 680, margin: "0 auto", padding: "0 16px" }}>
+
+      {/* Demo mode banner */}
+      <div style={{
+        background: "rgba(245,158,11,0.12)",
+        border: "1px solid rgba(245,158,11,0.35)",
+        borderRadius: 10,
+        padding: "10px 16px",
+        marginBottom: 16,
+        marginTop: 8,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        fontSize: 13,
+        color: "#92400e",
+      }}>
+        <WarningIcon size={14} weight="fill" color="#D97706" />
+        <span><strong>Demo prototype</strong> — no real order will be placed or payment charged.</span>
+      </div>
 
       {/* Sticky header */}
       <div style={{ position: "sticky", top: 0, zIndex: 30, background: "rgba(245,246,250,0.9)", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--border)", marginBottom: 24, padding: "16px 0" }}>
@@ -465,17 +480,17 @@ function CheckoutPage() {
           {intent && (
             <div className="glass-elevated animate-float-in" style={{ padding: "16px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
             <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg,rgba(232,93,42,0.15),rgba(0,153,187,0.08))", flexShrink: 0 }}>
-              <Sparkle size={14} weight="fill" color="var(--accent)" />
+              <SparkleIcon size={14} weight="fill" color="var(--accent)" />
             </span>
               <div>
                 <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 15 }}>
                   {intent.scenarioLabel} order · {intent.urgency} urgency
                 </div>
                 <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-                  {intent.confidence}% confident · via Amazon Bedrock
+                  Scenario classified via Bedrock · {intent.confidence}% confident
                 </div>
               </div>
-              {intent.usedBedrock && <span className="badge badge-purple" style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 3 }}><CheckCircle size={10} weight="fill" /> AI</span>}
+              {intent.usedBedrock && <span className="badge badge-purple" style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 3 }}><CheckCircleIcon size={10} weight="fill" /> AI</span>}
             </div>
           )}
 
@@ -494,10 +509,10 @@ function CheckoutPage() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>
-                  <MapPin size={14} weight="bold" color="var(--accent)" /> Delivery Address
+                  <MapPinIcon size={14} weight="bold" color="var(--accent)" /> Delivery Address
                   {addressSaved && (
                     <span style={{ marginLeft: 8, color: "var(--accent-green)", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 3 }}>
-                      <CheckCircle size={11} weight="fill" /> Saved
+                      <CheckCircleIcon size={11} weight="fill" /> Saved
                     </span>
                   )}
                 </div>
@@ -515,7 +530,7 @@ function CheckoutPage() {
                   style={{ fontSize: 12, flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4 }}
                   onClick={() => { setPendingAddress(address); setEditingAddress(true); }}
                 >
-                  <PencilSimple size={11} weight="bold" /> Change
+                  <PencilSimpleIcon size={11} weight="bold" /> Change
                 </button>
               )}
             </div>
@@ -534,7 +549,7 @@ function CheckoutPage() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>
-                  <CheckCircle size={14} weight="bold" color="var(--accent)" /> Payment
+                  <CheckCircleIcon size={14} weight="bold" color="var(--accent)" /> Payment
                 </div>
                 {!editingPayment && (
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
@@ -573,7 +588,7 @@ function CheckoutPage() {
                   style={{ fontSize: 12, flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4 }}
                   onClick={() => setEditingPayment(true)}
                 >
-                  <PencilSimple size={11} weight="bold" /> Change
+                  <PencilSimpleIcon size={11} weight="bold" /> Change
                 </button>
               )}
             </div>
@@ -615,7 +630,7 @@ function CheckoutPage() {
           {/* ETA chip */}
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
             <div className="badge badge-teal" style={{ fontSize: 14, padding: "10px 20px", borderRadius: 24 }}>
-              <Lightning size={14} weight="fill" /> Estimated delivery in {cart.estimatedEta} minutes
+            <LightningIcon size={14} weight="fill" /> Estimated delivery: ~{cart.estimatedEta}–{cart.estimatedEta + 5} min
             </div>
           </div>
 
@@ -623,7 +638,7 @@ function CheckoutPage() {
           {confirmError && (
             <div style={{ marginBottom: 16, padding: "12px 16px", borderRadius: 12, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontSize: 14 }}>
               <div style={{ fontWeight: 600, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>
-              <WarningCircle size={14} weight="fill" /> Confirmation failed
+              <WarningCircleIcon size={14} weight="fill" /> Confirmation failed
             </div>
               <div style={{ fontSize: 13 }}>{confirmError}</div>
               <button
@@ -650,9 +665,9 @@ function CheckoutPage() {
               disabled={confirming || editingAddress || editingPayment}
             >
               {confirming ? (
-                <><span style={{ display: "inline-block", animation: "rotate-slow 0.8s linear infinite" }}><GearSix size={16} weight="bold" /></span> Confirming…</>
+                <><span style={{ display: "inline-block", animation: "rotate-slow 0.8s linear infinite" }}><GearSixIcon size={16} weight="bold" /></span> Confirming…</>
               ) : (
-                `Confirm & Place Order · ₹${grandTotal}`
+                `Place Demo Order · ₹${grandTotal}`
               )}
             </button>
             <p style={{ textAlign: "center", color: "var(--text-faint)", fontSize: 11, marginTop: 8 }}>
