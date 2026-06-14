@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import { CartItemCard } from "@/components/CartItemCard";
@@ -26,61 +26,70 @@ import {
   TruckIcon,
   LockSimpleIcon,
 } from "@phosphor-icons/react";
-import type { CartItem, UrgencyMode } from "@/lib/types";
+import type { CartItem, GeneratedCart, UrgencyMode } from "@/lib/types";
 
-// ─── Toast ─────────────────────────────────────────────────────────
-interface ToastProps {
+// ─────────────────────────────────────────────────────────────────────────────
+// Toast
+// ─────────────────────────────────────────────────────────────────────────────
+
+type ToastType = "success" | "info" | "warning";
+
+interface ToastState {
   message: string;
-  type?: "success" | "info" | "warning";
-  onDismiss: () => void;
+  type: ToastType;
 }
 
-function Toast({ message, type = "success", onDismiss }: ToastProps) {
-  const color =
-    type === "success" ? "var(--accent-green)"
-    : type === "warning" ? "var(--accent-amber)"
-    : "var(--accent-teal)";
-  const bg =
-    type === "success" ? "rgba(22,163,74,0.12)"
-    : type === "warning" ? "rgba(217,119,6,0.12)"
-    : "rgba(0,153,187,0.12)";
-  const border =
-    type === "success" ? "rgba(22,163,74,0.35)"
-    : type === "warning" ? "rgba(217,119,6,0.35)"
-    : "rgba(0,153,187,0.35)";
+function useToast() {
+  const [toast, setToast] = useState<ToastState | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const show = useCallback((message: string, type: ToastType = "success") => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setToast({ message, type });
+    timerRef.current = setTimeout(() => setToast(null), 3000);
+  }, []);
+
+  const dismiss = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setToast(null);
+  }, []);
+
+  return { toast, show, dismiss };
+}
+
+function Toast({ message, type, onDismiss }: ToastState & { onDismiss: () => void }) {
   return (
     <div
-      className="animate-float-in"
+      className={`cart-toast cart-toast--${type} animate-float-in`}
       onClick={onDismiss}
-      style={{
-        position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)",
-        zIndex: 80, background: bg, border: `1px solid ${border}`, color,
-        padding: "10px 20px", borderRadius: 50, fontSize: 13, fontWeight: 600,
-        backdropFilter: "blur(20px)", whiteSpace: "nowrap", cursor: "pointer",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
-      }}
+      role="status"
+      aria-live="polite"
     >
       {message}
     </div>
   );
 }
 
-function useToast() {
-  const [toast, setToast] = useState<{ message: string; type: "success" | "info" | "warning" } | null>(null);
-  const timerRef = { current: 0 as unknown as ReturnType<typeof setTimeout> };
-  const show = useCallback((message: string, type: "success" | "info" | "warning" = "success") => {
-    clearTimeout(timerRef.current);
-    setToast({ message, type });
-    timerRef.current = setTimeout(() => setToast(null), 3000);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const dismiss = useCallback(() => setToast(null), []);
-  return { toast, show, dismiss };
+// ─────────────────────────────────────────────────────────────────────────────
+// Sheet backdrop (shared)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function SheetBackdrop({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="sheet-backdrop"
+      onClick={onClose}
+      aria-hidden
+    />
+  );
 }
 
-// ─── AI cart refine sheet ──────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// AI Cart Refine Sheet
+// ─────────────────────────────────────────────────────────────────────────────
+
 interface CartRefineSheetProps {
-  onApplied: (cart: import("@/lib/types").GeneratedCart, feedback: string) => void;
+  onApplied: (cart: GeneratedCart, feedback: string) => void;
   onClose: () => void;
 }
 
@@ -92,8 +101,10 @@ function CartRefineSheet({ onApplied, onClose }: CartRefineSheetProps) {
   const handleRefine = async () => {
     const msg = text.trim();
     if (!msg) return;
+
     setLoading(true);
     setFeedback(null);
+
     try {
       const res = await fetch("/api/cart/refine", {
         method: "POST",
@@ -102,8 +113,16 @@ function CartRefineSheet({ onApplied, onClose }: CartRefineSheetProps) {
         body: JSON.stringify({ message: msg }),
       });
       const data = await res.json();
-      if (!res.ok) { setFeedback(data.error ?? "Something went wrong"); return; }
-      const fb = data.appliedOps?.length ? data.appliedOps.join(" · ") : data.noopReason ?? "No changes made";
+
+      if (!res.ok) {
+        setFeedback(data.error ?? "Something went wrong");
+        return;
+      }
+
+      const fb = data.appliedOps?.length
+        ? data.appliedOps.join(" · ")
+        : (data.noopReason ?? "No changes made");
+
       onApplied(data.cart, fb);
       setFeedback(fb);
       setText("");
@@ -116,20 +135,17 @@ function CartRefineSheet({ onApplied, onClose }: CartRefineSheetProps) {
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)", zIndex: 60 }} aria-hidden />
-      <div className="animate-slide-up" role="dialog" aria-label="Edit cart with AI" style={{
-        position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 70,
-        background: "var(--bg-surface)", borderTop: "1px solid var(--border)",
-        borderRadius: "24px 24px 0 0", padding: "24px 20px 32px",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+      <SheetBackdrop onClose={onClose} />
+      <div className="bottom-sheet animate-slide-up" role="dialog" aria-label="Edit cart with AI">
+        <div className="bottom-sheet__header">
           <div>
-            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 17 }}>Edit with AI</div>
-            <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 2 }}>Tell the AI what to change in your cart</div>
+            <p className="bottom-sheet__title">Edit with AI</p>
+            <p className="bottom-sheet__subtitle">Tell the AI what to change in your cart</p>
           </div>
           <button className="btn-ghost" onClick={onClose} aria-label="Close">✕</button>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+
+        <div className="cart-refine__row">
           <input
             id="cart-refine-input"
             autoFocus
@@ -137,33 +153,30 @@ function CartRefineSheet({ onApplied, onClose }: CartRefineSheetProps) {
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleRefine(); }}
             placeholder='e.g. "remove the soup" or "I already have Vicks"'
-            style={{
-              flex: 1, padding: "12px 16px", borderRadius: 50,
-              border: "1px solid var(--border)", background: "var(--bg-raised)",
-              fontSize: 14, color: "var(--text-primary)", outline: "none",
-            }}
+            className="cart-refine__input"
             disabled={loading}
           />
           <button
-            className="btn-primary"
-            style={{ padding: "12px 20px", fontSize: 15, flexShrink: 0 }}
+            className="btn-primary cart-refine__submit"
             onClick={handleRefine}
             disabled={loading || !text.trim()}
           >
             {loading ? "…" : "→"}
           </button>
         </div>
+
         {feedback && (
-          <div style={{ marginTop: 10, fontSize: 13, color: "var(--accent-teal)", paddingLeft: 4 }}>
-            ✓ {feedback}
-          </div>
+          <p className="cart-refine__feedback">✓ {feedback}</p>
         )}
       </div>
     </>
   );
 }
 
-// ─── More actions sheet ────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// More Actions Sheet
+// ─────────────────────────────────────────────────────────────────────────────
+
 interface MoreActionsSheetProps {
   onSave: () => void;
   onRefine: () => void;
@@ -172,52 +185,45 @@ interface MoreActionsSheetProps {
   onClose: () => void;
 }
 
+const MORE_ACTIONS = [
+  { id: "ai-edit",  Icon: SparkleIcon,     label: "Edit with AI",     sub: "Tell AI what to change",      colorVar: "var(--accent)" },
+  { id: "refine",   Icon: PencilSimpleIcon, label: "Refine situation", sub: "Go back and rephrase",        colorVar: "var(--text-secondary)" },
+  { id: "save",     Icon: FloppyDiskIcon,   label: "Save cart",        sub: "Save to browser storage",     colorVar: "var(--text-secondary)" },
+  { id: "share",    Icon: ShareNetworkIcon, label: "Share cart",       sub: "Copy or share cart summary",  colorVar: "var(--text-secondary)" },
+] as const;
+
 function MoreActionsSheet({ onSave, onRefine, onShare, onAiEdit, onClose }: MoreActionsSheetProps) {
-  const actions = [
-    { id: "ai-edit", icon: SparkleIcon, label: "Edit with AI", sub: "Tell AI what to change", color: "var(--accent)", fn: onAiEdit },
-    { id: "refine", icon: PencilSimpleIcon, label: "Refine situation", sub: "Go back and rephrase", color: "var(--text-secondary)", fn: onRefine },
-    { id: "save", icon: FloppyDiskIcon, label: "Save cart", sub: "Save to browser storage", color: "var(--text-secondary)", fn: onSave },
-    { id: "share", icon: ShareNetworkIcon, label: "Share cart", sub: "Copy or share cart summary", color: "var(--text-secondary)", fn: onShare },
-  ];
+  const handlers: Record<string, () => void> = {
+    "ai-edit": onAiEdit,
+    refine:    onRefine,
+    save:      onSave,
+    share:     onShare,
+  };
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(6px)", zIndex: 60 }} aria-hidden />
-      <div className="animate-slide-up" role="dialog" aria-label="More actions" style={{
-        position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 70,
-        background: "var(--bg-surface)", borderTop: "1px solid var(--border)",
-        borderRadius: "24px 24px 0 0", padding: "20px 20px 36px",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-          <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 17 }}>More options</div>
+      <SheetBackdrop onClose={onClose} />
+      <div className="bottom-sheet animate-slide-up" role="dialog" aria-label="More actions">
+        <div className="bottom-sheet__header">
+          <p className="bottom-sheet__title">More options</p>
           <button className="btn-ghost" onClick={onClose} aria-label="Close">✕</button>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          {actions.map((a) => (
+
+        <div className="more-actions__list">
+          {MORE_ACTIONS.map(({ id, Icon, label, sub, colorVar }) => (
             <button
-              key={a.id}
-              id={`more-${a.id}`}
-              onClick={() => { onClose(); a.fn(); }}
-              style={{
-                display: "flex", alignItems: "center", gap: 14,
-                padding: "14px 12px", borderRadius: 14,
-                background: "none", border: "none", cursor: "pointer",
-                textAlign: "left", transition: "background 0.15s",
-              }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--bg-raised)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "none"; }}
+              key={id}
+              id={`more-${id}`}
+              className="more-actions__item"
+              onClick={() => { onClose(); handlers[id](); }}
             >
-              <div style={{
-                width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-                background: "var(--bg-raised)", border: "1px solid var(--border)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <a.icon size={18} weight="bold" color={a.color} />
-              </div>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: 15, color: "var(--text-primary)" }}>{a.label}</div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 1 }}>{a.sub}</div>
-              </div>
+              <span className="more-actions__icon">
+                <Icon size={18} weight="bold" color={colorVar} />
+              </span>
+              <span>
+                <span className="more-actions__label">{label}</span>
+                <span className="more-actions__sub">{sub}</span>
+              </span>
             </button>
           ))}
         </div>
@@ -226,11 +232,13 @@ function MoreActionsSheet({ onSave, onRefine, onShare, onAiEdit, onClose }: More
   );
 }
 
-// ─── Order Summary sidebar — matches Amazon's exact layout ─────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Order Summary (sidebar)
+// ─────────────────────────────────────────────────────────────────────────────
+
 interface OrderSummaryProps {
   itemCount: number;
   totalPrice: number;
-  estimatedEta: number;
   isGift: boolean;
   onGiftToggle: () => void;
   onCheckout: () => void;
@@ -238,81 +246,48 @@ interface OrderSummaryProps {
 
 function OrderSummary({ itemCount, totalPrice, isGift, onGiftToggle, onCheckout }: OrderSummaryProps) {
   return (
-    <div
-      style={{
-        background: "#fff",
-        border: "1px solid #DDD",
-        borderRadius: 8,
-        padding: "18px 18px 16px",
-      }}
-    >
-      {/* Subtotal line — identical to Amazon */}
-      <div style={{ fontSize: 18, fontWeight: 400, color: "#0F1111", marginBottom: 10, lineHeight: 1.4 }}>
+    <div className="order-summary">
+      <p className="order-summary__subtotal">
         Subtotal ({itemCount} item{itemCount !== 1 ? "s" : ""}
         ):{" "}
-        <span style={{ fontWeight: 700 }}>₹{totalPrice.toLocaleString("en-IN")}</span>
-      </div>
+        <strong>₹{totalPrice.toLocaleString("en-IN")}</strong>
+      </p>
 
-      {/* Gift checkbox */}
-      <label
-        style={{
-          display: "flex", alignItems: "flex-start", gap: 7,
-          fontSize: 13, color: "#0F1111",
-          cursor: "pointer", userSelect: "none", marginBottom: 14,
-        }}
-      >
+      <label className="order-summary__gift-label">
         <input
           type="checkbox"
           checked={isGift}
           onChange={onGiftToggle}
-          style={{ width: 13, height: 13, cursor: "pointer", marginTop: 1, flexShrink: 0 }}
+          className="order-summary__gift-checkbox"
         />
-        <span>
-          <GiftIcon size={12} weight="regular" style={{ marginRight: 3 }} />
-          This order contains a gift
-        </span>
+        <GiftIcon size={12} weight="regular" />
+        This order contains a gift
       </label>
 
-      {/* Yellow checkout button — Amazon style */}
       <button
         id="proceed-checkout-btn"
+        className="order-summary__checkout-btn"
         onClick={onCheckout}
-        style={{
-          width: "100%",
-          padding: "9px 16px",
-          background: "linear-gradient(to bottom, #FFE789, #F5C518)",
-          color: "#0F1111",
-          fontWeight: 400,
-          fontSize: 14,
-          border: "1px solid #FCA103",
-          borderRadius: 8,
-          cursor: "pointer",
-          transition: "filter 0.15s",
-          marginBottom: 10,
-          boxShadow: "0 1px 0 rgba(255,255,255,.4) inset",
-        }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.filter = "brightness(0.97)"; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.filter = "none"; }}
       >
         Proceed to checkout
       </button>
 
-      {/* Secure + delivery info */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#565959" }}>
-          <LockSimpleIcon size={11} weight="fill" />
-          <span>Secure transaction</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#007600" }}>
-          <TruckIcon size={11} weight="fill" />
-          <span>FREE delivery on orders above ₹499</span>
-        </div>
+      <div className="order-summary__meta">
+        <span className="order-summary__meta-row order-summary__meta-row--secure">
+          <LockSimpleIcon size={11} weight="fill" /> Secure transaction
+        </span>
+        <span className="order-summary__meta-row order-summary__meta-row--delivery">
+          <TruckIcon size={11} weight="fill" /> FREE delivery on orders above ₹499
+        </span>
       </div>
     </div>
   );
 }
 
-// ─── Featured items panel — right sidebar ─────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Featured Items Panel (sidebar)
+// ─────────────────────────────────────────────────────────────────────────────
+
 interface FeaturedPanelProps {
   items: FeaturedItem[];
   onAdd: (item: FeaturedItem) => void;
@@ -322,31 +297,9 @@ function FeaturedPanel({ items, onAdd }: FeaturedPanelProps) {
   if (items.length === 0) return null;
 
   return (
-    <div
-      style={{
-        background: "#fff",
-        border: "1px solid #DDD",
-        borderRadius: 8,
-        overflow: "hidden",
-        marginTop: 14,
-      }}
-    >
-      {/* Panel heading — matches Amazon's "Featured items you may like" */}
-      <div
-        style={{
-          padding: "12px 14px 10px",
-          fontSize: 16,
-          fontWeight: 700,
-          fontFamily: "var(--font-display)",
-          color: "#0F1111",
-          borderBottom: "1px solid #e7e7e7",
-        }}
-      >
-        Featured items you may like
-      </div>
-
-      {/* Items list */}
-      <div style={{ padding: "2px 14px 4px" }}>
+    <div className="featured-panel">
+      <p className="featured-panel__heading">Featured items you may like</p>
+      <div className="featured-panel__list">
         {items.slice(0, 6).map((item) => (
           <FeaturedItemCard key={item.id} item={item} onAddToCart={onAdd} />
         ))}
@@ -355,34 +308,101 @@ function FeaturedPanel({ items, onAdd }: FeaturedPanelProps) {
   );
 }
 
-// ─── Main cart page ────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Situation context pill
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface SituationPillProps {
+  text: string;
+  urgency?: "High" | "Medium" | "Low";
+  label?: string;
+}
+
+function SituationPill({ text, urgency, label }: SituationPillProps) {
+  const badgeColor =
+    urgency === "High" ? "orange" : urgency === "Medium" ? "amber" : "teal";
+
+  return (
+    <div className="situation-pill">
+      <SparkleIcon size={13} weight="fill" color="var(--accent)" className="situation-pill__icon" />
+      <span className="situation-pill__text">{text}</span>
+      {label && (
+        <span className={`badge badge-${badgeColor} situation-pill__badge`}>{label}</span>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Empty / Error states
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ErrorState({ error, onRetry, onBack }: { error: string; onRetry: () => void; onBack: () => void }) {
+  return (
+    <div className="cart-empty-state">
+      <WarningCircleIcon size={48} weight="fill" color="#EF4444" />
+      <h2 className="cart-empty-state__heading">Failed to load cart</h2>
+      <p className="cart-empty-state__body">{error}</p>
+      <div className="cart-empty-state__actions">
+        <button className="btn-secondary" onClick={onRetry}>
+          <ArrowCounterClockwiseIcon size={14} weight="bold" /> Try Again
+        </button>
+        <button className="btn-primary" onClick={onBack}>
+          <ArrowLeftIcon size={14} weight="bold" /> Start Over
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function EmptyCartState({ onRefine, onNew }: { onRefine: () => void; onNew: () => void }) {
+  return (
+    <div className="cart-empty-state">
+      <ShoppingCartIcon size={56} weight="light" color="var(--text-muted)" />
+      <h2 className="cart-empty-state__heading">Cart is empty</h2>
+      <p className="cart-empty-state__body">
+        We couldn&apos;t find items for this situation. Try describing it differently.
+      </p>
+      <div className="cart-empty-state__actions">
+        <button className="btn-secondary" onClick={onRefine}>
+          <PencilSimpleIcon size={14} weight="bold" /> Refine Situation
+        </button>
+        <button className="btn-primary" onClick={onNew}>
+          <LightningIcon size={14} weight="fill" /> New Situation
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main CartPage
+// ─────────────────────────────────────────────────────────────────────────────
+
 function CartPage() {
   const router = useRouter();
   const {
-    cart, intent, urgencyMode,
-    selectedSubstitutes,
+    cart, intent, urgencyMode, selectedSubstitutes,
     syncUrgencyMode, syncSubstitute,
     adjustQuantity, removeItem,
     getTotalPrice, getFinalItems,
     loadFromServer, isLoading, error,
-    situationText,
-    setIsLoading,
-    setCart,
+    situationText, setIsLoading, setCart,
   } = useCartStore();
 
-  const [drawerItem, setDrawerItem] = useState<CartItem | null>(null);
-  const [showRefineSheet, setShowRefineSheet] = useState(false);
-  const [showMoreSheet, setShowMoreSheet] = useState(false);
-  const [isGift, setIsGift] = useState(false);
+  const [drawerItem,       setDrawerItem]       = useState<CartItem | null>(null);
+  const [showRefineSheet,  setShowRefineSheet]   = useState(false);
+  const [showMoreSheet,    setShowMoreSheet]     = useState(false);
+  const [isGift,           setIsGift]           = useState(false);
+
   const { toast, show: showToast, dismiss: dismissToast } = useToast();
 
-  // Featured items — derived from current scenario
-  const featuredItems = (() => {
-    if (!cart || !intent) return [];
-    const cartIds = new Set(cart.items.map((i) => i.id));
-    return getFeaturedItems(cartIds, intent.scenario, 8);
-  })();
+  // Derive featured items from the current scenario (memoised via useMemo pattern)
+  const featuredItems: FeaturedItem[] = cart && intent
+    ? getFeaturedItems(new Set(cart.items.map((i) => i.id)), intent.scenario, 8)
+    : [];
 
+  // ── Bootstrap ──────────────────────────────────────────────────
   useEffect(() => {
     if (!cart) {
       loadFromServer();
@@ -393,128 +413,128 @@ function CartPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleUrgencyChange = useCallback(async (mode: UrgencyMode) => {
-    await syncUrgencyMode(mode);
-  }, [syncUrgencyMode]);
+  // ── Handlers ───────────────────────────────────────────────────
+  const handleUrgencyChange = useCallback(
+    (mode: UrgencyMode) => syncUrgencyMode(mode),
+    [syncUrgencyMode],
+  );
 
-  const handleSubstituteSelect = useCallback(async (itemId: string, subId: string) => {
-    await syncSubstitute(itemId, subId);
-    setDrawerItem(null);
-  }, [syncSubstitute]);
+  const handleSubstituteSelect = useCallback(
+    async (itemId: string, subId: string) => {
+      await syncSubstitute(itemId, subId);
+      setDrawerItem(null);
+    },
+    [syncSubstitute],
+  );
 
   const handleSave = useCallback(() => {
     if (!cart) return;
     const existing = localStorage.getItem("ic_saved_cart");
-    localStorage.setItem("ic_saved_cart", JSON.stringify({ cart, intent, urgencyMode, selectedSubstitutes, savedAt: new Date().toISOString() }));
+    localStorage.setItem(
+      "ic_saved_cart",
+      JSON.stringify({ cart, intent, urgencyMode, selectedSubstitutes, savedAt: new Date().toISOString() }),
+    );
     showToast(existing ? "Cart updated" : "Cart saved", "success");
   }, [cart, intent, urgencyMode, selectedSubstitutes, showToast]);
 
-  const handleRefine = useCallback(() => { router.push("/?refine=1"); }, [router]);
+  const handleRefine = useCallback(() => router.push("/?refine=1"), [router]);
 
   const handleShare = useCallback(async () => {
     if (!cart || !intent) return;
-    const items = getFinalItems().slice(0, 5).map((i) => `• ${i.name} — ₹${i.price}`).join("\n");
-    const text = `Amazon Now OS — ${intent.scenarioLabel} Cart\n\n${cart.summaryLine}\n\n${items}\n\nTotal: ₹${getTotalPrice()} · ETA: ~${cart.estimatedEta} min`;
+    const lines = getFinalItems()
+      .slice(0, 5)
+      .map((i) => `• ${i.name} — ₹${i.price}`)
+      .join("\n");
+    const text = `Amazon Now OS — ${intent.scenarioLabel} Cart\n\n${cart.summaryLine}\n\n${lines}\n\nTotal: ₹${getTotalPrice()} · ETA: ~${cart.estimatedEta} min`;
+
     if (typeof navigator !== "undefined" && navigator.share) {
-      try { await navigator.share({ title: `Amazon Now OS — ${intent.scenarioLabel} Cart`, text, url: window.location.origin }); showToast("Shared!", "success"); }
-      catch (e) { if (e instanceof Error && e.name !== "AbortError") showToast("Could not share", "warning"); }
+      try {
+        await navigator.share({ title: `Amazon Now OS — ${intent.scenarioLabel} Cart`, text, url: window.location.origin });
+        showToast("Shared!", "success");
+      } catch (e) {
+        if (e instanceof Error && e.name !== "AbortError") showToast("Could not share", "warning");
+      }
     } else {
-      try { await navigator.clipboard.writeText(text); showToast("Copied to clipboard", "info"); }
-      catch { showToast("Could not copy", "warning"); }
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast("Copied to clipboard", "info");
+      } catch {
+        showToast("Could not copy", "warning");
+      }
     }
   }, [cart, intent, getFinalItems, getTotalPrice, showToast]);
 
-  // Add a featured item to the live cart (optimistic)
   const handleAddFeatured = useCallback((featured: FeaturedItem) => {
     if (!cart) return;
-    if (cart.items.find((i) => i.id === featured.id)) {
+    if (cart.items.some((i) => i.id === featured.id)) {
       showToast("Already in cart", "info");
       return;
     }
+
     const newItem: CartItem = {
-      id: featured.id,
-      name: featured.name,
-      brand: featured.brand,
-      category: featured.category,
-      price: featured.price,
-      mrp: featured.mrp,
-      discount: featured.discount,
-      quantity: 1,
-      unit: "1 unit",
-      image: featured.image,
-      asin: featured.asin,
-      rating: featured.rating,
+      id:          featured.id,
+      name:        featured.name,
+      brand:       featured.brand,
+      category:    featured.category,
+      price:       featured.price,
+      mrp:         featured.mrp,
+      discount:    featured.discount,
+      quantity:    1,
+      unit:        "1 unit",
+      image:       featured.image,
+      asin:        featured.asin,
+      rating:      featured.rating,
       reviewCount: featured.reviewCount,
-      badge: featured.badge,
-      reason: "Added from featured items",
-      reasonTag: featured.reasonTag,
-      eta: featured.eta,
+      badge:       featured.badge,
+      reason:      "Added from featured items",
+      reasonTag:   featured.reasonTag,
+      eta:         featured.eta,
       substitutes: [],
       isEssential: false,
-      isAddon: true,
+      isAddon:     true,
     };
+
     const updatedItems = [...cart.items, newItem];
-    const totalPrice = updatedItems.reduce((s, i) => s + i.price * i.quantity, 0);
+    const totalPrice   = updatedItems.reduce((s, i) => s + i.price * i.quantity, 0);
     const estimatedEta = Math.max(...updatedItems.map((i) => i.eta));
+
     setCart({ ...cart, items: updatedItems, totalPrice, itemCount: updatedItems.length, estimatedEta });
     showToast(`${featured.name.split(" ").slice(0, 3).join(" ")} added`, "success");
   }, [cart, setCart, showToast]);
 
-  // ─── Error state ──────────────────────────────────────────────
-  if (error && !isLoading) {
-    return (
-      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, textAlign: "center" }}>
-        <WarningCircleIcon size={48} weight="fill" color="#EF4444" style={{ marginBottom: 16 }} />
-        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, marginBottom: 10 }}>Failed to load cart</h2>
-        <p style={{ color: "var(--text-muted)", fontSize: 14, maxWidth: 380, marginBottom: 24 }}>{error}</p>
-        <div style={{ display: "flex", gap: 12 }}>
-          <button className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: 6 }} onClick={() => loadFromServer()}>
-            <ArrowCounterClockwiseIcon size={14} weight="bold" /> Try Again
-          </button>
-          <button className="btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: 6 }} onClick={() => router.push("/")}>
-            <ArrowLeftIcon size={14} weight="bold" /> Start Over
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Empty cart ───────────────────────────────────────────────
-  if (!isLoading && cart && cart.items.length === 0) {
-    return (
-      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, textAlign: "center" }}>
-        <ShoppingCartIcon size={56} weight="light" color="var(--text-muted)" style={{ marginBottom: 16 }} />
-        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, marginBottom: 10 }}>Cart is empty</h2>
-        <p style={{ color: "var(--text-muted)", fontSize: 14, maxWidth: 360, marginBottom: 24, lineHeight: 1.6 }}>
-          We couldn&apos;t find items for this situation. Try describing it differently.
-        </p>
-        <div style={{ display: "flex", gap: 12 }}>
-          <button className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: 6 }} onClick={handleRefine}>
-            <PencilSimpleIcon size={14} weight="bold" /> Refine Situation
-          </button>
-          <button className="btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: 6 }} onClick={() => router.push("/")}>
-            <LightningIcon size={14} weight="fill" /> New Situation
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const totalPrice = getTotalPrice();
-  const itemCount = cart?.itemCount ?? 0;
+  // ── Derived values ─────────────────────────────────────────────
+  const totalPrice   = getTotalPrice();
+  const itemCount    = cart?.itemCount ?? 0;
   const estimatedEta = cart?.estimatedEta ?? 30;
 
-  return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#F5F6FA",
-        paddingBottom: "max(140px, calc(120px + env(safe-area-inset-bottom)))",
-      }}
-    >
-      {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismissToast} />}
+  // ── Early returns ──────────────────────────────────────────────
+  if (error && !isLoading) {
+    return (
+      <ErrorState
+        error={error}
+        onRetry={loadFromServer}
+        onBack={() => router.push("/")}
+      />
+    );
+  }
 
-      {/* Sheets */}
+  if (!isLoading && cart && cart.items.length === 0) {
+    return (
+      <EmptyCartState
+        onRefine={handleRefine}
+        onNew={() => router.push("/")}
+      />
+    );
+  }
+
+  // ── Render ─────────────────────────────────────────────────────
+  return (
+    <main className="cart-page">
+
+      {/* Toast notification */}
+      {toast && <Toast {...toast} onDismiss={dismissToast} />}
+
+      {/* AI refine sheet */}
       {showRefineSheet && (
         <CartRefineSheet
           onApplied={(updatedCart, fb) => {
@@ -525,6 +545,8 @@ function CartPage() {
           onClose={() => setShowRefineSheet(false)}
         />
       )}
+
+      {/* More actions sheet */}
       {showMoreSheet && (
         <MoreActionsSheet
           onSave={handleSave}
@@ -535,124 +557,70 @@ function CartPage() {
         />
       )}
 
-      {/* ── Sticky top header ──────────────────────────────────── */}
-      <div
-        style={{
-          position: "sticky", top: 0, zIndex: 30,
-          background: "rgba(245,246,250,0.97)", backdropFilter: "blur(20px)",
-          borderBottom: "1px solid #DDD",
-          padding: "10px clamp(16px, 5vw, 80px)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {/* Logo — far left */}
+      {/* ── Sticky top nav ─────────────────────────────────────── */}
+      <header className="cart-nav">
+        <div className="cart-nav__inner">
           <Logo />
-
-          {/* Page title — flexible center */}
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16 }}>
+          <div className="cart-nav__title-group">
+            <span className="cart-nav__title">
               {isLoading ? "Building cart…" : "Shopping Cart"}
-            </div>
+            </span>
             {!isLoading && cart && (
-              <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 1 }}>
+              <span className="cart-nav__count">
                 {itemCount} item{itemCount !== 1 ? "s" : ""}
-              </div>
+              </span>
             )}
           </div>
-
-          {/* Back button — far right */}
-          <button id="cart-back-btn" className="btn-ghost" style={{ padding: "8px 12px", flexShrink: 0 }} onClick={() => router.push("/")}>
+          <button
+            id="cart-back-btn"
+            className="btn-ghost cart-nav__back"
+            onClick={() => router.push("/")}
+          >
             ← Back
           </button>
         </div>
-      </div>
+      </header>
 
       {/* ── Page body ──────────────────────────────────────────── */}
-      <div
-        style={{
-          padding: "16px clamp(12px, 3vw, 48px)",
-          maxWidth: 1320,
-          margin: "0 auto",
-        }}
-      >
-        {/* ── Two-column grid ───────────────────────────────────── */}
-        <div className="cart-layout" style={{ display: "grid", gap: 16, alignItems: "start" }}>
+      <div className="cart-body">
+        <div className="cart-layout">
 
-          {/* ══ LEFT: white cart panel ═══════════════════════════ */}
-          <div
-            style={{
-              background: "#fff",
-              border: "1px solid #DDD",
-              borderRadius: 8,
-              overflow: "hidden",
-            }}
-          >
-            {/* Header row with title + "Price" label */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "flex-end",
-                justifyContent: "space-between",
-                padding: "16px 20px 10px",
-                borderBottom: "1px solid #e7e7e7",
-              }}
-            >
-              <h1
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 400,
-                  fontSize: "clamp(22px, 3vw, 28px)",
-                  color: "#0F1111",
-                  margin: 0,
-                  lineHeight: 1.2,
-                }}
-              >
+          {/* ── LEFT: Cart panel ─────────────────────────────── */}
+          <div className="cart-panel">
+
+            {/* Panel header */}
+            <div className="cart-panel__header">
+              <h1 className="cart-panel__title">
                 {isLoading ? "Building cart…" : "Shopping Cart"}
               </h1>
               {!isLoading && cart && cart.items.length > 0 && (
-                <span style={{ fontSize: 14, color: "#565959", paddingBottom: 2 }}>Price</span>
+                <span className="cart-panel__price-label">Price</span>
               )}
             </div>
 
-            {/* Situation context pill */}
+            {/* Situation context */}
             {!isLoading && situationText && (
-              <div
-                style={{
-                  margin: "10px 20px 0",
-                  padding: "7px 12px",
-                  borderRadius: 6,
-                  background: "rgba(232,93,42,0.06)",
-                  border: "1px solid rgba(232,93,42,0.18)",
-                  display: "flex", alignItems: "center", gap: 8,
-                }}
-              >
-                <SparkleIcon size={13} weight="fill" color="var(--accent)" style={{ flexShrink: 0 }} />
-                <span style={{ fontSize: 13, color: "var(--text-secondary)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {situationText}
-                </span>
-                {intent && (
-                  <span
-                    className={`badge badge-${intent.urgency === "High" ? "orange" : intent.urgency === "Medium" ? "amber" : "teal"}`}
-                    style={{ flexShrink: 0, fontSize: 11 }}
-                  >
-                    {intent.scenarioLabel}
-                  </span>
-                )}
+              <div className="cart-panel__situation">
+                <SituationPill
+                  text={situationText}
+                  urgency={intent?.urgency}
+                  label={intent?.scenarioLabel}
+                />
               </div>
             )}
 
-            {/* Cart items */}
-            <div style={{ padding: "0 20px" }} className="stagger">
+            {/* Items list */}
+            <div className="cart-panel__items stagger">
               {isLoading
                 ? Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} style={{ borderBottom: "1px solid #e7e7e7", paddingTop: 16, paddingBottom: 16 }}>
+                    <div key={i} className="cart-panel__item-row cart-panel__item-row--skeleton">
                       <SkeletonCard />
                     </div>
                   ))
                 : (cart?.items ?? []).map((item, idx, arr) => (
                     <div
                       key={item.id}
-                      style={{ borderBottom: idx < arr.length - 1 ? "1px solid #e7e7e7" : "none" }}
+                      className={`cart-panel__item-row${idx < arr.length - 1 ? " cart-panel__item-row--bordered" : ""}`}
                     >
                       <CartItemCard
                         item={item}
@@ -666,66 +634,68 @@ function CartPage() {
               }
             </div>
 
-            {/* Subtotal row at bottom of cart panel — Amazon puts this here */}
-            {!isLoading && cart && (
-              <div
-                style={{
-                  padding: "14px 20px",
-                  borderTop: "1px solid #e7e7e7",
-                  textAlign: "right",
-                  fontSize: 18,
-                  fontWeight: 400,
-                  color: "#0F1111",
-                }}
-              >
-                Subtotal ({itemCount} item{itemCount !== 1 ? "s" : ""}):{" "}
-                <strong style={{ fontWeight: 700 }}>₹{totalPrice.toLocaleString("en-IN")}</strong>
-              </div>
-            )}
 
-            {/* Urgency toggle — context-aware delivery mode */}
-            {!isLoading && (
-              <div style={{ padding: "0 20px 18px" }}>
-                <div
-                  style={{
-                    fontSize: 11, fontWeight: 600, color: "var(--text-faint)",
-                    textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8,
-                  }}
-                >
-                  Optimise for
-                </div>
-                <UrgencyBar value={urgencyMode} onChange={handleUrgencyChange} idPrefix="cart-urgency" showDescription />
+            {/* Subtotal row */}
+            {!isLoading && cart && (
+              <div className="cart-panel__subtotal">
+                Subtotal ({itemCount} item{itemCount !== 1 ? "s" : ""}):{" "}
+                <strong>₹{totalPrice.toLocaleString("en-IN")}</strong>
               </div>
             )}
           </div>
 
-          {/* ══ RIGHT: sidebar ════════════════════════════════════ */}
-          <div className="cart-sidebar">
+          {/* ── RIGHT: Sidebar ───────────────────────────────── */}
+          <aside className="cart-sidebar">
             {isLoading ? (
-              <div
-                style={{
-                  background: "#fff", border: "1px solid #DDD",
-                  borderRadius: 8, padding: 20, display: "flex", flexDirection: "column", gap: 12,
-                }}
-              >
+              <div className="cart-sidebar__skeleton">
                 <div className="skeleton" style={{ height: 22, width: "85%", borderRadius: 6 }} />
                 <div className="skeleton" style={{ height: 40, borderRadius: 8 }} />
                 <div className="skeleton" style={{ height: 14, width: "55%", borderRadius: 6 }} />
               </div>
             ) : cart ? (
               <>
-                <OrderSummary
-                  itemCount={itemCount}
-                  totalPrice={totalPrice}
-                  estimatedEta={estimatedEta}
-                  isGift={isGift}
-                  onGiftToggle={() => setIsGift((v) => !v)}
-                  onCheckout={() => router.push("/checkout")}
-                />
-                <FeaturedPanel items={featuredItems} onAdd={handleAddFeatured} />
+                {/* Fixed: urgency + order summary + featured heading */}
+                <div className="cart-sidebar__fixed">
+                  <div className="cart-sidebar__urgency">
+                    <p className="cart-panel__urgency-label">Optimise Cart for</p>
+                    <UrgencyBar
+                      value={urgencyMode}
+                      onChange={handleUrgencyChange}
+                      idPrefix="cart-urgency"
+                      showDescription
+                    />
+                  </div>
+
+                  <OrderSummary
+                    itemCount={itemCount}
+                    totalPrice={totalPrice}
+                    isGift={isGift}
+                    onGiftToggle={() => setIsGift((v) => !v)}
+                    onCheckout={() => router.push("/checkout")}
+                  />
+
+                  {/* Featured heading — pinned, never scrolls away */}
+                  {featuredItems.length > 0 && (
+                    <div className="featured-panel featured-panel--header">
+                      <p className="featured-panel__heading">Featured items you may like</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Scrollable: only the featured items list */}
+                {featuredItems.length > 0 && (
+                  <div className="cart-sidebar__scrollable">
+                    <div className="featured-panel featured-panel--body">
+                      {featuredItems.slice(0, 6).map((item) => (
+                        <FeaturedItemCard key={item.id} item={item} onAddToCart={handleAddFeatured} />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             ) : null}
-          </div>
+          </aside>
+
         </div>
       </div>
 
@@ -739,47 +709,38 @@ function CartPage() {
         />
       )}
 
-      {/* ── Mobile-only fixed bottom CTA ────────────────────────── */}
+      {/* ── Mobile bottom CTA ──────────────────────────────────── */}
       {!isLoading && cart && (
-        <div
-          className="cart-bottom-bar"
-          style={{
-            position: "fixed", bottom: 0, left: 0, right: 0,
-            padding: "12px clamp(16px, 5vw, 80px)",
-            paddingBottom: "max(12px, env(safe-area-inset-bottom))",
-            background: "rgba(245,246,250,0.97)", backdropFilter: "blur(20px)",
-            borderTop: "1px solid #DDD", zIndex: 20,
-          }}
-        >
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <button
-              id="cart-more-btn"
-              className="btn-secondary"
-              style={{ flexShrink: 0, padding: "0 14px", height: 52, display: "inline-flex", alignItems: "center", justifyContent: "center", borderRadius: 14 }}
-              onClick={() => setShowMoreSheet(true)}
-              aria-label="More options"
-            >
-              <DotsThreeIcon size={22} weight="bold" />
-            </button>
-            <button
-              className="btn-primary"
-              style={{ flex: 1, fontSize: 16, padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}
-              onClick={() => router.push("/checkout")}
-            >
-              <span>Checkout</span>
-              <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
-                <span style={{ fontWeight: 800, fontSize: 17 }}>₹{totalPrice.toLocaleString("en-IN")}</span>
-                <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.8, display: "flex", alignItems: "center", gap: 3 }}>
-                  <LightningIcon size={10} weight="fill" /> ~{estimatedEta} min
-                </span>
+        <div className="cart-bottom-bar">
+          <button
+            id="cart-more-btn"
+            className="btn-secondary cart-bottom-bar__more"
+            onClick={() => setShowMoreSheet(true)}
+            aria-label="More options"
+          >
+            <DotsThreeIcon size={22} weight="bold" />
+          </button>
+          <button
+            className="btn-primary cart-bottom-bar__checkout"
+            onClick={() => router.push("/checkout")}
+          >
+            <span>Checkout</span>
+            <span className="cart-bottom-bar__price-stack">
+              <span className="cart-bottom-bar__price">₹{totalPrice.toLocaleString("en-IN")}</span>
+              <span className="cart-bottom-bar__eta">
+                <LightningIcon size={10} weight="fill" /> ~{estimatedEta} min
               </span>
-            </button>
-          </div>
+            </span>
+          </button>
         </div>
       )}
     </main>
   );
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Page export
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function Page() {
   return (

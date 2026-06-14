@@ -172,7 +172,7 @@ export function CartItemCard({ item, selectedSubId, onOpenSubs, onAdjustQty, onR
             </div>
           )}
 
-          {/* This is a gift checkbox */}
+          {/* This is a gift checkbox
           <label style={{
             display: "flex", alignItems: "center", gap: 6,
             fontSize: 12, color: "var(--text-secondary)",
@@ -186,7 +186,7 @@ export function CartItemCard({ item, selectedSubId, onOpenSubs, onAdjustQty, onR
             />
             This is a gift
             <span style={{ color: "#007185", fontSize: 12, cursor: "pointer", marginLeft: 2 }}>Learn more</span>
-          </label>
+          </label> */}
 
           {/* Reason tag */}
           <div style={{ marginBottom: 10 }}>
@@ -283,11 +283,11 @@ export function CartItemCard({ item, selectedSubId, onOpenSubs, onAdjustQty, onR
                       : <><ArrowsLeftRightIcon size={11} weight="bold" /> Compare similar ({item.substitutes.length})</>
                     }
                   </button>
-                  <span style={{ color: "#D5D9D9", fontSize: 13, marginRight: 8 }}>|</span>
+                  {/* <span style={{ color: "#D5D9D9", fontSize: 13, marginRight: 8 }}>|</span> */}
                 </>
               ) : null}
 
-              <button
+              {/* <button
                 style={{
                   background: "none", border: "none", cursor: "pointer",
                   fontSize: 13, color: "#007185", padding: 0,
@@ -298,7 +298,7 @@ export function CartItemCard({ item, selectedSubId, onOpenSubs, onAdjustQty, onR
               >
                 <LightningIcon size={11} weight="fill" color="var(--accent-teal)" />
                 Save for later
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
