@@ -8,7 +8,7 @@ import {
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import type { ParsedIntent, Scenario, UrgencyMode } from "@/lib/types";
 import { SCENARIO_META } from "@/lib/ai/intentParser";
-import { saveSession, saveIntent, saveCart } from "@/lib/db/sessions";
+import { saveSession } from "@/lib/db/sessions";
 import { getS3Client, getS3Bucket } from "@/lib/storage/s3Client";
 import { generateCart, generateInitialSelections } from "@/lib/ai/cartGenerator";
 
@@ -322,10 +322,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ─── Get or create session ID ─────────────────────────────────
-    const existingSessionId = req.cookies.get(SESSION_COOKIE)?.value;
-    const sessionId = existingSessionId ?? uuidv4();
-    const isNewSession = !existingSessionId;
+    // ─── Always create a fresh session for each new intent ───────
+    const sessionId = uuidv4();
 
     // ─── Call Bedrock (with optional image) ───────────────────────
     const intent = await invokeBedrockForIntent(sanitizedInput, photoS3Key);
@@ -336,35 +334,27 @@ export async function POST(req: NextRequest) {
     const initialSelections = generateInitialSelections(cart.items, urgencyMode);
 
     // ─── Persist to DynamoDB ──────────────────────────────────────
-    if (isNewSession) {
-      await saveSession({
-        sessionId,
-        situationText: sanitizedInput,
-        ...(photoS3Key ? { photoS3Key } : {}),
-        intent,
-        cart,
-        urgencyMode,
-        selectedSubstitutes: initialSelections,
-        status: "active",
-      });
-    } else {
-      await saveIntent(sessionId, sanitizedInput, intent, photoS3Key);
-      await saveCart(sessionId, cart, urgencyMode);
-      // Note: selectedSubstitutes are reset on re-interpret since it's a new cart
-    }
+    await saveSession({
+      sessionId,
+      situationText: sanitizedInput,
+      ...(photoS3Key ? { photoS3Key } : {}),
+      intent,
+      cart,
+      urgencyMode,
+      selectedSubstitutes: initialSelections,
+      status: "active",
+    });
 
-    // ─── Build response, set session cookie if new ────────────────
+    // ─── Build response, always set the new session cookie ────────
     const res = NextResponse.json({ intent, cart, initialSelections, sessionId });
 
-    if (isNewSession) {
-      res.cookies.set(SESSION_COOKIE, sessionId, {
+    res.cookies.set(SESSION_COOKIE, sessionId, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         maxAge: COOKIE_MAX_AGE,
         path: "/",
       });
-    }
 
     return res;
   } catch (err) {
