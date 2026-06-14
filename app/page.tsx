@@ -409,59 +409,68 @@ function SituationPage() {
             ))}
           </div>
 
-          {/* Type tab */}
-          {activeTab === "type" && (
-            <div>
-              <textarea
-                ref={textareaRef}
-                id="situation-text-input"
-                className="input-glass"
-                style={{ minHeight: 72, maxHeight: 100, lineHeight: 1.5, fontSize: 15 }}
-                placeholder={placeholderText || "Type your situation here…"}
-                value={situationText}
-                onChange={(e) => setSituationText(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSubmit(); }}
-              />
-              {situationText.length > 0 && (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 11, color: "var(--text-muted)", marginTop: 4, gap: 8 }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-                    {situationText.length > 10 && !isSubmitting && (
-                      <>
-                        <SparkleIcon size={11} weight="fill" color="var(--accent)" />
-                        AI will analyse your situation when you submit
-                      </>
-                    )}
-                  </span>
-                  <span style={{ flexShrink: 0 }}>{situationText.length} chars · ⌘↵ to submit</span>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Tab panels — fixed-height container keeps card size consistent */}
+          <div style={{ height: 120, position: "relative", overflow: "hidden" }}>
 
-          {/* Voice tab */}
-          {activeTab === "voice" && (
-            <VoiceCapture
-              isListening={isListening}
-              isSupported={isSupported}
-              transcript={transcript}
-              interimTranscript={interimTranscript}
-              onStart={start}
-              onStop={stop}
-              onReset={() => { resetSpeech(); setSituationText(""); }}
-            />
-          )}
+            {/* Type tab */}
+            {activeTab === "type" && (
+              <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+                <textarea
+                  ref={textareaRef}
+                  id="situation-text-input"
+                  className="input-glass"
+                  style={{ flex: 1, resize: "none", lineHeight: 1.5, fontSize: 15, minHeight: 0 }}
+                  placeholder={placeholderText || "Type your situation here…"}
+                  value={situationText}
+                  onChange={(e) => setSituationText(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSubmit(); }}
+                />
+                {situationText.length > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 11, color: "var(--text-muted)", marginTop: 4, gap: 8 }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                      {situationText.length > 10 && !isSubmitting && (
+                        <>
+                          <SparkleIcon size={11} weight="fill" color="var(--accent)" />
+                          AI will analyse your situation when you submit
+                        </>
+                      )}
+                    </span>
+                    <span style={{ flexShrink: 0 }}>{situationText.length} chars · ⌘↵ to submit</span>
+                  </div>
+                )}
+              </div>
+            )}
 
-          {/* Photo tab */}
-          {activeTab === "photo" && (
-            <PhotoUpload
-              onUploaded={(s3Key, _publicUrl, filename) => {
-                setPhotoS3Key(s3Key);
-                const cleanName = filename.replace(/\.[^.]+$/, "").replace(/[_-]/g, " ");
-                setSituationText(cleanName.length > 4 ? cleanName : "photo of my situation");
-                setActiveTab("type");
-              }}
-            />
-          )}
+            {/* Voice tab */}
+            {activeTab === "voice" && (
+              <div style={{ height: "100%", overflow: "auto" }}>
+                <VoiceCapture
+                  isListening={isListening}
+                  isSupported={isSupported}
+                  transcript={transcript}
+                  interimTranscript={interimTranscript}
+                  onStart={start}
+                  onStop={stop}
+                  onReset={() => { resetSpeech(); setSituationText(""); }}
+                />
+              </div>
+            )}
+
+            {/* Photo tab */}
+            {activeTab === "photo" && (
+              <div style={{ height: "100%", overflow: "auto" }}>
+                <PhotoUpload
+                  onUploaded={(s3Key, _publicUrl, filename) => {
+                    setPhotoS3Key(s3Key);
+                    const cleanName = filename.replace(/\.[^.]+$/, "").replace(/[_-]/g, " ");
+                    setSituationText(cleanName.length > 4 ? cleanName : "photo of my situation");
+                    setActiveTab("type");
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
         </div>
 
         {/* Situation chips — fills text box on tap */}

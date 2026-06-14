@@ -21,7 +21,7 @@ export function PhotoUpload({ onUploaded }: PhotoUploadProps) {
   }
 
   return (
-    <div>
+    <div style={{ height: "100%" }}>
       {/* Hidden file input */}
       <input
         type="file"
@@ -41,17 +41,16 @@ export function PhotoUpload({ onUploaded }: PhotoUploadProps) {
           onClick={openFilePicker}
           style={{
             width: "100%",
-            minHeight: 160,
-            borderRadius: 16,
+            height: "100%",
+            borderRadius: 12,
             border: `2px dashed ${isDragging ? "var(--accent)" : "var(--border)"}`,
             background: isDragging ? "var(--accent-dim)" : "var(--bg-raised)",
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center",
             gap: 12,
             cursor: "pointer",
             transition: "all 0.2s ease",
+            padding: "0 16px",
           }}
           onMouseEnter={(e) => {
             if (!isDragging) {
@@ -71,17 +70,17 @@ export function PhotoUpload({ onUploaded }: PhotoUploadProps) {
           onKeyDown={(e) => e.key === "Enter" && openFilePicker()}
           id="photo-upload-btn"
         >
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
+          <div style={{ flexShrink: 0 }}>
             {isDragging
-              ? <ArrowDownIcon size={40} weight="bold" color="var(--accent)" />
-              : <CameraIcon size={40} weight="light" color="var(--text-muted)" />
+              ? <ArrowDownIcon size={28} weight="bold" color="var(--accent)" />
+              : <CameraIcon size={28} weight="light" color="var(--text-muted)" />
             }
           </div>
           <div>
-            <div style={{ color: "var(--text-primary)", fontWeight: 500, fontSize: 14, textAlign: "center" }}>
+            <div style={{ color: "var(--text-primary)", fontWeight: 500, fontSize: 13 }}>
               {isDragging ? "Drop to upload" : "Drag & drop or click to upload"}
             </div>
-            <div style={{ color: "var(--text-muted)", fontSize: 12, textAlign: "center", marginTop: 4 }}>
+            <div style={{ color: "var(--text-muted)", fontSize: 11, marginTop: 2 }}>
               JPEG, PNG, WebP · Max 10 MB
             </div>
           </div>
@@ -167,10 +166,6 @@ export function PhotoUpload({ onUploaded }: PhotoUploadProps) {
           {error}
         </div>
       )}
-
-      <p style={{ color: "var(--text-muted)", fontSize: 12, textAlign: "center", marginTop: 10 }}>
-        Upload a photo of what you need — AI will analyse and build your cart
-      </p>
     </div>
   );
 }

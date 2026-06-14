@@ -43,15 +43,15 @@ export function VoiceCapture({
   }
 
   return (
-    <div style={{ textAlign: "center", padding: "20px 0" }}>
-      {/* Mic button with pulse rings */}
-      <div style={{ position: "relative", width: 100, height: 100, margin: "0 auto 20px" }}>
+    <div style={{ display: "flex", alignItems: "center", height: "100%", gap: 16, padding: "0 8px" }}>
+      {/* Mic button */}
+      <div style={{ position: "relative", width: 72, height: 72, flexShrink: 0 }}>
         {isListening && (
           <>
             <div
               style={{
                 position: "absolute",
-                inset: -20,
+                inset: -16,
                 borderRadius: "50%",
                 border: "2px solid var(--accent)",
                 opacity: 0.4,
@@ -61,7 +61,7 @@ export function VoiceCapture({
             <div
               style={{
                 position: "absolute",
-                inset: -10,
+                inset: -8,
                 borderRadius: "50%",
                 border: "2px solid var(--accent)",
                 opacity: 0.6,
@@ -91,54 +91,57 @@ export function VoiceCapture({
           aria-label={isListening ? "Stop recording" : "Start recording"}
         >
           {isListening
-            ? <StopCircleIcon size={36} weight="fill" color="#fff" />
-            : <MicrophoneIcon size={36} weight="regular" color="var(--text-secondary)" />
+            ? <StopCircleIcon size={28} weight="fill" color="#fff" />
+            : <MicrophoneIcon size={28} weight="regular" color="var(--text-secondary)" />
           }
         </button>
       </div>
 
-      <div
-        style={{
-          fontSize: 14,
-          color: isListening ? "var(--accent)" : "var(--text-muted)",
-          marginBottom: 12,
-          fontWeight: 500,
-          transition: "color 0.2s",
-        }}
-      >
-        {isListening ? "Listening… speak now" : "Tap to start speaking"}
-      </div>
-
-      {/* Live transcript */}
-      {(transcript || interimTranscript) && (
+      {/* Right side: label + transcript */}
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
-            background: "var(--bg-raised)",
-            borderRadius: 12,
-            padding: "12px 16px",
-            textAlign: "left",
-            marginTop: 12,
-            border: "1px solid var(--border)",
-            fontSize: 15,
-            lineHeight: 1.6,
+            fontSize: 13,
+            color: isListening ? "var(--accent)" : "var(--text-muted)",
+            fontWeight: 500,
+            marginBottom: 6,
+            transition: "color 0.2s",
           }}
         >
-          <span style={{ color: "var(--text-primary)" }}>{transcript}</span>
-          <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>
-            {interimTranscript}
-          </span>
+          {isListening ? "Listening… speak now" : "Tap to start speaking"}
         </div>
-      )}
 
-      {transcript && (
-        <button
-          className="btn-ghost"
-          style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 6 }}
-          onClick={onReset}
-        >
-          <XIcon size={14} weight="bold" /> Clear
-        </button>
-      )}
+        {/* Live transcript */}
+        {(transcript || interimTranscript) && (
+          <div
+            style={{
+              background: "var(--bg-raised)",
+              borderRadius: 8,
+              padding: "6px 10px",
+              border: "1px solid var(--border)",
+              fontSize: 13,
+              lineHeight: 1.5,
+              maxHeight: 48,
+              overflowY: "auto",
+            }}
+          >
+            <span style={{ color: "var(--text-primary)" }}>{transcript}</span>
+            <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>
+              {interimTranscript}
+            </span>
+          </div>
+        )}
+
+        {transcript && (
+          <button
+            className="btn-ghost"
+            style={{ marginTop: 4, padding: "2px 6px", display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11 }}
+            onClick={onReset}
+          >
+            <XIcon size={11} weight="bold" /> Clear
+          </button>
+        )}
+      </div>
     </div>
   );
 }
