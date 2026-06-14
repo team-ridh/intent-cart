@@ -541,7 +541,7 @@ input, textarea, select { font-size: max(16px, 1em); }
 /* ─── Page shell ─────────────────────────────────────────────── */
 .cart-page {
   min-height: 100vh;
-  background: var(--bg-base);
+  background: transparent;
   /* room for mobile bottom bar */
   padding-bottom: max(140px, calc(120px + env(safe-area-inset-bottom)));
 }
@@ -1477,7 +1477,7 @@ input, textarea, select { font-size: max(16px, 1em); }
 
 .history-page {
   min-height: 100vh;
-  background: var(--bg-base);
+  background: transparent;
 }
 
 .history-page__content {
@@ -1740,7 +1740,7 @@ input, textarea, select { font-size: max(16px, 1em); }
 
 .checkout-page {
   min-height: 100vh;
-  background: var(--bg-base);
+  background: transparent;
 }
 
 /* ─── Demo banner ────────────────────────────────────────────── */
