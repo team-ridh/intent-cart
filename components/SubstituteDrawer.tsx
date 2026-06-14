@@ -1,7 +1,7 @@
 "use client";
 
 import type { CartItem } from "@/lib/types";
-import { LightningIcon, CurrencyDollarIcon, ShieldCheckIcon, SparkleIcon, XIcon, StarIcon } from "@phosphor-icons/react";
+import { Lightning, CurrencyDollar, ShieldCheck, Sparkle, X, StarIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
 const TYPE_COLOR: Record<string, string> = {
@@ -12,10 +12,10 @@ const TYPE_COLOR: Record<string, string> = {
 };
 
 const TYPE_ICON: Record<string, ReactNode> = {
-  fastest:  <LightningIcon size={11} weight="fill" />,
-  cheapest: <CurrencyDollarIcon size={11} weight="bold" />,
-  trusted:  <ShieldCheckIcon size={11} weight="fill" />,
-  best:     <SparkleIcon size={11} weight="fill" />,
+  fastest:  <Lightning size={11} weight="fill" />,
+  cheapest: <CurrencyDollar size={11} weight="bold" />,
+  trusted:  <ShieldCheck size={11} weight="fill" />,
+  best:     <Sparkle size={11} weight="fill" />,
 };
 
 const TYPE_LABEL: Record<string, string> = {
@@ -105,7 +105,7 @@ export function SubstituteDrawer({
             id="close-substitute-drawer"
             aria-label="Close substitutes drawer"
           >
-            <XIcon size={16} weight="bold" />
+            <X size={16} weight="bold" />
           </button>
         </div>
 
@@ -120,7 +120,7 @@ export function SubstituteDrawer({
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                 <span className="badge badge-orange" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                  <SparkleIcon size={10} weight="fill" /> Best Match
+                  <Sparkle size={10} weight="fill" /> Best Match
                 </span>
                 {!selectedId && (
                   <span style={{ fontSize: 11, color: "var(--accent)" }}>Selected</span>
@@ -134,7 +134,7 @@ export function SubstituteDrawer({
                 ₹{item.price}
               </div>
               <div style={{ color: "var(--accent-teal)", fontSize: 12, display: "flex", alignItems: "center", gap: 3 }}>
-                <LightningIcon size={11} weight="fill" /> ~{item.eta}-{item.eta + 5} min est.
+                <Lightning size={11} weight="fill" /> ~{item.eta}-{item.eta + 5} min est.
               </div>
             </div>
           </div>
@@ -225,7 +225,7 @@ export function SubstituteDrawer({
                   </div>
                 )}
                 <div style={{ color: "var(--accent-teal)", fontSize: 12, display: "flex", alignItems: "center", gap: 3 }}>
-                  <LightningIcon size={11} weight="fill" /> ~{sub.eta}-{sub.eta + 5} min est.
+                  <Lightning size={11} weight="fill" /> ~{sub.eta}-{sub.eta + 5} min est.
                 </div>
               </div>
             </div>
