@@ -24,6 +24,7 @@ interface CartStore {
   // Selected substitutes: itemId → substituteId
   selectedSubstitutes: Record<string, string>;
   selectSubstitute: (itemId: string, subId: string) => void;
+  setSelectedSubstitutes: (subs: Record<string, string>) => void; // bulk setter for auto-selection
 
   // Cart mutations — these also call the server API
   adjustQuantity: (itemId: string, delta: number) => Promise<void>;
@@ -102,6 +103,8 @@ export const useCartStore = create<CartStore>((set, get) => ({
     }));
   },
 
+  setSelectedSubstitutes: (subs) => set({ selectedSubstitutes: subs }),
+
   // ─── Load cart from DynamoDB via GET /api/cart ────────────────
   loadFromServer: async () => {
     set({ isLoading: true, error: null });
@@ -144,16 +147,22 @@ export const useCartStore = create<CartStore>((set, get) => ({
   // ─── Sync urgency mode change to server ───────────────────────
   syncUrgencyMode: async (mode) => {
     const prev = get().urgencyMode;
+    const prevSubs = get().selectedSubstitutes;
     set({ urgencyMode: mode }); // optimistic
     try {
       const data = await patchCart({ urgencyMode: mode });
-      set({ cart: data.cart, urgencyMode: data.urgencyMode });
+      set({
+        cart: data.cart,
+        urgencyMode: data.urgencyMode,
+        selectedSubstitutes: data.selectedSubstitutes, // apply auto-selections from server
+      });
     } catch (err) {
-      set({ urgencyMode: prev }); // rollback
+      set({ urgencyMode: prev, selectedSubstitutes: prevSubs }); // rollback both
       const message = err instanceof Error ? err.message : "Failed to update urgency";
       set({ error: message });
     }
   },
+
 
   // ─── Sync substitute selection to server ─────────────────────
   syncSubstitute: async (itemId, subId) => {
