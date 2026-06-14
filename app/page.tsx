@@ -4,28 +4,27 @@ import { useState, useRef, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import { parseIntent } from "@/lib/ai/intentParser";
-import { generateCart, generateInitialSelections } from "@/lib/ai/cartGenerator";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { Logo } from "@/components/Logo";
 import { SituationChips } from "@/components/SituationChips";
 import { VoiceCapture } from "@/components/VoiceCapture";
 import { PhotoUpload } from "@/components/PhotoUpload";
-import { IntentPreview } from "@/components/IntentPreview";
 import { UrgencyBar } from "@/components/UrgencyBar";
 import { Button } from "@/components/ui/Button";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import {
-  Question,
-  PencilSimple,
-  CheckCircle,
-  WifiSlash,
-  Keyboard,
-  Microphone,
-  Camera,
-  WarningCircle,
-  Lightning,
+  QuestionIcon,
+  PencilSimpleIcon,
+  CheckCircleIcon,
+  WifiSlashIcon,
+  KeyboardIcon,
+  MicrophoneIcon,
+  CameraIcon,
+  WarningCircleIcon,
+  LightningIcon,
+  SparkleIcon,
 } from "@phosphor-icons/react";
-import type { ParsedIntent, UrgencyMode } from "@/lib/types";
+import type { GeneratedCart, ParsedIntent, UrgencyMode } from "@/lib/types";
 
 const PLACEHOLDER_CYCLE = [
   "Guests are arriving in 30 minutes…",
@@ -77,7 +76,7 @@ function ClarifyModal({ intent, onConfirm, onRefine }: ClarifyModalProps) {
       >
         <div style={{ textAlign: "center", marginBottom: 24 }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
-            <Question size={44} weight="fill" color="var(--accent)" />
+            <QuestionIcon size={44} weight="fill" color="var(--accent)" />
           </div>
           <div
             style={{
@@ -115,7 +114,7 @@ function ClarifyModal({ intent, onConfirm, onRefine }: ClarifyModalProps) {
             style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             onClick={onRefine}
           >
-            <PencilSimple size={14} weight="bold" /> Let me clarify
+            <PencilSimpleIcon size={14} weight="bold" /> Let me clarify
           </button>
           <button
             id="clarify-confirm-btn"
@@ -123,7 +122,7 @@ function ClarifyModal({ intent, onConfirm, onRefine }: ClarifyModalProps) {
             style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             onClick={onConfirm}
           >
-            <CheckCircle size={14} weight="fill" /> Yes, build it!
+            <CheckCircleIcon size={14} weight="fill" /> Yes, build it!
           </button>
         </div>
       </div>
@@ -168,7 +167,7 @@ function OfflineBanner() {
         gap: 8,
       }}
     >
-      <WifiSlash size={16} weight="bold" /> You&apos;re offline — check your connection before submitting
+      <WifiSlashIcon size={16} weight="bold" /> You&apos;re offline — check your connection before submitting
     </div>
   );
 }
@@ -190,12 +189,12 @@ function SituationPage() {
   const [activeTab, setActiveTab] = useState<"type" | "voice" | "photo">("type");
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
   const [placeholderText, setPlaceholderText] = useState("");
-  const [intentPreview, setIntentPreview] = useState<string | null>(null);
-  const [previewConfidence, setPreviewConfidence] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Low-confidence clarify flow
   const [pendingIntent, setPendingIntent] = useState<ParsedIntent | null>(null);
+  const [pendingCart, setPendingCart] = useState<GeneratedCart | null>(null);
+  const [pendingSelections, setPendingSelections] = useState<Record<string, string>>({});
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const {
@@ -239,53 +238,15 @@ function SituationPage() {
     return () => clearInterval(interval);
   }, [placeholderIdx, situationText, activeTab]);
 
-  // Quick intent preview as user types (local keyword heuristic — not the actual AI)
-  useEffect(() => {
-    if (!situationText || situationText.length < 5) {
-      setIntentPreview(null);
-      setPreviewConfidence(0);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      const lower = situationText.toLowerCase();
-      const previews: Array<{ keywords: string[]; label: string; confidence: number }> = [
-        { keywords: ["guest", "visitor", "hosting", "arriving", "party"], label: "Hosting · High urgency", confidence: 88 },
-        { keywords: ["fever", "sick", "medicine", "cold", "cough", "ill"], label: "Fever Care · High urgency", confidence: 91 },
-        { keywords: ["pooja", "puja", "prayer", "temple", "ritual"], label: "Pooja Essentials · Medium urgency", confidence: 85 },
-        { keywords: ["rain", "raining", "monsoon", "rainy"], label: "Rainy Day · Medium urgency", confidence: 82 },
-        { keywords: ["travel", "flight", "train", "trip", "leaving"], label: "Travel Prep · High urgency", confidence: 87 },
-        { keywords: ["power cut", "outage", "blackout", "no power"], label: "Power Cut · High urgency", confidence: 90 },
-        { keywords: ["school", "project", "homework", "stationery"], label: "School Project · High urgency", confidence: 84 },
-        { keywords: ["tea", "chai", "coffee", "break", "snack"], label: "Tea Break · Low urgency", confidence: 79 },
-      ];
-
-      for (const p of previews) {
-        if (p.keywords.some((k) => lower.includes(k))) {
-          setIntentPreview(`Detected: ${p.label}`);
-          setPreviewConfidence(p.confidence);
-          return;
-        }
-      }
-      setIntentPreview(null);
-      setPreviewConfidence(0);
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [situationText]);
-
   // ─── Core submit logic (also used after clarify-confirm) ────────
   const proceedWithIntent = useCallback(
-    async (intent: ParsedIntent) => {
-      const cart = generateCart(intent, urgencyMode);
-      // Auto-select the best substitute per item for the initial mode
-      const autoSelections = generateInitialSelections(cart.items, urgencyMode);
+    async (intent: ParsedIntent, cart: GeneratedCart, autoSelections: Record<string, string>) => {
       setIntent(intent);
       setCart(cart);
       setSelectedSubstitutes(autoSelections);
       router.push("/cart");
     },
-    [urgencyMode, setIntent, setCart, setSelectedSubstitutes, router]
+    [setIntent, setCart, setSelectedSubstitutes, router]
   );
 
   // ─── Submit — calls Bedrock via /api/interpret ───────────────────
@@ -298,21 +259,25 @@ function SituationPage() {
 
     setError(null);
     setPendingIntent(null);
+    setPendingCart(null);
+    setPendingSelections({});
     setIsSubmitting(true);
     setIsLoading(true);
 
     try {
-      const intent = await parseIntent(input, photoS3Key ?? undefined);
+      const { intent, cart, initialSelections } = await parseIntent(input, photoS3Key ?? undefined);
 
       // If confidence is low, show a clarifying question instead of proceeding
       if (intent.confidence < 65) {
         setPendingIntent(intent);
+        setPendingCart(cart);
+        setPendingSelections(initialSelections);
         setIsSubmitting(false);
         setIsLoading(false);
         return;
       }
 
-      await proceedWithIntent(intent);
+      await proceedWithIntent(intent, cart, initialSelections);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       // Surface rate limit message clearly
@@ -349,10 +314,11 @@ function SituationPage() {
         <ClarifyModal
           intent={pendingIntent}
           onConfirm={async () => {
+            if (!pendingIntent || !pendingCart) return;
             setPendingIntent(null);
             setIsSubmitting(true);
             setIsLoading(true);
-            await proceedWithIntent(pendingIntent);
+            await proceedWithIntent(pendingIntent, pendingCart, pendingSelections);
             setIsSubmitting(false);
             setIsLoading(false);
           }}
@@ -377,7 +343,7 @@ function SituationPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {isRefining && (
               <span className="badge badge-amber" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                <PencilSimple size={10} weight="bold" /> Refining
+                <PencilSimpleIcon size={10} weight="bold" /> Refining
               </span>
             )}
             <span className="badge badge-teal">Beta</span>
@@ -413,10 +379,10 @@ function SituationPage() {
                 style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
               >
                 {t === "type"
-                  ? <><Keyboard size={13} weight="bold" /> Type</>
+                  ? <><KeyboardIcon size={13} weight="bold" /> Type</>
                   : t === "voice"
-                  ? <><Microphone size={13} weight="bold" /> Voice</>
-                  : <><Camera size={13} weight="bold" /> Photo</>
+                  ? <><MicrophoneIcon size={13} weight="bold" /> Voice</>
+                  : <><CameraIcon size={13} weight="bold" /> Photo</>
                 }
               </button>
             ))}
@@ -459,19 +425,23 @@ function SituationPage() {
             <PhotoUpload
               onUploaded={(s3Key, _publicUrl, filename) => {
                 setPhotoS3Key(s3Key);
-                setSituationText(`Photo uploaded: ${filename.replace(/\.[^.]+$/, "")} — analyse and build my cart`);
+                // Set a clean description of what was uploaded — Bedrock will analyse the actual image,
+                // no need to inject instructions into the text field.
+                const cleanName = filename.replace(/\.[^.]+$/, "").replace(/[_-]/g, " ");
+                setSituationText(cleanName.length > 4 ? cleanName : "photo of my situation");
                 setActiveTab("type");
               }}
             />
           )}
 
-          {/* Intent preview strip */}
-          {intentPreview && (
-            <IntentPreview
-              preview={intentPreview}
-              confidence={previewConfidence}
-              urgencyMode={urgencyMode}
-            />
+          {/* Typing hint — shown when user has typed something, not while submitting */}
+          {situationText.length > 10 && !isSubmitting && (
+            <div style={{ marginTop: 10, padding: "8px 12px", borderRadius: 8, background: "var(--bg-raised)", border: "1px solid var(--border)" }}>
+              <span style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
+                <SparkleIcon size={12} weight="fill" color="var(--accent)" />
+                AI will analyse your situation when you submit →
+              </span>
+            </div>
           )}
         </div>
 
@@ -491,7 +461,7 @@ function SituationPage() {
         {/* Error */}
         {error && (
           <div style={{ marginBottom: 16, padding: "12px 16px", borderRadius: 12, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontSize: 14, display: "flex", alignItems: "center", gap: 10 }}>
-            <WarningCircle size={18} weight="fill" style={{ flexShrink: 0 }} />
+            <WarningCircleIcon size={18} weight="fill" style={{ flexShrink: 0 }} />
             <div>
               <div style={{ fontWeight: 600, marginBottom: 2 }}>Something went wrong</div>
               <div style={{ fontSize: 13 }}>{error}</div>
@@ -511,7 +481,7 @@ function SituationPage() {
           }}
           onClick={handleSubmit}
         >
-          <Lightning size={16} weight="fill" style={{ display: "inline", verticalAlign: "middle" }} /> Build My Cart →
+          <LightningIcon size={16} weight="fill" style={{ display: "inline", verticalAlign: "middle" }} /> Build My Cart →
         </Button>
 
         <p style={{ textAlign: "center", color: "var(--text-faint)", fontSize: 12, marginTop: 12 }}>

@@ -1,6 +1,28 @@
 import type { CartItem, GeneratedCart, ParsedIntent, UrgencyMode } from "../types";
-import { SCENARIO_CARTS } from "../mockProducts";
+import { SCENARIO_CARTS } from "../data/scenarios";
 import { applyUrgencyMode, sortItemsByMode, computeAutoSelections } from "./substituteRanker";
+
+/**
+ * Boost items whose name or reasonTag matches any of the AI-suggested item names.
+ * Matching items are moved to the front of the list, preserving relative order within each group.
+ * Matching is case-insensitive substring (e.g. "Paracetamol" matches "Dolo 650 Paracetamol Tablets").
+ */
+function boostBySuggestedItems(items: CartItem[], suggestedItems: string[]): CartItem[] {
+  if (!suggestedItems || suggestedItems.length === 0) return items;
+  const normalized = suggestedItems.map((s) => s.toLowerCase().trim());
+
+  const matches = items.filter((item) =>
+    normalized.some(
+      (s) =>
+        item.name.toLowerCase().includes(s) ||
+        s.includes(item.name.toLowerCase().split(" ")[0]) ||
+        item.reasonTag.toLowerCase().includes(s) ||
+        item.category.toLowerCase().includes(s)
+    )
+  );
+  const rest = items.filter((item) => !matches.includes(item));
+  return [...matches, ...rest];
+}
 
 // ─── Generate cart from intent ────────────────────────────────────────────────
 export function generateCart(
@@ -9,9 +31,12 @@ export function generateCart(
 ): GeneratedCart {
   const rawItems: CartItem[] = SCENARIO_CARTS[intent.scenario] ?? SCENARIO_CARTS.general;
 
+  // Boost items that match what the AI explicitly suggested
+  const boostedItems = boostBySuggestedItems(rawItems, intent.suggestedItems ?? []);
+
   // Apply urgency-based ETA multiplier (affects initial ETA at generation time only)
   const etaMultiplier = mode === "fastest" ? 1.0 : mode === "value" ? 1.2 : 1.1;
-  const itemsWithEta = rawItems.map((i) => ({
+  const itemsWithEta = boostedItems.map((i) => ({
     ...i,
     eta: Math.round(i.eta * etaMultiplier),
   }));
@@ -62,5 +87,5 @@ function buildSummaryLine(
       ? "time-sensitive"
       : "relaxed";
 
-  return `${total} items curated for your ${urgencyStr} ${intent.scenarioLabel.toLowerCase()} need · arrives in ~${eta} min`;
+  return `${total} items curated for your ${urgencyStr} ${intent.scenarioLabel.toLowerCase()} need · typically ready in ~${eta} min`;
 }

@@ -6,10 +6,11 @@ import {
   type ContentBlock,
 } from "@aws-sdk/client-bedrock-runtime";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
-import type { ParsedIntent, Scenario } from "@/lib/types";
+import type { ParsedIntent, Scenario, UrgencyMode } from "@/lib/types";
 import { SCENARIO_META } from "@/lib/ai/intentParser";
-import { saveSession, saveIntent } from "@/lib/db/sessions";
+import { saveSession, saveIntent, saveCart } from "@/lib/db/sessions";
 import { getS3Client, getS3Bucket } from "@/lib/storage/s3Client";
+import { generateCart, generateInitialSelections } from "@/lib/ai/cartGenerator";
 
 // ─── Session cookie config ────────────────────────────────────────
 const SESSION_COOKIE = "ic_session";
@@ -120,7 +121,7 @@ async function fetchImageFromS3(
 const SYSTEM_PROMPT_TEXT_ONLY = `You are a deterministic e-commerce intent extraction engine for a quick-commerce app in India called "Amazon Now OS".
 Analyse the user's situation and return ONLY a valid JSON object with these exact fields — no markdown, no explanation, no code blocks:
 {
-  "scenario": one of ["hosting","fever","pooja","rainy","travel","power_cut","school","tea_break","general"],
+  "scenario": one of ["hosting","fever","pooja","rainy","travel","power_cut","school","tea_break","general","cooking","home_repair"],
   "scenarioLabel": human-readable label e.g. "Hosting" or "Fever Care",
   "urgency": one of ["High","Medium","Low"],
   "category": primary product category e.g. "Food & Beverage",
@@ -133,13 +134,15 @@ Analyse the user's situation and return ONLY a valid JSON object with these exac
 Rules:
 - Return ONLY the JSON object. No other text.
 - confidence should reflect how clearly the situation maps to a scenario (95+ = very clear, 70-90 = likely, 50-70 = uncertain, use "general" below 50).
-- For Indian contexts: "pooja" includes puja, prayer, festival rituals. "hosting" includes guests, visitors, parties.`;
+- For Indian contexts: "pooja" includes puja, prayer, festival rituals. "hosting" includes guests, visitors, parties.
+- "cooking" includes ran out of ingredients, need groceries, cooking essentials, oil/salt/onions.
+- "home_repair" includes broken bulb, fuse gone, need tape, repair, fix, maintenance.`;
 
 const SYSTEM_PROMPT_MULTIMODAL = `You are a deterministic e-commerce intent extraction engine for a quick-commerce app in India called "Amazon Now OS".
 You are given a photo the user uploaded of their current situation, along with a text description they provided.
 Analyse BOTH the image and the text together to understand what they need, and return ONLY a valid JSON object with these exact fields — no markdown, no explanation, no code blocks:
 {
-  "scenario": one of ["hosting","fever","pooja","rainy","travel","power_cut","school","tea_break","general"],
+  "scenario": one of ["hosting","fever","pooja","rainy","travel","power_cut","school","tea_break","general","cooking","home_repair"],
   "scenarioLabel": human-readable label e.g. "Hosting" or "Fever Care",
   "urgency": one of ["High","Medium","Low"],
   "category": primary product category e.g. "Food & Beverage",
@@ -153,7 +156,9 @@ Rules:
 - Return ONLY the JSON object. No other text.
 - Use visual cues from the image (e.g. a dinner table, a sick person in bed, candles, textbooks) to raise your confidence.
 - confidence should reflect how clearly the situation maps to a scenario (95+ = very clear, 70-90 = likely, 50-70 = uncertain, use "general" below 50).
-- For Indian contexts: "pooja" includes puja, prayer, festival rituals. "hosting" includes guests, visitors, parties.`;
+- For Indian contexts: "pooja" includes puja, prayer, festival rituals. "hosting" includes guests, visitors, parties.
+- "cooking" includes ran out of ingredients, need groceries, cooking essentials, oil/salt/onions.
+- "home_repair" includes broken bulb, fuse gone, need tape, repair, fix, maintenance.`;
 
 // ─── Call Bedrock with optional image ────────────────────────────
 async function invokeBedrockForIntent(
@@ -280,31 +285,56 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // ─── Sanitise input ───────────────────────────────────────────────
+    // Strip HTML tags, truncate to 500 chars, collapse whitespace.
+    const sanitizedInput = input
+      .trim()
+      .replace(/<[^>]*>/g, "")           // strip HTML tags
+      .replace(/[<>{}[\]\\]/g, "")       // strip prompt-injection chars
+      .slice(0, 500)                      // hard cap to prevent token abuse
+      .replace(/\s+/g, " ")              // collapse whitespace
+      .trim();
+
+    if (sanitizedInput.length < 2) {
+      return NextResponse.json(
+        { error: "Input too short after sanitisation" },
+        { status: 400 }
+      );
+    }
+
     // ─── Get or create session ID ─────────────────────────────────
     const existingSessionId = req.cookies.get(SESSION_COOKIE)?.value;
     const sessionId = existingSessionId ?? uuidv4();
     const isNewSession = !existingSessionId;
 
     // ─── Call Bedrock (with optional image) ───────────────────────
-    const intent = await invokeBedrockForIntent(input.trim(), photoS3Key);
+    const intent = await invokeBedrockForIntent(sanitizedInput, photoS3Key);
+
+    // ─── Generate cart server-side ─────────────────────────────────
+    const urgencyMode: UrgencyMode = "fastest";
+    const cart = generateCart(intent, urgencyMode);
+    const initialSelections = generateInitialSelections(cart.items, urgencyMode);
 
     // ─── Persist to DynamoDB ──────────────────────────────────────
     if (isNewSession) {
       await saveSession({
         sessionId,
-        situationText: input.trim(),
+        situationText: sanitizedInput,
         ...(photoS3Key ? { photoS3Key } : {}),
         intent,
-        urgencyMode: "fastest",
-        selectedSubstitutes: {},
+        cart,
+        urgencyMode,
+        selectedSubstitutes: initialSelections,
         status: "active",
       });
     } else {
-      await saveIntent(sessionId, input.trim(), intent, photoS3Key);
+      await saveIntent(sessionId, sanitizedInput, intent, photoS3Key);
+      await saveCart(sessionId, cart, urgencyMode);
+      // Note: selectedSubstitutes are reset on re-interpret since it's a new cart
     }
 
     // ─── Build response, set session cookie if new ────────────────
-    const res = NextResponse.json({ intent, sessionId });
+    const res = NextResponse.json({ intent, cart, initialSelections, sessionId });
 
     if (isNewSession) {
       res.cookies.set(SESSION_COOKIE, sessionId, {

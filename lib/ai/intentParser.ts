@@ -1,4 +1,4 @@
-import type { ParsedIntent, Scenario } from "../types";
+import type { GeneratedCart, ParsedIntent, Scenario } from "../types";
 
 // ─── Scenario metadata (used server-side to validate Bedrock response) ───
 export const SCENARIO_META: Record<
@@ -86,16 +86,39 @@ export const SCENARIO_META: Record<
     deliveryMode: "value",
     suggestedItems: ["Water", "Bread", "Milk", "Eggs"],
   },
+  cooking: {
+    scenario: "cooking",
+    scenarioLabel: "Cooking Essentials",
+    urgency: "Medium",
+    category: "Groceries",
+    summary: "Essential ingredients for daily home cooking",
+    deliveryMode: "fastest",
+    suggestedItems: ["Oil", "Salt", "Onions", "Tomatoes", "Dal", "Rice"],
+  },
+  home_repair: {
+    scenario: "home_repair",
+    scenarioLabel: "Home Repair",
+    urgency: "Medium",
+    category: "Home Improvement",
+    summary: "Quick fix for broken items at home",
+    deliveryMode: "fastest",
+    suggestedItems: ["LED Bulb", "Tape", "Screwdriver", "Fuse", "Glue"],
+  },
 };
 
 // ─── Client-side intent parse via Bedrock API route ──────────────
 // Throws on any error — no silent fallback.
-export async function parseIntent(input: string, photoS3Key?: string): Promise<ParsedIntent> {
+// Returns intent, the server-generated cart, and initial substitute selections.
+export async function parseIntent(input: string, photoS3Key?: string): Promise<{
+  intent: ParsedIntent;
+  cart: GeneratedCart;
+  initialSelections: Record<string, string>;
+}> {
   const res = await fetch("/api/interpret", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ input, photoS3Key }),
-    credentials: "include", // send session cookie
+    credentials: "include",
   });
 
   if (!res.ok) {
@@ -106,5 +129,9 @@ export async function parseIntent(input: string, photoS3Key?: string): Promise<P
   }
 
   const data = await res.json();
-  return data.intent as ParsedIntent;
+  return {
+    intent: data.intent as ParsedIntent,
+    cart: data.cart as GeneratedCart,
+    initialSelections: (data.initialSelections ?? {}) as Record<string, string>,
+  };
 }
