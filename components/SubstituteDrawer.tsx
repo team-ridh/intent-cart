@@ -73,8 +73,18 @@ export function SubstituteDrawer({
           }}
         >
           <div>
-            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }}>
-              {item.image} Substitutes for {item.name}
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, display: "flex", alignItems: "center", gap: 10 }}>
+              {item.image.startsWith("http") ? (
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  style={{ width: 30, height: 30, objectFit: "contain", borderRadius: 6, border: "1px solid var(--border)", background: "var(--bg-elevated)", padding: 2, flexShrink: 0 }}
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                />
+              ) : (
+                <span>{item.image}</span>
+              )}
+              Substitutes for {item.name}
             </div>
             <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 2 }}>
               Select the best option for your need
@@ -126,9 +136,20 @@ export function SubstituteDrawer({
             onClick={() => onSelect(sub.id)}
             id={`sub-${sub.id}`}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+              {/* Substitute thumbnail */}
+              <div style={{ width: 46, height: 46, borderRadius: 8, flexShrink: 0, overflow: "hidden", border: "1px solid var(--border)", background: "var(--bg-elevated)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
+                {sub.image.startsWith("http") ? (
+                  <img
+                    src={sub.image}
+                    alt={sub.name}
+                    style={{ width: "100%", height: "100%", objectFit: "contain", padding: 3 }}
+                    onError={(e) => { e.currentTarget.style.display = "none"; }}
+                  />
+                ) : sub.image}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
                   <span
                     style={{
                       fontSize: 11,
@@ -138,6 +159,7 @@ export function SubstituteDrawer({
                       background: `${TYPE_COLOR[sub.type]}20`,
                       color: TYPE_COLOR[sub.type],
                       border: `1px solid ${TYPE_COLOR[sub.type]}40`,
+                      flexShrink: 0,
                     }}
                   >
                     {TYPE_LABEL[sub.type]}
@@ -148,11 +170,21 @@ export function SubstituteDrawer({
                 </div>
                 <div style={{ fontWeight: 600, fontSize: 15 }}>{sub.name}</div>
                 <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{sub.brand}</div>
+                {sub.rating && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+                    <span style={{ color: "#FF9900", fontSize: 10, letterSpacing: "-1px" }}>
+                      {"★".repeat(Math.round(sub.rating))}{"☆".repeat(5 - Math.round(sub.rating))}
+                    </span>
+                    <span style={{ color: "var(--text-muted)", fontSize: 10 }}>
+                      {sub.rating.toFixed(1)} ({sub.reviewCount?.toLocaleString("en-IN")})
+                    </span>
+                  </div>
+                )}
                 <div style={{ color: "var(--text-secondary)", fontSize: 12, marginTop: 4, fontStyle: "italic" }}>
                   {sub.reason}
                 </div>
               </div>
-              <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 12 }}>
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
                 <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }}>
                   ₹{sub.price}
                   {sub.price < item.price && (
@@ -161,6 +193,13 @@ export function SubstituteDrawer({
                     </span>
                   )}
                 </div>
+                {sub.mrp && sub.mrp > sub.price && (
+                  <div style={{ fontSize: 10, color: "var(--text-faint)", lineHeight: 1.4 }}>
+                    <span style={{ textDecoration: "line-through" }}>₹{sub.mrp}</span>
+                    {" "}
+                    <span style={{ color: "#5cb85c", fontWeight: 600 }}>{sub.discount}% off</span>
+                  </div>
+                )}
                 <div style={{ color: "var(--accent-teal)", fontSize: 12 }}>⚡ {sub.eta} min</div>
               </div>
             </div>

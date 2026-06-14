@@ -76,43 +76,85 @@ export function CartItemCard({
         transition: "opacity 0.3s ease",
       }}
     >
-      {/* Emoji icon */}
+      {/* Product image */}
       <div
         style={{
-          width: 60,
-          height: 60,
+          width: 72,
+          height: 72,
           borderRadius: 12,
           flexShrink: 0,
           background: "var(--bg-elevated)",
+          border: "1px solid var(--border)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           fontSize: 28,
+          overflow: "hidden",
         }}
       >
-        {item.image}
+        {item.image.startsWith("http") ? (
+          <img
+            src={item.image}
+            alt={item.name}
+            style={{ width: "100%", height: "100%", objectFit: "contain", padding: 6 }}
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+              if (e.currentTarget.parentElement)
+                e.currentTarget.parentElement.textContent = "📦";
+            }}
+          />
+        ) : (
+          item.image
+        )}
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
         {/* Name + price row */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-          <div>
-            <div style={{ fontWeight: 600, fontSize: 15, lineHeight: 1.2 }}>{displayName}</div>
-            <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 2 }}>{displayBrand}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {item.badge && (
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#FF9900", marginBottom: 2, letterSpacing: "0.04em" }}>
+                {item.badge === "Best Seller" ? "🏆 " : item.badge === "Amazon's Choice" ? "✓ " : ""}{item.badge}
+              </div>
+            )}
+            <div style={{ fontWeight: 600, fontSize: 15, lineHeight: 1.3 }}>{displayName}</div>
+            <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 1 }}>{displayBrand}</div>
+            {item.rating && (
+              <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
+                <span style={{ color: "#FF9900", fontSize: 11, letterSpacing: "-1px" }}>
+                  {"★".repeat(Math.round(item.rating))}{"☆".repeat(5 - Math.round(item.rating))}
+                </span>
+                <span style={{ color: "var(--text-muted)", fontSize: 11 }}>
+                  {item.rating.toFixed(1)} ({item.reviewCount?.toLocaleString("en-IN")})
+                </span>
+              </div>
+            )}
           </div>
           <div style={{ textAlign: "right", flexShrink: 0 }}>
             <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 17 }}>
               ₹{displayPrice}
             </div>
+            {item.mrp && item.mrp > item.price && (
+              <div style={{ fontSize: 11, color: "var(--text-faint)", lineHeight: 1.4 }}>
+                <span style={{ textDecoration: "line-through" }}>₹{item.mrp}</span>
+                {" "}
+                <span style={{ color: "#5cb85c", fontWeight: 600 }}>{item.discount}% off</span>
+              </div>
+            )}
             <div style={{ color: "var(--text-muted)", fontSize: 11 }}>/{item.unit}</div>
           </div>
         </div>
 
-        {/* Reason */}
-        <div style={{ marginTop: 8 }}>
+        {/* Reason + description */}
+        <div style={{ marginTop: 6 }}>
           <span className={`badge badge-${badgeColor}`}>{item.reasonTag}</span>
         </div>
-        <div style={{ color: "var(--text-secondary)", fontSize: 12, marginTop: 4, fontStyle: "italic" }}>
+        {item.description && (
+          <div style={{ color: "var(--text-muted)", fontSize: 11, marginTop: 3, lineHeight: 1.4 }}>
+            {item.description}
+          </div>
+        )}
+        <div style={{ color: "var(--text-secondary)", fontSize: 12, marginTop: 3, fontStyle: "italic" }}>
           {item.reason}
         </div>
 
