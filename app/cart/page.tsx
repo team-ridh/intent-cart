@@ -384,10 +384,10 @@ function CartPage() {
   const {
     cart, intent, urgencyMode, selectedSubstitutes,
     syncUrgencyMode, syncSubstitute,
-    adjustQuantity, removeItem,
+    adjustQuantity, removeItem, addItem,
     getTotalPrice, getFinalItems,
     loadFromServer, isLoading, error,
-    situationText, setIsLoading, setCart,
+    situationText,
   } = useCartStore();
 
   const [drawerItem,       setDrawerItem]       = useState<CartItem | null>(null);
@@ -404,12 +404,8 @@ function CartPage() {
 
   // ── Bootstrap ──────────────────────────────────────────────────
   useEffect(() => {
-    if (!cart) {
-      loadFromServer();
-    } else {
-      setIsLoading(true);
-      setTimeout(() => setIsLoading(false), 500);
-    }
+    // If store is empty (e.g. hard-refresh or direct URL), hydrate from server
+    if (!cart) loadFromServer();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -464,7 +460,7 @@ function CartPage() {
     }
   }, [cart, intent, getFinalItems, getTotalPrice, showToast]);
 
-  const handleAddFeatured = useCallback((featured: FeaturedItem) => {
+  const handleAddFeatured = useCallback(async (featured: FeaturedItem) => {
     if (!cart) return;
     if (cart.items.some((i) => i.id === featured.id)) {
       showToast("Already in cart", "info");
@@ -494,13 +490,10 @@ function CartPage() {
       isAddon:     true,
     };
 
-    const updatedItems = [...cart.items, newItem];
-    const totalPrice   = updatedItems.reduce((s, i) => s + i.price * i.quantity, 0);
-    const estimatedEta = Math.max(...updatedItems.map((i) => i.eta));
-
-    setCart({ ...cart, items: updatedItems, totalPrice, itemCount: updatedItems.length, estimatedEta });
+    // Optimistic update + server sync (persists to DynamoDB)
+    await addItem(newItem);
     showToast(`${featured.name.split(" ").slice(0, 3).join(" ")} added`, "success");
-  }, [cart, setCart, showToast]);
+  }, [cart, addItem, showToast]);
 
   // ── Derived values ─────────────────────────────────────────────
   const totalPrice   = getTotalPrice();

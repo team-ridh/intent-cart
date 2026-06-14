@@ -6,7 +6,7 @@ import {
   saveCart,
   updateCartState,
 } from "@/lib/db/sessions";
-import type { GeneratedCart, UrgencyMode } from "@/lib/types";
+import type { CartItem, GeneratedCart, UrgencyMode } from "@/lib/types";
 
 const SESSION_COOKIE = "ic_session";
 
@@ -128,6 +128,7 @@ export async function PATCH(req: NextRequest) {
       selectedSubstitutes?: Record<string, string>;
       adjustItem?: { itemId: string; delta: number };
       removeItem?: string;
+      addItem?: CartItem;
     };
 
     let cart: GeneratedCart = session.cart;
@@ -171,6 +172,18 @@ export async function PATCH(req: NextRequest) {
       const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
       const estimatedEta = items.length > 0 ? Math.max(...items.map((i) => i.eta)) : 0;
       cart = { ...cart, items, totalPrice, itemCount: items.length, estimatedEta };
+    }
+
+    // Add item (from featured items panel)
+    if (body.addItem) {
+      const newItem = body.addItem as CartItem;
+      // Guard: skip if already in cart
+      if (!cart.items.some((i) => i.id === newItem.id)) {
+        const items = [...cart.items, { ...newItem, quantity: Math.max(1, newItem.quantity) }];
+        const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+        const estimatedEta = items.length > 0 ? Math.max(...items.map((i) => i.eta)) : 0;
+        cart = { ...cart, items, totalPrice, itemCount: items.length, estimatedEta };
+      }
     }
 
     await updateCartState(sessionId, { cart, urgencyMode, selectedSubstitutes });

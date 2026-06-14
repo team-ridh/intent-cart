@@ -29,6 +29,7 @@ interface CartStore {
   // Cart mutations — these also call the server API
   adjustQuantity: (itemId: string, delta: number) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
+  addItem: (item: CartItem) => Promise<void>;
 
   // Loading / error
   isLoading: boolean;
@@ -224,6 +225,30 @@ export const useCartStore = create<CartStore>((set, get) => ({
     } catch (err) {
       set({ cart }); // rollback
       const message = err instanceof Error ? err.message : "Failed to remove item";
+      set({ error: message });
+    }
+  },
+
+  // ─── Add item (optimistic + server sync) ─────────────────────
+  addItem: async (item) => {
+    const { cart } = get();
+    if (!cart) return;
+
+    // Guard: don't add duplicates
+    if (cart.items.some((i) => i.id === item.id)) return;
+
+    const items = [...cart.items, item];
+    const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+    const estimatedEta = items.length > 0 ? Math.max(...items.map((i) => i.eta)) : 0;
+    const optimisticCart = { ...cart, items, totalPrice, itemCount: items.length, estimatedEta };
+    set({ cart: optimisticCart });
+
+    try {
+      const data = await patchCart({ addItem: item });
+      set({ cart: data.cart });
+    } catch (err) {
+      set({ cart }); // rollback
+      const message = err instanceof Error ? err.message : "Failed to add item";
       set({ error: message });
     }
   },
