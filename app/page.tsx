@@ -512,7 +512,7 @@ function SituationPage() {
         </Button>
 
         <p style={{ textAlign: "center", color: "var(--text-faint)", fontSize: 12, marginTop: 12 }}>
-          Powered by Amazon Bedrock · Text · Voice · Photo · Average TTC: &lt;8s
+          Developed by Team RIDH
         </p>
       </div>
     </main>
