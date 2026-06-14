@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import type { UrgencyMode } from "@/lib/types";
-import { Lightning, CurrencyDollar, ShieldCheck } from "@phosphor-icons/react";
+import { LightningIcon, CurrencyDollarIcon, ShieldCheckIcon } from "@phosphor-icons/react";
 
 interface UrgencyBarProps {
   value: UrgencyMode;
@@ -11,9 +11,9 @@ interface UrgencyBarProps {
 }
 
 const MODES: { value: UrgencyMode; label: string; icon: ReactNode }[] = [
-  { value: "fastest", label: "Fastest", icon: <Lightning size={14} weight="fill" /> },
-  { value: "value",   label: "Best Value", icon: <CurrencyDollar size={14} weight="bold" /> },
-  { value: "trusted", label: "Most Trusted", icon: <ShieldCheck size={14} weight="fill" /> },
+  { value: "fastest", label: "Fastest", icon: <LightningIcon size={14} weight="fill" /> },
+  { value: "value",   label: "Best Value", icon: <CurrencyDollarIcon size={14} weight="bold" /> },
+  { value: "trusted", label: "Most Trusted", icon: <ShieldCheckIcon size={14} weight="fill" /> },
 ];
 
 export function UrgencyBar({ value, onChange, idPrefix = "urgency" }: UrgencyBarProps) {

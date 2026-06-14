@@ -1,6 +1,6 @@
 "use client";
 
-import { Microphone, StopCircle, X } from "@phosphor-icons/react";
+import { MicrophoneIcon, StopCircleIcon, XIcon } from "@phosphor-icons/react";
 
 interface VoiceCaptureProps {
   isListening: boolean;
@@ -32,7 +32,7 @@ export function VoiceCapture({
         }}
       >
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
-          <Microphone size={32} weight="light" />
+          <MicrophoneIcon size={32} weight="light" />
         </div>
         <div style={{ fontWeight: 500, marginBottom: 6 }}>Voice not available</div>
         <div style={{ fontSize: 12 }}>
@@ -91,8 +91,8 @@ export function VoiceCapture({
           aria-label={isListening ? "Stop recording" : "Start recording"}
         >
           {isListening
-            ? <StopCircle size={36} weight="fill" color="#fff" />
-            : <Microphone size={36} weight="regular" color="var(--text-secondary)" />
+            ? <StopCircleIcon size={36} weight="fill" color="#fff" />
+            : <MicrophoneIcon size={36} weight="regular" color="var(--text-secondary)" />
           }
         </button>
       </div>
@@ -136,7 +136,7 @@ export function VoiceCapture({
           style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 6 }}
           onClick={onReset}
         >
-          <X size={14} weight="bold" /> Clear
+          <XIcon size={14} weight="bold" /> Clear
         </button>
       )}
     </div>
