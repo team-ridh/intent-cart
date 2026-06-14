@@ -19,7 +19,7 @@ Instead of asking *"What product do you want?"*, we ask **"What is happening rig
 ## Features
 
 - **🎙 Voice / Text / Photo input** — describe any situation naturally
-- **⚡ AI-generated cart** — Amazon Bedrock (Claude Haiku 4.5) for real intent extraction
+- **⚡ AI-generated cart** — Amazon Bedrock (Amazon Nova 2 Lite) for real intent extraction — supports text, voice, and **multimodal photo** input
 - **🗃 DynamoDB sessions** — cart persists across refreshes and devices
 - **📷 S3 photo uploads** — real presigned PUT URL, uploaded directly to S3
 - **💡 "Why included" reasoning** — every item has a context explanation
@@ -137,10 +137,10 @@ NEXT_PUBLIC_S3_BUCKET=intent-cart-uploads-{accountId}
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js 15 (App Router) + TypeScript |
+| Frontend | Next.js 16.2.9 (App Router) + TypeScript |
 | Styling | Vanilla CSS with design tokens |
-| State | Zustand (persisted to localStorage) |
-| AI | Amazon Bedrock — Claude 3 Haiku |
+| State | Zustand (session state — DynamoDB is the source of truth) |
+| AI | Amazon Bedrock — Amazon Nova 2 Lite (multimodal) |
 | Voice | Web Speech API (en-IN) |
 | Hosting | AWS Amplify |
 
@@ -178,28 +178,17 @@ Open [http://localhost:3000](http://localhost:3000)
 
 1. Go to **AWS Console → IAM → Users → Security Credentials**
 2. Create an access key
-3. Attach this policy to the IAM user:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [{
-    "Effect": "Allow",
-    "Action": "bedrock:InvokeModel",
-    "Resource": "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
-  }]
-}
-```
-
-4. Add keys to `.env.local`:
+3. Attach the IAM policy from the **AWS Resource Setup** section above
+4. Add keys to `.env.local` (use `BEDROCK_` prefix — `AWS_` is reserved by Amplify):
 
 ```env
-AWS_ACCESS_KEY_ID=your_key
-AWS_SECRET_ACCESS_KEY=your_secret
-AWS_REGION=us-east-1
+BEDROCK_ACCESS_KEY_ID=your_key
+BEDROCK_SECRET_ACCESS_KEY=your_secret
+BEDROCK_REGION=us-east-1
+BEDROCK_MODEL_ID=us.amazon.nova-2-lite-v1:0
 ```
 
-5. Enable Claude 3 Haiku in **AWS Console → Bedrock → Model access**
+5. Enable **Amazon Nova 2 Lite** in **AWS Console → Bedrock → Model access → Amazon**
 
 ---
 
@@ -224,7 +213,7 @@ User Input (Text / Voice / Photo)
  POST /api/interpret
          ↓
  ┌───────────────────────────────┐
- │ Amazon Bedrock (Claude Haiku) │  ← with AWS keys
+ │ Amazon Bedrock (Nova 2 Lite)  │  ← with AWS keys
  │         OR                    │
  │  Local keyword engine         │  ← fallback (always works)
  └───────────────────────────────┘
