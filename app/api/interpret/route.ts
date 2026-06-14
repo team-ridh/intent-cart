@@ -3,22 +3,43 @@ import { v4 as uuidv4 } from "uuid";
 import {
   BedrockRuntimeClient,
   ConverseCommand,
+  type ContentBlock,
 } from "@aws-sdk/client-bedrock-runtime";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
 import type { ParsedIntent, Scenario } from "@/lib/types";
 import { SCENARIO_META } from "@/lib/ai/intentParser";
 import { saveSession, saveIntent } from "@/lib/db/sessions";
+import { getS3Client, getS3Bucket } from "@/lib/storage/s3Client";
 
 // ─── Session cookie config ────────────────────────────────────────
 const SESSION_COOKIE = "ic_session";
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
 
+// ─── Rate Limiting ────────────────────────────────────────────────
+// Simple in-memory rate limiter (10 req/min per IP).
+// Note: in a serverless environment each Lambda instance has its own memory,
+// so this provides a best-effort guard — not a hard guarantee at scale.
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+
+  if (!entry || entry.resetAt < now) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + 60_000 });
+    return { allowed: true };
+  }
+
+  if (entry.count >= 10) {
+    const retryAfter = Math.ceil((entry.resetAt - now) / 1000);
+    return { allowed: false, retryAfter };
+  }
+
+  entry.count++;
+  return { allowed: true };
+}
 
 // ─── Bedrock client — created lazily to avoid module-level throw ──────────────
-// A module-level throw crashes the entire SSR Lambda with a plain-text 500,
-// swallowing the real error. We create the client on first use so the route
-// handler's catch block can return a proper JSON error instead.
-// NOTE: process.env access is inside this function (not at module level) so
-// Next.js 16 reads the actual runtime values set in Amplify, not build-time undefined.
 function getBedrockClient(): BedrockRuntimeClient {
   const accessKeyId = process.env.BEDROCK_ACCESS_KEY_ID;
   const secretAccessKey = process.env.BEDROCK_SECRET_ACCESS_KEY;
@@ -38,8 +59,65 @@ function getModelId(): string {
   return process.env.BEDROCK_MODEL_ID ?? "us.amazon.nova-2-lite-v1:0";
 }
 
-// ─── System prompt ────────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are a deterministic e-commerce intent extraction engine for a quick-commerce app in India called "Amazon Now OS".
+// ─── Image format detection ───────────────────────────────────────
+type ImageFormat = "jpeg" | "png" | "webp" | "gif";
+
+function detectImageFormat(contentType: string, s3Key: string): ImageFormat {
+  if (contentType.includes("png") || s3Key.endsWith(".png")) return "png";
+  if (contentType.includes("webp") || s3Key.endsWith(".webp")) return "webp";
+  if (contentType.includes("gif") || s3Key.endsWith(".gif")) return "gif";
+  return "jpeg"; // default
+}
+
+// ─── Fetch image bytes from S3 (server-side) ─────────────────────
+// Returns null if fetch fails (non-fatal — caller falls back to text-only).
+async function fetchImageFromS3(
+  s3Key: string
+): Promise<{ bytes: Uint8Array; format: ImageFormat } | null> {
+  try {
+    const command = new GetObjectCommand({
+      Bucket: getS3Bucket(),
+      Key: s3Key,
+    });
+
+    const response = await getS3Client().send(command);
+
+    if (!response.Body) {
+      console.warn("[interpret] S3 GetObject: empty body for key:", s3Key);
+      return null;
+    }
+
+    // Collect stream chunks into a single Uint8Array
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
+      chunks.push(chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk));
+    }
+
+    const totalLength = chunks.reduce((sum, c) => sum + c.length, 0);
+    const merged = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const chunk of chunks) {
+      merged.set(chunk, offset);
+      offset += chunk.length;
+    }
+
+    const format = detectImageFormat(response.ContentType ?? "", s3Key);
+    console.log(
+      `[interpret] Multimodal: fetched ${merged.length} bytes (${format}) from S3 key: ${s3Key}`
+    );
+    return { bytes: merged, format };
+  } catch (err) {
+    // Non-fatal: log and continue with text-only parsing
+    console.error(
+      "[interpret] Failed to fetch image from S3 — falling back to text-only:",
+      err instanceof Error ? err.message : err
+    );
+    return null;
+  }
+}
+
+// ─── System prompts ───────────────────────────────────────────────
+const SYSTEM_PROMPT_TEXT_ONLY = `You are a deterministic e-commerce intent extraction engine for a quick-commerce app in India called "Amazon Now OS".
 Analyse the user's situation and return ONLY a valid JSON object with these exact fields — no markdown, no explanation, no code blocks:
 {
   "scenario": one of ["hosting","fever","pooja","rainy","travel","power_cut","school","tea_break","general"],
@@ -57,19 +135,57 @@ Rules:
 - confidence should reflect how clearly the situation maps to a scenario (95+ = very clear, 70-90 = likely, 50-70 = uncertain, use "general" below 50).
 - For Indian contexts: "pooja" includes puja, prayer, festival rituals. "hosting" includes guests, visitors, parties.`;
 
-// ─── Call Bedrock and parse the structured response ───────────────
+const SYSTEM_PROMPT_MULTIMODAL = `You are a deterministic e-commerce intent extraction engine for a quick-commerce app in India called "Amazon Now OS".
+You are given a photo the user uploaded of their current situation, along with a text description they provided.
+Analyse BOTH the image and the text together to understand what they need, and return ONLY a valid JSON object with these exact fields — no markdown, no explanation, no code blocks:
+{
+  "scenario": one of ["hosting","fever","pooja","rainy","travel","power_cut","school","tea_break","general"],
+  "scenarioLabel": human-readable label e.g. "Hosting" or "Fever Care",
+  "urgency": one of ["High","Medium","Low"],
+  "category": primary product category e.g. "Food & Beverage",
+  "confidence": integer 0-100 representing how confident you are about the scenario,
+  "summary": 6-10 word description of the shopping need,
+  "deliveryMode": one of ["fastest","value","trusted"],
+  "suggestedItems": array of 4-6 item names the user likely needs right now
+}
+
+Rules:
+- Return ONLY the JSON object. No other text.
+- Use visual cues from the image (e.g. a dinner table, a sick person in bed, candles, textbooks) to raise your confidence.
+- confidence should reflect how clearly the situation maps to a scenario (95+ = very clear, 70-90 = likely, 50-70 = uncertain, use "general" below 50).
+- For Indian contexts: "pooja" includes puja, prayer, festival rituals. "hosting" includes guests, visitors, parties.`;
+
+// ─── Call Bedrock with optional image ────────────────────────────
 async function invokeBedrockForIntent(
-  situationText: string
+  situationText: string,
+  photoS3Key?: string
 ): Promise<ParsedIntent> {
+  // Try to fetch the image if a key was provided
+  const imageData = photoS3Key ? await fetchImageFromS3(photoS3Key) : null;
+  const isMultimodal = !!imageData;
+
+  // Build the message content array
+  const content: ContentBlock[] = [];
+
+  if (isMultimodal && imageData) {
+    content.push({
+      image: {
+        format: imageData.format,
+        source: { bytes: imageData.bytes },
+      },
+    });
+  }
+
+  content.push({
+    text: isMultimodal
+      ? `The user also wrote: "${situationText}". Use both the image and this description to identify their shopping need.`
+      : `Situation: "${situationText}"`,
+  });
+
   const command = new ConverseCommand({
     modelId: getModelId(),
-    system: [{ text: SYSTEM_PROMPT }],
-    messages: [
-      {
-        role: "user",
-        content: [{ text: `Situation: "${situationText}"` }],
-      },
-    ],
+    system: [{ text: isMultimodal ? SYSTEM_PROMPT_MULTIMODAL : SYSTEM_PROMPT_TEXT_ONLY }],
+    messages: [{ role: "user", content }],
     inferenceConfig: {
       maxTokens: 512,
       temperature: 0,
@@ -110,13 +226,18 @@ async function invokeBedrockForIntent(
 
   return {
     scenario,
-    scenarioLabel: typeof parsed.scenarioLabel === "string" ? parsed.scenarioLabel : SCENARIO_META[scenario].scenarioLabel,
+    scenarioLabel:
+      typeof parsed.scenarioLabel === "string"
+        ? parsed.scenarioLabel
+        : SCENARIO_META[scenario].scenarioLabel,
     urgency: ["High", "Medium", "Low"].includes(parsed.urgency as string)
       ? (parsed.urgency as "High" | "Medium" | "Low")
       : SCENARIO_META[scenario].urgency,
-    category: typeof parsed.category === "string" ? parsed.category : SCENARIO_META[scenario].category,
+    category:
+      typeof parsed.category === "string" ? parsed.category : SCENARIO_META[scenario].category,
     confidence: parsed.confidence,
-    summary: typeof parsed.summary === "string" ? parsed.summary : SCENARIO_META[scenario].summary,
+    summary:
+      typeof parsed.summary === "string" ? parsed.summary : SCENARIO_META[scenario].summary,
     deliveryMode: typeof parsed.deliveryMode === "string" ? parsed.deliveryMode : "fastest",
     suggestedItems: Array.isArray(parsed.suggestedItems) ? parsed.suggestedItems : [],
     usedBedrock: true,
@@ -127,10 +248,29 @@ async function invokeBedrockForIntent(
 export async function POST(req: NextRequest) {
   try {
     // Signal to Next.js 16 that this route reads env vars at runtime
-    // (not at build time). Without this, Amplify bakes in undefined values.
     await connection();
 
-    const body = await req.json() as { input?: string; photoS3Key?: string };
+    // ─── Rate limiting ─────────────────────────────────────────────
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      req.headers.get("x-real-ip") ??
+      "unknown";
+
+    const rateCheck = checkRateLimit(ip);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: "Too many requests",
+          details: `Rate limit exceeded. Try again in ${rateCheck.retryAfter} seconds.`,
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateCheck.retryAfter) },
+        }
+      );
+    }
+
+    const body = (await req.json()) as { input?: string; photoS3Key?: string };
     const { input, photoS3Key } = body;
 
     if (!input || typeof input !== "string" || input.trim().length < 2) {
@@ -145,12 +285,11 @@ export async function POST(req: NextRequest) {
     const sessionId = existingSessionId ?? uuidv4();
     const isNewSession = !existingSessionId;
 
-    // ─── Call Bedrock ─────────────────────────────────────────────
-    const intent = await invokeBedrockForIntent(input.trim());
+    // ─── Call Bedrock (with optional image) ───────────────────────
+    const intent = await invokeBedrockForIntent(input.trim(), photoS3Key);
 
     // ─── Persist to DynamoDB ──────────────────────────────────────
     if (isNewSession) {
-      // Create the session record first
       await saveSession({
         sessionId,
         situationText: input.trim(),
@@ -161,7 +300,6 @@ export async function POST(req: NextRequest) {
         status: "active",
       });
     } else {
-      // Update existing session with new intent
       await saveIntent(sessionId, input.trim(), intent, photoS3Key);
     }
 
