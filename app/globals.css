@@ -495,3 +495,72 @@ h1, h2, h3, h4 {
 
 /* ─── Selection ─────────────────────────────────────────────── */
 ::selection { background: var(--accent-dim); color: var(--accent); }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE-FIRST RESPONSIVE LAYER
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── iPhone / Android home indicator safe-area ─────────────── */
+.bottom-bar-safe {
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+}
+
+/* ── Apple HIG: minimum 44px touch targets ──────────────────── */
+.tab-item   { min-height: 44px; }
+.urgency-item { min-height: 44px; }
+.chip       { min-height: 40px; }
+.btn-primary, .btn-secondary { min-height: 44px; }
+.btn-ghost  { min-height: 36px; }
+
+/* ── Prevent iOS input zoom (must be ≥16px) ─────────────────── */
+input, textarea, select { font-size: max(16px, 1em); }
+
+/* ── Horizontal scrolling chip row ──────────────────────────── */
+.chips-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.chips-scroll::-webkit-scrollbar { display: none; }
+
+/* ── Fade-in backdrop keyframe ───────────────────────────────── */
+@keyframes fade-backdrop {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-backdrop { animation: fade-backdrop 0.2s ease; }
+
+/* ─── Small screens (≤ 480px) ───────────────────────────────── */
+@media (max-width: 480px) {
+  /* Tighter heading tracking on narrow screens */
+  h1 { letter-spacing: -0.025em; }
+
+  /* Urgency/tab labels: drop font size slightly, keep icons */
+  .tab-item    { font-size: 12px; padding: 8px 8px; }
+  .urgency-item { font-size: 12px; padding: 8px 6px; }
+
+  /* Cards don't need extra padding on small screens */
+  .card { padding: 14px; }
+
+  /* glass-elevated: tighter on mobile */
+  .glass-elevated { border-radius: var(--radius-lg); padding: 16px; }
+
+  /* Primary button: full padding still needed but slightly smaller font */
+  .btn-primary { font-size: 15px; padding: 14px 20px; }
+  .btn-secondary { font-size: 13px; padding: 10px 16px; }
+}
+
+/* ─── Desktop / tablet (≥ 640px) ─────────────────────────────── */
+@media (min-width: 640px) {
+  /* Tab/urgency items can be a bit bigger on desktop */
+  .tab-item    { font-size: 14px; padding: 10px 22px; }
+  .urgency-item { font-size: 13px; padding: 10px 18px; }
+
+  /* More horizontal breathing room */
+  .card { padding: 24px; }
+}
+

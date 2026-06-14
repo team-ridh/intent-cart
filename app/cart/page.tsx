@@ -10,28 +10,27 @@ import { SkeletonCard } from "@/components/ui/SkeletonCard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Logo } from "@/components/Logo";
 import {
-  LightningIcon,
-  CurrencyDollarIcon,
-  ShieldCheckIcon,
-  WarningCircleIcon,
-  ShoppingCartIcon,
-  PencilSimpleIcon,
-  ArrowCounterClockwiseIcon,
-  ShareNetworkIcon,
-  FloppyDiskIcon,
-  SparkleIcon,
-  CheckCircleIcon,
-  ClipboardTextIcon,
-  WarningIcon,
-  ArrowLeftIcon,
-  CrosshairIcon,
+  Lightning,
+  CurrencyDollar,
+  ShieldCheck,
+  WarningCircle,
+  ShoppingCart,
+  PencilSimple,
+  ArrowCounterClockwise,
+  ShareNetwork,
+  FloppyDisk,
+  Sparkle,
+  CheckCircle,
+  Warning,
+  ArrowLeft,
+  Crosshair,
 } from "@phosphor-icons/react";
 import type { CartItem, UrgencyMode } from "@/lib/types";
 
 const URGENCY_META = {
-  fastest: { label: "Fastest",      badgeColor: "teal",   icon: LightningIcon },
-  value:   { label: "Best Value",   badgeColor: "green",  icon: CurrencyDollarIcon },
-  trusted: { label: "Most Trusted", badgeColor: "purple", icon: ShieldCheckIcon },
+  fastest: { label: "Fastest",      badgeColor: "teal",   icon: Lightning },
+  value:   { label: "Best Value",   badgeColor: "green",  icon: CurrencyDollar },
+  trusted: { label: "Most Trusted", badgeColor: "purple", icon: ShieldCheck },
 } as const;
 
 // ─── Toast notification ────────────────────────────────────────────
@@ -211,7 +210,7 @@ function CartPage() {
     return (
       <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, textAlign: "center" }}>
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-          <WarningCircleIcon size={48} weight="fill" color="#EF4444" />
+          <WarningCircle size={48} weight="fill" color="#EF4444" />
         </div>
         <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, marginBottom: 10 }}>
           Failed to load cart
@@ -219,10 +218,10 @@ function CartPage() {
         <p style={{ color: "var(--text-muted)", fontSize: 14, maxWidth: 380, marginBottom: 24 }}>{error}</p>
         <div style={{ display: "flex", gap: 12 }}>
           <button className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: 6 }} onClick={() => loadFromServer()}>
-            <ArrowCounterClockwiseIcon size={14} weight="bold" /> Try Again
+            <ArrowCounterClockwise size={14} weight="bold" /> Try Again
           </button>
           <button className="btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: 6 }} onClick={() => router.push("/")}>
-            <ArrowLeftIcon size={14} weight="bold" /> Start Over
+            <ArrowLeft size={14} weight="bold" /> Start Over
           </button>
         </div>
       </div>
@@ -234,7 +233,7 @@ function CartPage() {
     return (
       <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, textAlign: "center" }}>
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-          <ShoppingCartIcon size={56} weight="light" color="var(--text-muted)" />
+          <ShoppingCart size={56} weight="light" color="var(--text-muted)" />
         </div>
         <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, marginBottom: 10 }}>
           Cart is empty
@@ -244,10 +243,10 @@ function CartPage() {
         </p>
         <div style={{ display: "flex", gap: 12 }}>
           <button className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: 6 }} onClick={handleRefine}>
-            <PencilSimpleIcon size={14} weight="bold" /> Refine Situation
+            <PencilSimple size={14} weight="bold" /> Refine Situation
           </button>
           <button className="btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: 6 }} onClick={() => router.push("/")}>
-            <LightningIcon size={14} weight="fill" /> New Situation
+            <Lightning size={14} weight="fill" /> New Situation
           </button>
         </div>
       </div>
@@ -258,7 +257,7 @@ function CartPage() {
   const urgencyMeta = URGENCY_META[urgencyMode];
 
   return (
-    <main className="min-h-screen pb-32" style={{ maxWidth: 680, margin: "0 auto", padding: "0 16px" }}>
+    <main style={{ minHeight: "100vh", paddingBottom: "max(200px, calc(180px + env(safe-area-inset-bottom)))", maxWidth: 680, margin: "0 auto", padding: "0 16px" }}>
 
       {/* Toast */}
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismissToast} />}
@@ -287,11 +286,11 @@ function CartPage() {
       {situationText && (
         <div style={{ marginBottom: 16, padding: "10px 14px", borderRadius: 12, background: "var(--accent-dim)", border: "1px solid var(--border-accent)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
           <div style={{ fontSize: 13, color: "var(--text-secondary)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 6 }}>
-            <CrosshairIcon size={13} weight="bold" color="var(--accent)" style={{ flexShrink: 0 }} />
+            <Crosshair size={13} weight="bold" color="var(--accent)" style={{ flexShrink: 0 }} />
             <span style={{ color: "var(--text-muted)" }}>Situation:</span> {situationText}
           </div>
           <button className="btn-ghost" style={{ fontSize: 12, padding: "4px 10px", flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4 }} onClick={handleRefine}>
-          <PencilSimpleIcon size={11} weight="bold" /> Refine
+          <PencilSimple size={11} weight="bold" /> Refine
           </button>
         </div>
       )}
@@ -301,7 +300,7 @@ function CartPage() {
         <div className="glass-elevated animate-float-in" style={{ padding: 20, marginBottom: 20 }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
             <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, background: "linear-gradient(135deg,rgba(232,93,42,0.15),rgba(0,153,187,0.08))", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <SparkleIcon size={20} weight="fill" color="var(--accent)" />
+              <Sparkle size={20} weight="fill" color="var(--accent)" />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 17, marginBottom: 4 }}>
@@ -316,7 +315,7 @@ function CartPage() {
                   {intent.urgency} urgency
                 </span>
                 <span className="badge badge-teal">{intent.confidence}% confident</span>
-                {intent.usedBedrock && <span className="badge badge-purple" style={{ display: "inline-flex", alignItems: "center", gap: 3 }}><CheckCircleIcon size={10} weight="fill" /> AI classified</span>}
+                {intent.usedBedrock && <span className="badge badge-purple" style={{ display: "inline-flex", alignItems: "center", gap: 3 }}><CheckCircle size={10} weight="fill" /> AI classified</span>}
               </div>
             </div>
           </div>
@@ -327,7 +326,8 @@ function CartPage() {
       {!isLoading && (
         <div style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Optimise for</div>
-          <UrgencyBar value={urgencyMode} onChange={handleUrgencyChange} idPrefix="cart-urgency" />
+          <UrgencyBar value={urgencyMode} onChange={handleUrgencyChange} idPrefix="cart-urgency" showDescription />
+
         </div>
       )}
 
@@ -359,7 +359,7 @@ function CartPage() {
 
       {/* Bottom CTA */}
       {!isLoading && cart && (
-        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, padding: "16px 20px", background: "rgba(245,246,250,0.95)", backdropFilter: "blur(20px)", borderTop: "1px solid var(--border)", zIndex: 20 }}>
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, padding: "14px 20px", paddingBottom: "max(14px, env(safe-area-inset-bottom))", background: "rgba(245,246,250,0.97)", backdropFilter: "blur(20px)", borderTop: "1px solid var(--border)", zIndex: 20 }}>
           <div style={{ maxWidth: 680, margin: "0 auto" }}>
             {/* Price summary */}
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, padding: "10px 16px", borderRadius: 12, background: "var(--bg-raised)", border: "1px solid var(--border)" }}>
@@ -375,7 +375,7 @@ function CartPage() {
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Est. delivery</div>
                 <div style={{ color: "var(--accent-teal)", fontWeight: 700, fontSize: 18, display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
-                <LightningIcon size={14} weight="fill" /> ~{cart.estimatedEta}-{cart.estimatedEta + 5} min est.
+                <Lightning size={14} weight="fill" /> ~{cart.estimatedEta}-{cart.estimatedEta + 5} min est.
                 </div>
               </div>
             </div>
@@ -388,7 +388,7 @@ function CartPage() {
                 style={{ flex: 1, fontSize: 13, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5 }}
                 onClick={handleSave}
               >
-                <FloppyDiskIcon size={13} weight="bold" /> Save
+                <FloppyDisk size={13} weight="bold" /> Save
               </button>
               <button
                 id="cart-refine-btn"
@@ -396,7 +396,7 @@ function CartPage() {
                 style={{ flex: 1, fontSize: 13, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5 }}
                 onClick={handleRefine}
               >
-                <ArrowCounterClockwiseIcon size={13} weight="bold" /> Refine
+                <ArrowCounterClockwise size={13} weight="bold" /> Refine
               </button>
               <button
                 id="cart-share-btn"
@@ -404,7 +404,7 @@ function CartPage() {
                 style={{ flex: 1, fontSize: 13, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5 }}
                 onClick={handleShare}
               >
-                <ShareNetworkIcon size={13} weight="bold" /> Share
+                <ShareNetwork size={13} weight="bold" /> Share
               </button>
             </div>
 
