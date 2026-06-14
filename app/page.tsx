@@ -323,12 +323,10 @@ function SituationPage() {
       {/* Navbar — full width, sticky */}
       <Navbar
         rightSlot={
-          isRefining ? (
+          isRefining && (
             <span className="badge badge-amber" style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
               <PencilSimpleIcon size={10} weight="bold" /> Refining
             </span>
-          ) : (
-            <span className="badge badge-teal">Beta</span>
           )
         }
       />
