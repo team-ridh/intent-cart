@@ -384,7 +384,7 @@ function SituationPage() {
       <div
         style={{
           width: "100%",
-          maxWidth: 1100,
+          maxWidth: 1200,
           margin: "0 auto",
           position: "relative",
           zIndex: 1,
@@ -549,7 +549,7 @@ function SituationPage() {
           zIndex: 20,
         }}
       >
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 clamp(16px, 5vw, 80px)", width: "100%" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 clamp(16px, 5vw, 80px)", width: "100%" }}>
           <Button
             id="build-cart-btn"
             variant="primary"
