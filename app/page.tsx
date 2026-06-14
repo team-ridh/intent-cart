@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef, useEffect, useCallback, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import { parseIntent } from "@/lib/ai/intentParser";
 import { generateCart } from "@/lib/ai/cartGenerator";
@@ -14,7 +14,7 @@ import { IntentPreview } from "@/components/IntentPreview";
 import { UrgencyBar } from "@/components/UrgencyBar";
 import { Button } from "@/components/ui/Button";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import type { UrgencyMode } from "@/lib/types";
+import type { ParsedIntent, UrgencyMode } from "@/lib/types";
 
 const PLACEHOLDER_CYCLE = [
   "Guests are arriving in 30 minutes…",
@@ -25,8 +25,143 @@ const PLACEHOLDER_CYCLE = [
   "Tea time! Need snacks…",
 ];
 
+// ─── Low-confidence clarify modal ────────────────────────────────
+interface ClarifyModalProps {
+  intent: ParsedIntent;
+  onConfirm: () => void;
+  onRefine: () => void;
+}
+
+function ClarifyModal({ intent, onConfirm, onRefine }: ClarifyModalProps) {
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onRefine}
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.4)",
+          backdropFilter: "blur(6px)",
+          zIndex: 60,
+        }}
+        aria-hidden
+      />
+      {/* Modal */}
+      <div
+        className="animate-slide-up"
+        role="dialog"
+        aria-label="Confirm your situation"
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 70,
+          background: "var(--bg-surface)",
+          borderTop: "1px solid var(--border)",
+          borderRadius: "24px 24px 0 0",
+          padding: "28px 24px 36px",
+        }}
+      >
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <div style={{ fontSize: 44, marginBottom: 12 }}>🤔</div>
+          <div
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              fontSize: 20,
+              marginBottom: 8,
+            }}
+          >
+            Just to confirm…
+          </div>
+          <p style={{ color: "var(--text-muted)", fontSize: 14, lineHeight: 1.6, maxWidth: 360, margin: "0 auto" }}>
+            We think you need help with{" "}
+            <strong style={{ color: "var(--text-primary)" }}>{intent.scenarioLabel}</strong>, but
+            we&apos;re only{" "}
+            <span className="badge badge-amber" style={{ fontSize: 12 }}>
+              {intent.confidence}% confident
+            </span>
+            . Does this sound right?
+          </p>
+          {intent.suggestedItems.length > 0 && (
+            <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
+              {intent.suggestedItems.slice(0, 4).map((item) => (
+                <span key={item} className="badge badge-teal" style={{ fontSize: 11 }}>
+                  {item}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{ display: "flex", gap: 12 }}>
+          <button
+            id="clarify-refine-btn"
+            className="btn-secondary"
+            style={{ flex: 1 }}
+            onClick={onRefine}
+          >
+            ✏️ Let me clarify
+          </button>
+          <button
+            id="clarify-confirm-btn"
+            className="btn-primary"
+            style={{ flex: 1 }}
+            onClick={onConfirm}
+          >
+            ✅ Yes, build it!
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ─── Offline warning banner ───────────────────────────────────────
+function OfflineBanner() {
+  const [offline, setOffline] = useState(false);
+
+  useEffect(() => {
+    const update = () => setOffline(!navigator.onLine);
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
+
+  if (!offline) return null;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+        background: "#D97706",
+        color: "#fff",
+        textAlign: "center",
+        padding: "10px 16px",
+        fontSize: 13,
+        fontWeight: 600,
+      }}
+    >
+      📶 You&apos;re offline — check your connection before submitting
+    </div>
+  );
+}
+
+// ─── Main page (needs searchParams so wrapped in Suspense) ────────
 function SituationPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isRefining = searchParams.get("refine") === "1";
+
   const {
     situationText, setSituationText,
     urgencyMode, setUrgencyMode,
@@ -42,6 +177,8 @@ function SituationPage() {
   const [previewConfidence, setPreviewConfidence] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Low-confidence clarify flow
+  const [pendingIntent, setPendingIntent] = useState<ParsedIntent | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const {
@@ -50,8 +187,18 @@ function SituationPage() {
     start, stop, reset: resetSpeech,
   } = useSpeechRecognition();
 
-  // Reset store on arriving at home page
-  useEffect(() => { reset(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Reset store — but NOT if we came here via Refine (preserve the situation text)
+  useEffect(() => {
+    if (!isRefining) reset();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // When refining, switch to type tab and focus textarea
+  useEffect(() => {
+    if (isRefining && situationText) {
+      setActiveTab("type");
+      setTimeout(() => textareaRef.current?.focus(), 100);
+    }
+  }, [isRefining, situationText]);
 
   // Sync voice transcript
   useEffect(() => {
@@ -75,8 +222,7 @@ function SituationPage() {
     return () => clearInterval(interval);
   }, [placeholderIdx, situationText, activeTab]);
 
-  // Quick intent preview as user types (local keyword check for immediate feedback)
-  // This is just UI polish — the real Bedrock call happens on submit
+  // Quick intent preview as user types (local keyword heuristic — not the actual AI)
   useEffect(() => {
     if (!situationText || situationText.length < 5) {
       setIntentPreview(null);
@@ -85,7 +231,6 @@ function SituationPage() {
     }
 
     const timer = setTimeout(() => {
-      // Simple keyword heuristics for live preview only (not the actual AI)
       const lower = situationText.toLowerCase();
       const previews: Array<{ keywords: string[]; label: string; confidence: number }> = [
         { keywords: ["guest", "visitor", "hosting", "arriving", "party"], label: "Hosting · High urgency", confidence: 88 },
@@ -112,50 +257,92 @@ function SituationPage() {
     return () => clearTimeout(timer);
   }, [situationText]);
 
-  // Submit — calls Bedrock via /api/interpret
+  // ─── Core submit logic (also used after clarify-confirm) ────────
+  const proceedWithIntent = useCallback(
+    async (intent: ParsedIntent) => {
+      const cart = generateCart(intent, urgencyMode);
+      setIntent(intent);
+      setCart(cart);
+      router.push("/cart");
+    },
+    [urgencyMode, setIntent, setCart, router]
+  );
+
+  // ─── Submit — calls Bedrock via /api/interpret ───────────────────
   const handleSubmit = useCallback(async () => {
     const input = situationText.trim();
-    if (!input) { setError("Please describe your situation first"); return; }
+    if (!input || input.length < 4) {
+      setError("Please describe your situation in a few words");
+      return;
+    }
 
     setError(null);
+    setPendingIntent(null);
     setIsSubmitting(true);
     setIsLoading(true);
 
     try {
-      // parseIntent calls /api/interpret → Bedrock → saves to DynamoDB → sets cookie
       const intent = await parseIntent(input, photoS3Key ?? undefined);
 
-      // Generate cart locally (fast) — also saved to DynamoDB by /api/cart (POST from cart page)
-      const cart = generateCart(intent, urgencyMode);
-      setIntent(intent);
-      setCart(cart);
+      // If confidence is low, show a clarifying question instead of proceeding
+      if (intent.confidence < 65) {
+        setPendingIntent(intent);
+        setIsSubmitting(false);
+        setIsLoading(false);
+        return;
+      }
 
-      router.push("/cart");
+      await proceedWithIntent(intent);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Something went wrong";
-      setError(message);
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      // Surface rate limit message clearly
+      if (msg.includes("429") || msg.includes("Too many")) {
+        setError("Too many requests — please wait a moment and try again.");
+      } else {
+        setError(msg);
+      }
     } finally {
       setIsSubmitting(false);
       setIsLoading(false);
     }
-  }, [situationText, urgencyMode, photoS3Key, setIntent, setCart, setIsLoading, router]);
+  }, [situationText, photoS3Key, setIsLoading, proceedWithIntent]);
 
   const handleChipSelect = useCallback(
     (text: string) => {
       setSituationText(text);
+      setPendingIntent(null);
       textareaRef.current?.focus();
     },
     [setSituationText]
   );
 
-  const handleUrgencyChange = (mode: UrgencyMode) => {
-    setUrgencyMode(mode);
-  };
+  const handleUrgencyChange = (mode: UrgencyMode) => setUrgencyMode(mode);
 
-  const canSubmit = situationText.trim().length > 3;
+  const canSubmit = situationText.trim().length > 3 && !isSubmitting;
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-start px-4 pb-16 pt-8 relative overflow-hidden">
+      <OfflineBanner />
+
+      {/* Low-confidence clarify modal */}
+      {pendingIntent && (
+        <ClarifyModal
+          intent={pendingIntent}
+          onConfirm={async () => {
+            setPendingIntent(null);
+            setIsSubmitting(true);
+            setIsLoading(true);
+            await proceedWithIntent(pendingIntent);
+            setIsSubmitting(false);
+            setIsLoading(false);
+          }}
+          onRefine={() => {
+            setPendingIntent(null);
+            textareaRef.current?.focus();
+          }}
+        />
+      )}
+
       {/* Ambient blobs */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
         <div style={{ position: "absolute", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(232,93,42,0.07) 0%, transparent 70%)", top: -200, left: -200, filter: "blur(60px)" }} />
@@ -167,7 +354,12 @@ function SituationPage() {
         {/* Nav */}
         <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 48 }}>
           <Logo />
-          <span className="badge badge-teal">Beta</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {isRefining && (
+              <span className="badge badge-amber">✏️ Refining</span>
+            )}
+            <span className="badge badge-teal">Beta</span>
+          </div>
         </nav>
 
         {/* Hero */}
@@ -177,7 +369,7 @@ function SituationPage() {
             <span className="gradient-text">right now?</span>
           </h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 16, maxWidth: 480, margin: "0 auto", lineHeight: 1.6 }}>
-            Describe your situation — we'll build your cart in seconds.
+            Describe your situation — we&apos;ll build your cart in seconds.
             <br />No search. No browsing. Just say the need.
           </p>
         </div>
@@ -239,7 +431,8 @@ function SituationPage() {
             <PhotoUpload
               onUploaded={(s3Key, _publicUrl, filename) => {
                 setPhotoS3Key(s3Key);
-                setSituationText(`Photo: ${filename.replace(/\.[^.]+$/, "")} — analyse and build my cart`);
+                setSituationText(`Photo uploaded: ${filename.replace(/\.[^.]+$/, "")} — analyse and build my cart`);
+                setActiveTab("type");
               }}
             />
           )}
@@ -269,8 +462,12 @@ function SituationPage() {
 
         {/* Error */}
         {error && (
-          <div style={{ marginBottom: 16, padding: "10px 16px", borderRadius: 12, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontSize: 14 }}>
-            {error}
+          <div style={{ marginBottom: 16, padding: "12px 16px", borderRadius: 12, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontSize: 14, display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
+            <div>
+              <div style={{ fontWeight: 600, marginBottom: 2 }}>Something went wrong</div>
+              <div style={{ fontSize: 13 }}>{error}</div>
+            </div>
           </div>
         )}
 
@@ -290,7 +487,7 @@ function SituationPage() {
         </Button>
 
         <p style={{ textAlign: "center", color: "var(--text-faint)", fontSize: 12, marginTop: 12 }}>
-          Powered by Amazon Bedrock · Average Time to Cart: &lt;8 seconds
+          Powered by Amazon Bedrock · Text · Voice · Photo · Average TTC: &lt;8s
         </p>
       </div>
     </main>
@@ -300,7 +497,9 @@ function SituationPage() {
 export default function Page() {
   return (
     <ErrorBoundary>
-      <SituationPage />
+      <Suspense fallback={null}>
+        <SituationPage />
+      </Suspense>
     </ErrorBoundary>
   );
 }
