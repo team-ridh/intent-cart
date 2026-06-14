@@ -1,7 +1,7 @@
 "use client";
 
 import type { CartItem } from "@/lib/types";
-import { Lightning, CurrencyDollar, ShieldCheck, Sparkle, X } from "@phosphor-icons/react";
+import { Lightning, CurrencyDollar, ShieldCheck, Sparkle, X, Star } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
 const TYPE_COLOR: Record<string, string> = {
@@ -188,8 +188,16 @@ export function SubstituteDrawer({
                 <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{sub.brand}</div>
                 {sub.rating && (
                   <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
-                    <span style={{ color: "#FF9900", fontSize: 10, letterSpacing: "-1px" }}>
-                      {"★".repeat(Math.round(sub.rating))}{"☆".repeat(5 - Math.round(sub.rating))}
+                    <span style={{ display: "flex", gap: 1 }}>
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          size={10}
+                          weight={i < Math.round(sub.rating!) ? "fill" : "regular"}
+                          color="#FF9900"
+                          style={{ opacity: i < Math.round(sub.rating!) ? 1 : 0.35 }}
+                        />
+                      ))}
                     </span>
                     <span style={{ color: "var(--text-muted)", fontSize: 10 }}>
                       {sub.rating.toFixed(1)} ({sub.reviewCount?.toLocaleString("en-IN")})

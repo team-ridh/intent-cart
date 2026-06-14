@@ -248,10 +248,10 @@ function PaymentSelector({ selected, upiId, onUpiIdChange, onSelect, onClose }: 
       <button
         className="btn-primary"
         id="pay-confirm-btn"
-        style={{ width: "100%", fontSize: 14 }}
+        style={{ width: "100%", fontSize: 14, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5 }}
         onClick={onClose}
       >
-        ✓ Confirm Payment Method
+        <CheckCircle size={14} weight="fill" /> Confirm Payment Method
       </button>
     </div>
   );

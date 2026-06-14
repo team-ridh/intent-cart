@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { CartItem } from "@/lib/types";
-import { Lightning, X, ArrowsLeftRight, Trophy, CheckCircle, Package } from "@phosphor-icons/react";
+import { Lightning, X, ArrowsLeftRight, Trophy, CheckCircle, Package, Star } from "@phosphor-icons/react";
 
 const TAG_COLORS: Record<string, string> = {
   "Hosting essential": "orange",
@@ -132,8 +132,16 @@ export function CartItemCard({
             <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 1 }}>{displayBrand}</div>
             {item.rating && (
               <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 3 }}>
-                <span style={{ color: "#FF9900", fontSize: 11, letterSpacing: "-1px" }}>
-                  {"★".repeat(Math.round(item.rating))}{"☆".repeat(5 - Math.round(item.rating))}
+                <span style={{ display: "flex", gap: 1 }}>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      size={11}
+                      weight={i < Math.round(item.rating!) ? "fill" : "regular"}
+                      color="#FF9900"
+                      style={{ opacity: i < Math.round(item.rating!) ? 1 : 0.35 }}
+                    />
+                  ))}
                 </span>
                 <span style={{ color: "var(--text-muted)", fontSize: 11 }}>
                   {item.rating.toFixed(1)} ({item.reviewCount?.toLocaleString("en-IN")})
