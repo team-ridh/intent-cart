@@ -128,7 +128,9 @@ Analyse the user's situation and return ONLY a valid JSON object with these exac
   "confidence": integer 0-100 representing how confident you are about the scenario,
   "summary": 6-10 word description of the shopping need,
   "deliveryMode": one of ["fastest","value","trusted"],
-  "suggestedItems": array of 4-6 item names the user likely needs right now
+  "suggestedItems": array of 4-6 item names the user likely needs right now,
+  "secondaryScenario": optional — a second scenario from the same list if the situation spans two needs (e.g. "fever" AND "hosting"). Omit if no secondary scenario is relevant.
+  "secondaryConfidence": integer 0-100, required only if secondaryScenario is set. How confident are you that the secondary scenario applies?
 }
 
 Rules:
@@ -136,7 +138,9 @@ Rules:
 - confidence should reflect how clearly the situation maps to a scenario (95+ = very clear, 70-90 = likely, 50-70 = uncertain, use "general" below 50).
 - For Indian contexts: "pooja" includes puja, prayer, festival rituals. "hosting" includes guests, visitors, parties.
 - "cooking" includes ran out of ingredients, need groceries, cooking essentials, oil/salt/onions.
-- "home_repair" includes broken bulb, fuse gone, need tape, repair, fix, maintenance.`;
+- "home_repair" includes broken bulb, fuse gone, need tape, repair, fix, maintenance.
+- If the user's situation clearly involves two scenarios (e.g. sick guest at home = "fever" + "hosting"), set secondaryScenario and secondaryConfidence. Only set secondaryScenario if secondaryConfidence >= 30.
+- If there is no clear secondary scenario, omit both fields.`;
 
 const SYSTEM_PROMPT_MULTIMODAL = `You are a deterministic e-commerce intent extraction engine for a quick-commerce app in India called "Amazon Now OS".
 You are given a photo the user uploaded of their current situation, along with a text description they provided.
@@ -149,7 +153,9 @@ Analyse BOTH the image and the text together to understand what they need, and r
   "confidence": integer 0-100 representing how confident you are about the scenario,
   "summary": 6-10 word description of the shopping need,
   "deliveryMode": one of ["fastest","value","trusted"],
-  "suggestedItems": array of 4-6 item names the user likely needs right now
+  "suggestedItems": array of 4-6 item names the user likely needs right now,
+  "secondaryScenario": optional — a second scenario from the same list if the situation spans two needs (e.g. "fever" AND "hosting"). Omit if no secondary scenario is relevant.
+  "secondaryConfidence": integer 0-100, required only if secondaryScenario is set. How confident are you that the secondary scenario applies?
 }
 
 Rules:
@@ -158,7 +164,9 @@ Rules:
 - confidence should reflect how clearly the situation maps to a scenario (95+ = very clear, 70-90 = likely, 50-70 = uncertain, use "general" below 50).
 - For Indian contexts: "pooja" includes puja, prayer, festival rituals. "hosting" includes guests, visitors, parties.
 - "cooking" includes ran out of ingredients, need groceries, cooking essentials, oil/salt/onions.
-- "home_repair" includes broken bulb, fuse gone, need tape, repair, fix, maintenance.`;
+- "home_repair" includes broken bulb, fuse gone, need tape, repair, fix, maintenance.
+- If the user's situation clearly involves two scenarios (e.g. sick guest at home = "fever" + "hosting"), set secondaryScenario and secondaryConfidence. Only set secondaryScenario if secondaryConfidence >= 30.
+- If there is no clear secondary scenario, omit both fields.`;
 
 // ─── Call Bedrock with optional image ────────────────────────────
 async function invokeBedrockForIntent(
@@ -229,6 +237,16 @@ async function invokeBedrockForIntent(
     throw new Error(`Bedrock returned invalid confidence: ${parsed.confidence}`);
   }
 
+  // Parse optional secondary scenario fields
+  const secondaryScenario = parsed.secondaryScenario as Scenario | undefined;
+  const secondaryConfidence =
+    typeof parsed.secondaryConfidence === "number" ? parsed.secondaryConfidence : undefined;
+  const hasValidSecondary =
+    secondaryScenario !== undefined &&
+    SCENARIO_META[secondaryScenario] !== undefined &&
+    typeof secondaryConfidence === "number" &&
+    secondaryConfidence >= 30;
+
   return {
     scenario,
     scenarioLabel:
@@ -246,6 +264,8 @@ async function invokeBedrockForIntent(
     deliveryMode: typeof parsed.deliveryMode === "string" ? parsed.deliveryMode : "fastest",
     suggestedItems: Array.isArray(parsed.suggestedItems) ? parsed.suggestedItems : [],
     usedBedrock: true,
+    secondaryScenario: hasValidSecondary ? secondaryScenario : undefined,
+    secondaryConfidence: hasValidSecondary ? secondaryConfidence : undefined,
   };
 }
 

@@ -1,5 +1,6 @@
-import type { CartItem, GeneratedCart, ParsedIntent, UrgencyMode } from "../types";
+import type { CartItem, GeneratedCart, ParsedIntent, Scenario, UrgencyMode } from "../types";
 import { SCENARIO_CARTS } from "../data/scenarios";
+import { SCENARIO_META } from "../ai/intentParser";
 import { applyUrgencyMode, sortItemsByMode, computeAutoSelections } from "./substituteRanker";
 
 /**
@@ -24,12 +25,50 @@ function boostBySuggestedItems(items: CartItem[], suggestedItems: string[]): Car
   return [...matches, ...rest];
 }
 
+/**
+ * Merge top essential items from a secondary scenario into the primary cart.
+ * Takes up to `maxItems` essential items from the secondary that aren't
+ * already covered (by name/category) in the primary list.
+ * Secondary items are appended at the end as add-ons.
+ */
+function mergeSecondaryScenario(
+  primaryItems: CartItem[],
+  secondaryScenario: Scenario,
+  maxItems: number = 2
+): CartItem[] {
+  const secondaryRaw = SCENARIO_CARTS[secondaryScenario] ?? [];
+  const primaryNames = new Set(primaryItems.map((i) => i.name.toLowerCase()));
+  const primaryCategories = new Set(primaryItems.map((i) => i.category.toLowerCase()));
+
+  const scenarioLabel = SCENARIO_META[secondaryScenario]?.scenarioLabel ?? secondaryScenario;
+
+  const candidates = secondaryRaw
+    .filter((item) => item.isEssential)
+    .filter((item) => !primaryNames.has(item.name.toLowerCase()))
+    .filter((item) => !primaryCategories.has(item.category.toLowerCase()))
+    .slice(0, maxItems)
+    .map((item) => ({
+      ...item,
+      // Re-id to avoid collisions
+      id: `blend_${item.id}`,
+      isAddon: true,
+      reasonTag: `Also for ${scenarioLabel}`,
+    }));
+
+  return [...primaryItems, ...candidates];
+}
+
 // ─── Generate cart from intent ────────────────────────────────────────────────
 export function generateCart(
   intent: ParsedIntent,
   mode: UrgencyMode = "fastest"
 ): GeneratedCart {
-  const rawItems: CartItem[] = SCENARIO_CARTS[intent.scenario] ?? SCENARIO_CARTS.general;
+  let rawItems: CartItem[] = SCENARIO_CARTS[intent.scenario] ?? SCENARIO_CARTS.general;
+
+  // Blend secondary scenario items if AI detected a dual-need situation
+  if (intent.secondaryScenario && (intent.secondaryConfidence ?? 0) >= 35) {
+    rawItems = mergeSecondaryScenario(rawItems, intent.secondaryScenario, 2);
+  }
 
   // Boost items that match what the AI explicitly suggested
   const boostedItems = boostBySuggestedItems(rawItems, intent.suggestedItems ?? []);

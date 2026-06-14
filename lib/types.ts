@@ -25,6 +25,9 @@ export interface ParsedIntent {
   deliveryMode: string;
   suggestedItems: string[];
   usedBedrock: boolean;
+  // ─── Cross-scenario blending ──────────────────────────────
+  secondaryScenario?: Scenario;        // optional second intent
+  secondaryConfidence?: number;        // 0-100, only set when ≥ 30
 }
 
 export interface Substitute {
