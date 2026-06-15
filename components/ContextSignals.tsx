@@ -17,19 +17,19 @@ import type { LocationSignal, SignalStatus } from "@/hooks/useContextSignals";
 
 // ─── Minimal weather icon matching the condition ───────────────────
 function WeatherIcon({ condition }: { condition: WeatherResult["condition"] }) {
-  const props = { size: 22, weight: "fill" as const };
+  const props = { size: 24, weight: "fill" as const };
   switch (condition) {
-    case "clear":      return <SunIcon         {...props} color="#F59E0B" />;
+    case "clear":      return <SunIcon           {...props} color="#F59E0B" />;
     case "hot":        return <ThermometerHotIcon {...props} color="#EF4444" />;
-    case "cold":       return <SnowflakeIcon    {...props} color="#60A5FA" />;
-    case "cloudy":     return <CloudIcon        {...props} color="#9CA3AF" />;
+    case "cold":       return <SnowflakeIcon      {...props} color="#60A5FA" />;
+    case "cloudy":     return <CloudIcon          {...props} color="#9CA3AF" />;
     case "drizzle":
-    case "rain":       return <CloudRainIcon    {...props} color="#3B82F6" />;
-    case "heavy_rain": return <CloudRainIcon    {...props} color="#1D4ED8" />;
-    case "storm":      return <CloudRainIcon    {...props} color="#7C3AED" />;
-    case "snow":       return <SnowflakeIcon    {...props} color="#93C5FD" />;
-    case "fog":        return <WindIcon         {...props} color="#D1D5DB" />;
-    default:           return <CloudIcon        {...props} color="#9CA3AF" />;
+    case "rain":       return <CloudRainIcon      {...props} color="#3B82F6" />;
+    case "heavy_rain": return <CloudRainIcon      {...props} color="#1D4ED8" />;
+    case "storm":      return <CloudRainIcon      {...props} color="#7C3AED" />;
+    case "snow":       return <SnowflakeIcon      {...props} color="#93C5FD" />;
+    case "fog":        return <WindIcon           {...props} color="#D1D5DB" />;
+    default:           return <CloudIcon          {...props} color="#9CA3AF" />;
   }
 }
 
@@ -55,28 +55,34 @@ export function ContextSignals({
   const isLoading = status === "loading";
   const isError = status === "error";
 
-  // What to show inside the chip
+  // ─── What to show inside the chip ─────────────────────────────
   let icon: React.ReactNode;
   let line1: string;
   let line2: string | null = null;
 
   if (isLoading) {
-    icon = <SpinnerIcon size={22} weight="bold" style={{ animation: "rotate-slow 1s linear infinite", color: "var(--accent-teal)" }} />;
+    icon = (
+      <SpinnerIcon
+        size={24}
+        weight="bold"
+        style={{ animation: "rotate-slow 1s linear infinite", color: "var(--accent-teal)" }}
+      />
+    );
     line1 = "Locating…";
   } else if (isError) {
-    icon = <WarningCircleIcon size={22} weight="fill" color="#EF4444" />;
+    icon = <WarningCircleIcon size={24} weight="fill" color="#EF4444" />;
     line1 = error ?? "Error";
   } else if (isActive && weather) {
     icon = <WeatherIcon condition={weather.condition} />;
     line1 = `${weather.tempC}°C`;
     line2 = location?.city ?? weather.city ?? null;
   } else if (isActive && location) {
-    icon = <MapPinIcon size={22} weight="fill" color="var(--accent-teal)" />;
+    icon = <MapPinIcon size={24} weight="fill" color="var(--accent-teal)" />;
     line1 = location.city;
     line2 = location.region || null;
   } else {
     // Idle state
-    icon = <MapPinIcon size={22} weight="regular" />;
+    icon = <MapPinIcon size={24} weight="regular" />;
     line1 = "My";
     line2 = "Context";
   }
@@ -108,11 +114,16 @@ export function ContextSignals({
           whiteSpace: "nowrap",
         }}
       >
-        Location & Weather
+        Location &amp; Weather
       </div>
 
-      {/* Single chip */}
-      <div style={{ position: "relative", display: "inline-block" }}>
+      {/*
+        Chip wrapper — wider than situation chips (110 × 90 vs 90 × 90) so it
+        reads as a distinct "card" shape rather than a square.
+        overflow: visible is critical — without it the absolutely-positioned X
+        badge is silently clipped by the inline-block stacking context.
+      */}
+      <div style={{ position: "relative", display: "inline-block", overflow: "visible" }}>
         <button
           id="context-signals-chip"
           onClick={isActive || isLoading ? undefined : onRequest}
@@ -123,10 +134,10 @@ export function ContextSignals({
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            gap: 10,
-            width: 90,
+            gap: 8,
+            width: 110,
             height: 90,
-            borderRadius: 14,
+            borderRadius: 18,
             border: `1.5px ${isActive ? "solid" : isError ? "solid" : "dashed"} ${
               isError
                 ? "rgba(239,68,68,0.5)"
@@ -146,7 +157,7 @@ export function ContextSignals({
               : "var(--text-secondary)",
             cursor: isActive || isLoading ? "default" : "pointer",
             transition: "all 0.15s ease",
-            padding: "12px 8px 10px",
+            padding: "12px 10px 10px",
             boxShadow: isActive
               ? "0 0 0 3px rgba(0,153,187,0.18)"
               : "0 1px 3px rgba(0,0,0,0.06)",
@@ -180,7 +191,7 @@ export function ContextSignals({
           </span>
         </button>
 
-        {/* Clear × — only visible when active */}
+        {/* Clear × — precisely anchored to the chip's top-right corner */}
         {isActive && (
           <button
             id="context-signals-clear"
@@ -188,23 +199,33 @@ export function ContextSignals({
             aria-label="Clear location and weather"
             style={{
               position: "absolute",
-              top: -7,
-              right: -7,
-              width: 20,
-              height: 20,
+              top: -8,
+              right: -8,
+              width: 22,
+              height: 22,
               borderRadius: "50%",
               background: "var(--bg-surface)",
-              border: "1px solid var(--border)",
+              border: "1.5px solid var(--border)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               padding: 0,
-              zIndex: 2,
+              zIndex: 10,
               color: "var(--text-muted)",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
+              transition: "color 0.12s ease, background 0.12s ease",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.color = "#EF4444";
+              (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.08)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.color = "var(--text-muted)";
+              (e.currentTarget as HTMLElement).style.background = "var(--bg-surface)";
             }}
           >
-            <XCircleIcon size={14} weight="fill" />
+            <XCircleIcon size={15} weight="fill" />
           </button>
         )}
       </div>
