@@ -1,135 +1,34 @@
-# ⚡ Intent Cart
+# Intent Cart
 
-> **Reimagining urgent shopping.** Describe your situation — get a ready-to-buy cart in seconds.
+> Tell us your situation. We'll build the cart.
 
-Built for the **Amazon Hackathon 2025** — *Reimagine Shopping Experience*.
+Intent Cart is an AI-powered quick-commerce app that skips traditional browsing. Describe what's happening — *"Guests arriving in 30 minutes"* or *"Feeling sick, need medicines"* — and the AI instantly builds a personalized shopping cart.
+
+![Intent Cart](public/images/intent-cart-main.png)
 
 ---
 
-## The Idea
+## Problem & Solution
 
-Traditional shopping: `Search → Browse → Compare → Cart`
-
-**Intent Cart:** `Describe situation → AI generates cart`
-
-Instead of asking *"What product do you want?"*, we ask **"What is happening right now?"**
+Shopping apps make you search for individual items. But people don't think in products — they think in situations. Intent Cart flips the model: describe your *situation*, and AI handles the rest — scenario classification, product selection, urgency scoring, and substitute ranking.
 
 ---
 
 ## Features
 
-- **🎙 Voice / Text / Photo input** — describe any situation naturally
-- **⚡ AI-generated cart** — Amazon Bedrock (Amazon Nova 2 Lite) for real intent extraction — supports text, voice, and **multimodal photo** input
-- **🗃 DynamoDB sessions** — cart persists across refreshes and devices
-- **📷 S3 photo uploads** — real presigned PUT URL, uploaded directly to S3
-- **💡 "Why included" reasoning** — every item has a context explanation
-- **⇄ Substitute drawer** — Best Match / Fastest / Cheapest / Most Trusted per item
-- **🔄 Urgency modes** — Fastest · Best Value · Most Trusted (server-synced)
-- **🛒 Checkout confirm** — order saved as `confirmed` in DynamoDB
-
----
-
-## AWS Resource Setup
-
-> **Required before running** — the app has no local fallbacks. All three AWS services must be provisioned.
-
-### 1. DynamoDB Table
-
-**AWS Console → DynamoDB → Tables → Create table**
-
-| Field | Value |
-|---|---|
-| Table name | `intent-cart-sessions` |
-| Partition key | `sessionId` (String) |
-| Billing mode | On-demand (PAY_PER_REQUEST) |
-
-Enable TTL: **Table → Additional settings → Time to Live → Enable → attribute: `expiresAt`**
-
-### 2. S3 Bucket
-
-**AWS Console → S3 → Create bucket**
-
-| Field | Value |
-|---|---|
-| Bucket name | `intent-cart-uploads-{your-12-digit-account-id}` |
-| Region | Same as `BEDROCK_REGION` |
-| Block all public access | ON (we use presigned URLs) |
-
-Add **CORS configuration** (Bucket → Permissions → CORS):
-
-```json
-[
-  {
-    "AllowedHeaders": ["*"],
-    "AllowedMethods": ["PUT", "GET"],
-    "AllowedOrigins": [
-      "http://localhost:3000",
-      "https://your-amplify-domain.amplifyapp.com"
-    ],
-    "ExposeHeaders": []
-  }
-]
-```
-
-### 3. IAM Policy
-
-Attach to the IAM user whose keys go in your env vars:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": ["bedrock:InvokeModel"],
-      "Resource": "arn:aws:bedrock:us-east-1:*:inference-profile/us.amazon.nova-2-lite-v1:0"
-    },
-    {
-      "Effect": "Allow",
-      "Action": ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem"],
-      "Resource": "arn:aws:dynamodb:us-east-1:*:table/intent-cart-sessions"
-    },
-    {
-      "Effect": "Allow",
-      "Action": ["s3:PutObject", "s3:GetObject"],
-      "Resource": "arn:aws:s3:::intent-cart-uploads-*/*"
-    }
-  ]
-}
-```
-
-### 4. Environment Variables
-
-Copy `.env.example` → `.env.local` and fill in:
-
-```bash
-BEDROCK_ACCESS_KEY_ID=your-key-id
-BEDROCK_SECRET_ACCESS_KEY=your-secret
-BEDROCK_REGION=us-east-1
-BEDROCK_MODEL_ID=us.amazon.nova-2-lite-v1:0
-DYNAMO_TABLE=intent-cart-sessions
-S3_BUCKET=intent-cart-uploads-{accountId}
-NEXT_PUBLIC_S3_REGION=us-east-1
-NEXT_PUBLIC_S3_BUCKET=intent-cart-uploads-{accountId}
-```
-
-**Amplify Console**: Add these same vars under **App Settings → Environment variables**.
-> ⚠️ Never use `AWS_` prefix — it's reserved by Amplify and causes a build error.
-
----
-
-## Scenarios Supported
-
-| Chip | Situation | Cart Generated |
-|---|---|---|
-| 👥 Guests arriving | Hosting in 30 min | Tea, Milk, Snacks, Cups, Napkins |
-| 🤒 Fever care | Sick at home | Paracetamol, ORS, Soup, Tissues |
-| 🪔 Pooja essentials | Evening pooja | Agarbatti, Camphor, Flowers, Ghee |
-| 🌧️ Rainy day | Stuck indoors | Hot chocolate, Maggi, Bread, Candles |
-| ✈️ Travel prep | Leaving soon | Water, Snacks, Sanitizer, Charger |
-| ⚡ Power cut | Outage | Torch, Batteries, Candles, Power bank |
-| 🎒 School project | Deadline | Pencils, Colour pencils, Fevicol, Scissors |
-| ☕ Tea break | Afternoon break | Tea bags, Milk, Biscuits, Namkeen |
+- **Natural language input** — type, speak, or upload a photo of your situation
+- **AI intent parsing** — Amazon Bedrock (Nova 2 Lite) classifies 31 scenarios (fever, hosting, pooja, travel, power cut, and more)
+- **Instant cart generation** — scenario-aware product selection from a catalog of 26+ categories
+- **3 urgency modes** — Fastest delivery, Best value, Most trusted brand
+- **Substitute drawer** — ranked alternatives per item, auto-selected by urgency mode
+- **AI cart refinement** — chat-style edits: *"remove the soup"* or *"I already have Vicks"*
+- **Location & weather signals** — real-time weather via Open-Meteo influences scenario confidence
+- **Photo upload** — multimodal analysis via S3 + Bedrock vision
+- **Voice input** — Web Speech API transcription
+- **Re-order chip** — one-tap repeat of last confirmed situation
+- **Session persistence** — DynamoDB-backed sessions with 7-day cookie
+- **Offline detection** — banner warns before submission on network loss
+- **Low-confidence clarification** — modal prompts user to confirm when AI is < 65% confident
 
 ---
 
@@ -137,129 +36,178 @@ NEXT_PUBLIC_S3_BUCKET=intent-cart-uploads-{accountId}
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js 16.2.9 (App Router) + TypeScript |
-| Styling | Vanilla CSS with design tokens |
-| State | Zustand (session state — DynamoDB is the source of truth) |
+| Framework | Next.js 16 (App Router, SSR) |
+| UI | React 19, Phosphor Icons, Framer Motion |
+| State | Zustand |
 | AI | Amazon Bedrock — Amazon Nova 2 Lite (multimodal) |
-| Voice | Web Speech API (en-IN) |
-| Hosting | AWS Amplify |
+| Database | AWS DynamoDB (session storage) |
+| Storage | AWS S3 (photo uploads) |
+| Weather | Open-Meteo API (free, no key) |
+| Geocoding | Nominatim / OpenStreetMap |
+| Hosting | AWS Amplify Gen 1 |
+| CI/CD | GitHub Actions |
+| Language | TypeScript |
 
 ---
 
-## Getting Started
+## System Architecture
 
-### 1. Clone and install
+![System Architecture](public/images/system-architecture-diagram-ic.png)
+
+**Flow:**
+
+1. User describes situation (text / voice / photo)
+2. `/api/interpret` sanitizes input, calls Bedrock with time + weather + location context
+3. Bedrock classifies scenario, returns JSON intent with confidence score
+4. Server generates cart from product catalog using scenario rules
+5. Session saved to DynamoDB; cart returned to client
+6. User can refine urgency mode, swap substitutes, edit via AI, or proceed to checkout
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 20+
+- AWS account with Bedrock, DynamoDB, and S3 access
+
+### Installation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/intent-cart.git
+git clone https://github.com/your-org/intent-cart.git
 cd intent-cart
 npm install
-```
-
-### 2. Configure environment
-
-```bash
 cp .env.example .env.local
 ```
 
-Edit `.env.local` and add your AWS credentials (see below). The app works **without credentials** — the local intent engine handles all 8 scenarios.
-
-### 3. Run locally
+Edit `.env.local` with your AWS credentials (see [Environment Variables](#environment-variables)).
 
 ```bash
 npm run dev
+# → http://localhost:3000
 ```
-
-Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## Enabling Amazon Bedrock
-
-1. Go to **AWS Console → IAM → Users → Security Credentials**
-2. Create an access key
-3. Attach the IAM policy from the **AWS Resource Setup** section above
-4. Add keys to `.env.local` (use `BEDROCK_` prefix — `AWS_` is reserved by Amplify):
+## Environment Variables
 
 ```env
-BEDROCK_ACCESS_KEY_ID=your_key
-BEDROCK_SECRET_ACCESS_KEY=your_secret
+# AWS credentials (use BEDROCK_ prefix — AWS_ is reserved by Amplify)
+BEDROCK_ACCESS_KEY_ID=
+BEDROCK_SECRET_ACCESS_KEY=
 BEDROCK_REGION=us-east-1
+
+# Bedrock model
 BEDROCK_MODEL_ID=us.amazon.nova-2-lite-v1:0
+
+# DynamoDB table name
+DYNAMO_TABLE=intent-cart-sessions
+
+# S3 bucket for photo uploads
+S3_BUCKET=intent-cart-uploads-{accountId}
+
+# Public config
+NEXT_PUBLIC_APP_NAME=Intent Cart
+NEXT_PUBLIC_S3_REGION=us-east-1
+NEXT_PUBLIC_S3_BUCKET=intent-cart-uploads-{accountId}
 ```
 
-5. Enable **Amazon Nova 2 Lite** in **AWS Console → Bedrock → Model access → Amazon**
+### AWS Setup
 
----
+**DynamoDB** — create a table `intent-cart-sessions` with:
+- Partition key: `sessionId` (String)
+- TTL attribute: `expiresAt`
+- Billing: PAY_PER_REQUEST
 
-## Deployment on AWS Amplify
+**S3** — create a bucket `intent-cart-uploads-{accountId}` with CORS configured to allow PUT from your domain.
 
-1. Push this repo to GitHub
-2. Go to [AWS Amplify Console](https://console.aws.amazon.com/amplify)
-3. Click **New App → Host web app → GitHub**
-4. Select this repo and the `main` branch
-5. Add environment variables in Amplify → App settings → Environment variables
-6. Deploy — the `amplify.yml` build config is already included
-
----
-
-## Architecture
-
-```
-User Input (Text / Voice / Photo)
-         ↓
- Next.js App Router (page.tsx)
-         ↓
- POST /api/interpret
-         ↓
- ┌───────────────────────────────┐
- │ Amazon Bedrock (Nova 2 Lite)  │  ← with AWS keys
- │         OR                    │
- │  Local keyword engine         │  ← fallback (always works)
- └───────────────────────────────┘
-         ↓
- ParsedIntent { scenario, urgency, confidence }
-         ↓
- Cart Decision Engine (deterministic)
-         ↓
- Generated Cart → Zustand store
-         ↓
- /cart → /checkout
-```
+**IAM permissions** required:
+- `bedrock:InvokeModel`
+- `dynamodb:GetItem`, `PutItem`, `UpdateItem`
+- `s3:PutObject`, `s3:GetObject`
 
 ---
 
 ## Project Structure
 
 ```
-intent-cart/
-├── app/
-│   ├── page.tsx              # Screen 1: Situation Capture
-│   ├── cart/page.tsx         # Screen 2: AI Cart
-│   ├── checkout/page.tsx     # Screen 3: Checkout Preview
-│   ├── api/interpret/route.ts # Bedrock API + fallback
-│   ├── layout.tsx
-│   └── globals.css           # Design system
-├── lib/
-│   ├── types.ts              # TypeScript types
-│   ├── mockProducts.ts       # 50+ products, 8 scenarios
-│   └── ai/
-│       ├── intentParser.ts   # Bedrock client + local fallback
-│       └── cartGenerator.ts  # Intent → cart mapping
-├── store/cartStore.ts        # Zustand store
-├── hooks/useSpeechRecognition.ts
-├── .env.example              # Environment template
-└── amplify.yml               # Amplify CI/CD config
+app/
+  page.tsx              # Home — situation input
+  cart/page.tsx         # Cart view
+  checkout/page.tsx     # Checkout confirmation
+  history/page.tsx      # Order history
+  products/page.tsx     # Product browser
+  api/
+    interpret/          # POST — Bedrock intent parsing + cart generation
+    cart/               # GET/POST/PATCH — cart CRUD
+    cart/refine/        # POST — AI cart editing
+    cart/browse/        # GET — product browsing
+    weather/            # GET — Open-Meteo weather
+    upload/             # POST — S3 presigned URL
+    checkout/confirm/   # POST — order confirmation
+    reorder/            # GET — last confirmed session
+
+components/
+  CartItemCard          # Individual cart item with qty controls
+  SubstituteDrawer      # Ranked substitute picker
+  ContextSignals        # Location & weather chip
+  VoiceCapture          # Speech-to-text input
+  PhotoUpload           # S3 image upload
+  SituationChips        # Quick-select scenario chips
+  UrgencyBar            # Fastest / Value / Trusted toggle
+
+lib/
+  ai/
+    intentParser        # Client → /api/interpret bridge
+    cartGenerator       # Scenario → product selection logic
+    substituteRanker    # Urgency-aware substitute sorting
+  data/products/        # 26 product category catalogs
+  db/                   # DynamoDB client + session helpers
+  storage/              # S3 client + presigner
+
+store/
+  cartStore             # Zustand store — cart, intent, session sync
+
+hooks/
+  useContextSignals     # Location + weather fetching
+  useSpeechRecognition  # Web Speech API wrapper
+  useImageUpload        # S3 upload flow
 ```
 
 ---
 
-## North Star Metric
+## Deployment
 
-**Time To Cart (TTC)** — from identifying a need to a purchase-ready cart.
+Deployed via **AWS Amplify Gen 1**. On push to `main`, Amplify builds and deploys automatically.
 
-Target: **< 8 seconds** (vs. 3–5 minutes with traditional search).
+The `amplify.yml` injects server-side env vars into `.env.production` at build time so they're available in SSR Lambda functions at runtime.
+
+GitHub Actions (`deploy-status.yml`) monitors the Amplify build and reports pass/fail status back to the PR.
 
 ---
 
-*Built with ❤️ for the Amazon Hackathon 2025*
+## API Reference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/interpret` | Parse situation, invoke Bedrock, generate cart |
+| `GET` | `/api/cart` | Load session cart |
+| `POST` | `/api/cart` | Generate cart for existing session |
+| `PATCH` | `/api/cart` | Update urgency, qty, substitutes, add/remove items |
+| `POST` | `/api/cart/refine` | AI-powered cart editing via natural language |
+| `GET` | `/api/cart/browse` | Browse products by category |
+| `POST` | `/api/upload` | Get S3 presigned URL for photo upload |
+| `GET` | `/api/weather` | Get current weather by coordinates |
+| `POST` | `/api/checkout/confirm` | Confirm order and mark session complete |
+| `GET` | `/api/reorder` | Fetch last confirmed session for re-order |
+
+---
+
+## Team
+
+Built by **Team RIDH**
+
+---
+
+*Product images and data are sourced from a public dataset and may not be 100% accurate.*
