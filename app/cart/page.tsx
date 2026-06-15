@@ -11,6 +11,7 @@ import { SkeletonCard } from "@/components/ui/SkeletonCard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Navbar } from "@/components/Navbar";
 import { getFeaturedItems, type FeaturedItem } from "@/lib/featuredItems";
+import { parseIntent } from "@/lib/ai/intentParser";
 import {
   LightningIcon,
   WarningCircleIcon,
@@ -24,6 +25,8 @@ import {
   DotsThreeIcon,
   TruckIcon,
   LockSimpleIcon,
+  CheckIcon,
+  XIcon,
 } from "@phosphor-icons/react";
 import type { CartItem, GeneratedCart, UrgencyMode } from "@/lib/types";
 
@@ -391,24 +394,135 @@ function FeaturedPanel({ items, onAdd }: FeaturedPanelProps) {
 // Situation context pill
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface SituationPillProps {
+// ─── Editable Situation Pill ──────────────────────────────────────
+//
+// Clicking the pill opens an inline editor. Submitting re-runs the full
+// AI intent + cart generation pipeline (same as the home page) and updates
+// the store in place — no navigation needed.
+
+interface EditableSituationPillProps {
   text: string;
   urgency?: "High" | "Medium" | "Low";
   label?: string;
+  onRegenerate: (newText: string) => Promise<void>;
+  isRegenerating: boolean;
 }
 
-function SituationPill({ text, urgency, label }: SituationPillProps) {
+function EditableSituationPill({
+  text,
+  urgency,
+  label,
+  onRegenerate,
+  isRegenerating,
+}: EditableSituationPillProps) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(text);
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const badgeColor =
     urgency === "High" ? "orange" : urgency === "Medium" ? "amber" : "teal";
 
+  const openEditor = () => {
+    setDraft(text);
+    setEditing(true);
+    // Focus after paint
+    setTimeout(() => inputRef.current?.select(), 30);
+  };
+
+  const cancel = () => setEditing(false);
+
+  const submit = async () => {
+    const trimmed = draft.trim();
+    if (!trimmed || trimmed === text) { setEditing(false); return; }
+    setEditing(false);
+    await onRegenerate(trimmed);
+  };
+
+  if (editing) {
+    return (
+      <div
+        className="situation-pill situation-pill--editing"
+        style={{ gap: 8, padding: "8px 12px", flexWrap: "nowrap", alignItems: "center" }}
+      >
+        <SparkleIcon size={13} weight="fill" color="var(--accent)" style={{ flexShrink: 0 }} />
+        <input
+          ref={inputRef}
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") submit();
+            if (e.key === "Escape") cancel();
+          }}
+          disabled={isRegenerating}
+          style={{
+            flex: 1,
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            fontSize: 14,
+            fontWeight: 500,
+            color: "var(--text-primary)",
+            fontFamily: "var(--font-body)",
+            minWidth: 0,
+          }}
+        />
+        <button
+          onClick={submit}
+          disabled={isRegenerating || !draft.trim()}
+          aria-label="Rebuild cart"
+          style={{
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            width: 26, height: 26, borderRadius: "50%",
+            background: "var(--accent)", border: "none", cursor: "pointer", flexShrink: 0,
+            opacity: isRegenerating ? 0.5 : 1,
+          }}
+        >
+          {isRegenerating
+            ? <span style={{ fontSize: 11, color: "#fff" }}>…</span>
+            : <CheckIcon size={12} weight="bold" color="#fff" />
+          }
+        </button>
+        <button
+          onClick={cancel}
+          aria-label="Cancel"
+          style={{
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            width: 26, height: 26, borderRadius: "50%",
+            background: "transparent", border: "1px solid var(--border)",
+            cursor: "pointer", flexShrink: 0,
+          }}
+        >
+          <XIcon size={12} weight="bold" color="var(--text-muted)" />
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="situation-pill">
+    <button
+      className="situation-pill situation-pill--clickable"
+      onClick={openEditor}
+      title="Click to edit your situation and rebuild the cart"
+      disabled={isRegenerating}
+      style={{ cursor: isRegenerating ? "wait" : "pointer", border: "none", width: "100%", textAlign: "left" }}
+    >
       <SparkleIcon size={13} weight="fill" color="var(--accent)" className="situation-pill__icon" />
-      <span className="situation-pill__text">{text}</span>
-      {label && (
+      <span className="situation-pill__text">
+        {isRegenerating ? "Rebuilding cart…" : text}
+      </span>
+      {!isRegenerating && (
+        <PencilSimpleIcon
+          size={11}
+          weight="bold"
+          color="var(--text-muted)"
+          style={{ marginLeft: 4, flexShrink: 0 }}
+        />
+      )}
+      {label && !isRegenerating && (
         <span className={`badge badge-${badgeColor} situation-pill__badge`}>{label}</span>
       )}
-    </div>
+    </button>
   );
 }
 
@@ -463,12 +577,14 @@ function CartPage() {
     adjustQuantity, removeItem, addItem,
     getTotalPrice, getFinalItems, setCart,
     loadFromServer, isLoading, error,
-    situationText,
+    situationText, setSituationText,
+    setIntent, setSelectedSubstitutes, setIsLoading,
   } = useCartStore();
 
   const [drawerItem,       setDrawerItem]       = useState<CartItem | null>(null);
   const [showRefineSheet,  setShowRefineSheet]   = useState(false);
   const [showMoreSheet,    setShowMoreSheet]     = useState(false);
+  const [isRegenerating,   setIsRegenerating]    = useState(false);
 
   const { toast, show: showToast, dismiss: dismissToast } = useToast();
 
@@ -509,6 +625,30 @@ function CartPage() {
   }, [cart, intent, urgencyMode, selectedSubstitutes, showToast]);
 
   const handleRefine = useCallback(() => router.push("/?refine=1"), [router]);
+
+  // ── Inline intent re-generation ────────────────────────────────
+  // Called when user edits the situation pill and submits.
+  // Runs the same full pipeline as the home page (parseIntent → generateCart)
+  // then updates the store in place — no navigation.
+  const handleRegenerate = useCallback(async (newText: string) => {
+    setIsRegenerating(true);
+    setIsLoading(true);
+    try {
+      const { intent: newIntent, cart: newCart, initialSelections } = await parseIntent(newText);
+      setSituationText(newText);
+      setIntent(newIntent);
+      setCart(newCart);
+      setSelectedSubstitutes(initialSelections);
+      showToast("Cart rebuilt for new situation", "success");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to rebuild cart";
+      showToast(msg, "warning");
+    } finally {
+      setIsRegenerating(false);
+      setIsLoading(false);
+    }
+  }, [setIsLoading, setSituationText, setIntent, setCart, setSelectedSubstitutes, showToast]);
+
 
   const handleShare = useCallback(async () => {
     if (!cart || !intent) return;
@@ -669,13 +809,15 @@ function CartPage() {
               </div>
             </div>
 
-            {/* Situation context */}
+            {/* Situation context — click to edit and rebuild */}
             {!isLoading && situationText && (
               <div className="cart-panel__situation">
-                <SituationPill
+                <EditableSituationPill
                   text={situationText}
                   urgency={intent?.urgency}
                   label={intent?.scenarioLabel}
+                  onRegenerate={handleRegenerate}
+                  isRegenerating={isRegenerating}
                 />
               </div>
             )}
