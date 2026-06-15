@@ -128,7 +128,6 @@ export function ContextSignals({
           id="context-signals-chip"
           onClick={isActive || isLoading ? undefined : onRequest}
           disabled={isLoading}
-          suppressHydrationWarning
           style={{
             flexShrink: 0,
             display: "flex",
@@ -181,12 +180,12 @@ export function ContextSignals({
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             {icon}
           </span>
-          <span style={labelStyle} suppressHydrationWarning>
+          <span style={labelStyle}>
             {line1}
             {line2 ? (
               <>
                 <br />
-                <span style={{ fontSize: 10, opacity: 0.75 }} suppressHydrationWarning>{line2}</span>
+                <span style={{ fontSize: 10, opacity: 0.75 }}>{line2}</span>
               </>
             ) : null}
           </span>
