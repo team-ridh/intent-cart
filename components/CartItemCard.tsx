@@ -347,6 +347,7 @@ export function CartItemCard({ item, selectedSubId, onOpenSubs, onAdjustQty, onR
               List: <span style={{ textDecoration: "line-through" }}>₹{(displayMrp * item.quantity).toLocaleString("en-IN")}</span>
             </div>
           )}
+
         </div>
       </div>
     </div>

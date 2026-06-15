@@ -30,12 +30,14 @@ interface OrderHistoryDrawerProps {
   orders: OrderHistoryEntry[];
   onReorder: (order: OrderHistoryEntry) => void;
   onClose: () => void;
+  error?: string | null;
 }
 
 function OrderHistoryDrawer({
   orders,
   onReorder,
   onClose,
+  error,
 }: OrderHistoryDrawerProps) {
   return (
     <>
@@ -63,6 +65,22 @@ function OrderHistoryDrawer({
             <XIcon size={18} weight="bold" />
           </button>
         </div>
+
+        {/* Re-order error banner */}
+        {error && (
+          <div style={{
+            margin: "0 0 12px",
+            padding: "10px 12px",
+            borderRadius: 10,
+            background: "rgba(239,68,68,0.1)",
+            border: "1px solid rgba(239,68,68,0.3)",
+            color: "#EF4444",
+            fontSize: 13,
+            lineHeight: 1.5,
+          }}>
+            ⚠ {error}
+          </div>
+        )}
 
         {/* Order list */}
         {orders.length === 0 ? (
@@ -157,6 +175,7 @@ export function Navbar({
   const [orderHistory, setOrderHistory] = useState<OrderHistoryEntry[]>([]);
   const [showDrawer, setShowDrawer] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
+  const [reorderError, setReorderError] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
   // Read order history on mount (client-only)
@@ -198,6 +217,7 @@ export function Navbar({
       setSituationText(order.situationText);
       setIsReordering(true);
       setIsLoading(true);
+      setReorderError(null);
       try {
         const {
           intent,
@@ -208,8 +228,9 @@ export function Navbar({
         setCart(newCart);
         setSelectedSubstitutes(initialSelections);
         router.push("/cart");
-      } catch {
-        // silently ignore — user stays on current page
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Re-order failed. Please try again.";
+        setReorderError(msg);
       } finally {
         setIsReordering(false);
         setIsLoading(false);
@@ -295,6 +316,7 @@ export function Navbar({
           orders={orderHistory}
           onReorder={handleReorder}
           onClose={() => setShowDrawer(false)}
+          error={reorderError}
         />
       )}
     </>

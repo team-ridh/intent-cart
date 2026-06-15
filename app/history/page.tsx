@@ -192,6 +192,7 @@ function HistoryPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<OrderHistoryEntry[]>([]);
   const [isReordering, setIsReordering] = useState(false);
+  const [reorderError, setReorderError] = useState<string | null>(null);
 
   const {
     setSituationText,
@@ -210,6 +211,7 @@ function HistoryPage() {
       setIsReordering(true);
       setSituationText(order.situationText);
       setIsLoading(true);
+      setReorderError(null);
       try {
         const { intent, cart, initialSelections } = await parseIntent(
           order.situationText,
@@ -219,8 +221,8 @@ function HistoryPage() {
         setCart(cart);
         setSelectedSubstitutes(initialSelections);
         router.push("/cart");
-      } catch {
-        // stay on page if re-order fails
+      } catch (err) {
+        setReorderError(err instanceof Error ? err.message : "Re-order failed. Please try again.");
       } finally {
         setIsReordering(false);
         setIsLoading(false);
@@ -255,6 +257,23 @@ function HistoryPage() {
       <Navbar title="Order History" subtitle={`${orders.length} orders`} />
 
       <main className="history-page__content">
+        {/* Re-order error banner */}
+        {reorderError && (
+          <div style={{
+            marginBottom: 16,
+            padding: "10px 14px",
+            borderRadius: 12,
+            background: "rgba(239,68,68,0.1)",
+            border: "1px solid rgba(239,68,68,0.3)",
+            color: "#EF4444",
+            fontSize: 13,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}>
+            ⚠ {reorderError}
+          </div>
+        )}
         {orders.length === 0 ? (
           <div className="history-empty">
             <ClockCounterClockwiseIcon
