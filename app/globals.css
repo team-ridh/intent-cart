@@ -826,7 +826,7 @@ input, textarea, select { font-size: max(16px, 1em); }
 }
 
 .featured-panel__list {
-  padding: 2px 14px 4px;
+  padding: 4px 12px 6px;
 }
 
 /* ─── Situation pill ─────────────────────────────────────────── */

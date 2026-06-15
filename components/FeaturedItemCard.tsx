@@ -66,12 +66,14 @@ export function FeaturedItemCard({ item, onAddToCart }: FeaturedItemCardProps) {
     <div
       style={{
         display: "flex",
-        gap: 10,
-        padding: "10px 0",
+        gap: 12,
+        padding: "12px 0",
         borderBottom: "1px solid #e7e7e7",
+        alignItems: "flex-start",
+        justifyContent: "center",
       }}
     >
-      {/* Product image — small square thumbnail like Amazon */}
+      {/* Product image */}
       <div
         style={{
           width: 68,
@@ -98,7 +100,7 @@ export function FeaturedItemCard({ item, onAddToCart }: FeaturedItemCardProps) {
       </div>
 
       {/* Info column */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 1, minWidth: 0, maxWidth: 200 }}>
         {/* Name — 2-line clamp */}
         <div
           style={{
@@ -110,7 +112,7 @@ export function FeaturedItemCard({ item, onAddToCart }: FeaturedItemCardProps) {
             WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
-            marginBottom: 3,
+            marginBottom: 2,
           }}
         >
           {item.name}
@@ -134,14 +136,14 @@ export function FeaturedItemCard({ item, onAddToCart }: FeaturedItemCardProps) {
         </div>
 
         {/* Shipping */}
-        <div style={{ fontSize: 12, color: "#565959", marginBottom: 7 }}>
+        <div style={{ fontSize: 12, color: "#565959", marginBottom: 6 }}>
           {shippingCost === 0
             ? <span style={{ color: "#007600" }}>FREE delivery</span>
             : <span>₹{shippingCost} shipping</span>
           }
         </div>
 
-        {/* Add to cart button — Amazon yellow style */}
+        {/* Add to cart button */}
         <button
           onClick={handleAdd}
           disabled={added}
