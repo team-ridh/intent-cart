@@ -331,7 +331,7 @@ export function CartItemCard({ item, selectedSubId, onOpenSubs, onAdjustQty, onR
             color: "#0F1111",
             lineHeight: 1.2,
           }}>
-            ₹{lineTotal}
+            ₹{lineTotal.toLocaleString("en-IN")}
           </div>
 
           {/* Per-unit if qty > 1 */}
@@ -344,7 +344,7 @@ export function CartItemCard({ item, selectedSubId, onOpenSubs, onAdjustQty, onR
           {/* MRP / list price strikethrough */}
           {displayMrp && displayMrp > displayPrice && (
             <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
-              List: <span style={{ textDecoration: "line-through" }}>₹{displayMrp * item.quantity}</span>
+              List: <span style={{ textDecoration: "line-through" }}>₹{(displayMrp * item.quantity).toLocaleString("en-IN")}</span>
             </div>
           )}
         </div>
