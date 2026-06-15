@@ -9,6 +9,12 @@ jobs:
     name: "Amplify Build"
     runs-on: ubuntu-latest
 
+    # This creates the "Environments" entry in the GitHub repo sidebar
+    # with a clickable "View deployment" link to your live Amplify URL
+    environment:
+      name: production
+      url: ${{ secrets.AMPLIFY_APP_URL }}
+
     # Permissions needed to post deployment status back to GitHub
     permissions:
       deployments: write
