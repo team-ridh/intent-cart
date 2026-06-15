@@ -235,70 +235,128 @@ function buildRecentOrdersContext(recentOrders: string[]): string {
 }
 
 // ─── System prompt builder ────────────────────────────────────────
-const BASE_RULES = `Rules:
-- Return ONLY the JSON object. No other text.
-- confidence should reflect how clearly the situation maps to a scenario (95+ = very clear, 70-90 = likely, 50-70 = uncertain, use "general" below 50).
-- For Indian contexts: "pooja" includes puja, prayer, festival rituals, Navratri, Diwali puja, Ganpati. "hosting" means guests are arriving at home and you need tea/snacks/beverages — NOT gifting.
-- "gifting" means the user wants to BUY GIFTS for someone (mother, teacher, friend, relative, colleague) — Indian occasions or general gifting. Return "gifting" for any input mentioning 'gift', 'present', 'birthday gift', 'Diwali gift', 'gifts for my mother/sister/teacher' etc.
-- "electronics" means tech products — cables, chargers, earbuds, power banks, bulbs, extension cords, SD cards, HDMI, mice, keyboards, IoT components (Arduino, Raspberry Pi adjacent items), accessories.
-- "baby_care" means diapers, baby wipes, baby shampoo, baby formula, infant food, teether, feeding bottles — anything for a baby or infant.
-- "personal_care" means hygiene and grooming items — shampoo, conditioner, soap, face wash, toothpaste, moisturizer, deodorant, shaving, feminine hygiene. NOT skincare serums or sunscreen.
-- "party" means birthday parties, celebrations, anniversary — balloons, decorations, cake mix, candles, party snacks, cold drinks.
-- "pet_care" means food, treats, accessories for dogs, cats, birds or aquarium fish.
-- "fitness" means gym, workout, sports nutrition — protein powder, creatine, protein bars, yoga mat, skipping rope, gym gloves.
-- "cleaning" means home cleaning — floor cleaner, toilet cleaner, dishwash, detergent, scrubbers, mops, room fresheners, garbage bags.
-- "cooking" includes ran out of ingredients, need groceries, cooking essentials, oil/salt/onions.
-- "home_repair" includes broken bulb, fuse gone, need tape, repair, fix, maintenance.
-- "school" is for children's school project supplies — pencils, notebooks, colour pencils, scissors, craft materials — NOT adult office work.
-- "breakfast" means morning meal items — cereals, oats, muesli, bread, jam, Horlicks, Bournvita, upma mix, poha mix — purchased as morning routine shopping.
-- "dairy" means milk, butter, ghee, paneer, curd, cheese, eggs, yogurt — purchased as dairy replenishment.
-- "frozen_food" means frozen snacks and frozen vegetables — McCain fries, frozen momos, chicken nuggets, frozen samosa, frozen paratha, frozen peas, frozen spinach.
-- "condiments" means sauces, spreads, and condiments — ketchup, mayonnaise, soy sauce, schezwan, jam, peanut butter, vinegar, seasoning sachets.
-- "snacks" means packaged snack items — namkeen (bhujia, mixture), chips, biscuits/cookies, chocolates, makhana, popcorn — NOT as part of a meal or hosting scenario.
-- "staples" means core pantry restocking — atta (wheat flour), rice (basmati, sona masuri), dal (chana, moong, toor), cooking oil (sunflower, mustard), salt, sugar, masala powders.
-- "skincare" means beauty and skincare — sunscreen/SPF, face serums (vitamin C, niacinamide), moisturizers, face wash/cleanser, eye makeup (kajal), foundation, scrubs, night cream.
-- "pest_control" means mosquito repellents, cockroach sprays, insect killers — Good Knight, All Out, HIT, Mortein, Odomos, mosquito coils.
-- "instant_food" means ready-to-eat meals and instant cooking — MTR/Haldiram's RTE curries, cup noodles, instant noodles (Maggi, Yippee), soup mixes, dessert mixes.
-- "office" means adult office/work-from-home supplies — A4 printer paper, pens, sticky notes, stapler, whiteboard markers, highlighters, printer ink. NOT children's school stationery.
-- Use the current time-of-day hint to boost confidence when it matches the scenario (e.g. evening + hosting, late night + fever, afternoon + tea_break, morning + breakfast/dairy).
-- If recent orders show a repeat need (e.g. fever supplies again), raise urgency to High.
-- If the user's situation clearly involves two scenarios (e.g. sick guest at home = "fever" + "hosting"), set secondaryScenario and secondaryConfidence. Only set secondaryScenario if secondaryConfidence >= 30.
-- If there is no clear secondary scenario, omit both fields.
-- suggestedItems must ONLY contain items that a quick-commerce grocery/essentials app carries (packaged food, beverages, household, medicines, stationery, small electronics, packaged gifts). Do NOT suggest custom, artisan, clothing, jewellery, or handmade items.`;
 
+// Annotated schema shown to the model. Using comments (not inline prose)
+// so the structure is unambiguous and the model can't confuse description
+// text for output values.
+const JSON_SCHEMA = `Return ONLY this JSON object, no markdown, no explanation:
+{
+  "scenario": "<one of the scenario keys listed in Rules>",
+  "scenarioLabel": "<short human-readable name, e.g. Fever Care>",
+  "urgency": "<High | Medium | Low>",
+  "category": "<primary product category, e.g. Health & Medicine>",
+  "confidence": <integer 0-100>,
+  "summary": "<short phrase: what is happening, title-case, e.g. Fever Care for Sick Child at Home>",
+  "deliveryMode": "<fastest | value | trusted>",
+  "suggestedItems": ["<item1>", "<item2>", "..."],
+  "secondaryScenario": "<optional — only include if secondaryConfidence >= 30>",
+  "secondaryConfidence": <optional integer 0-100>
+}
 
-const JSON_SCHEMA = `{
-  "scenario": one of ["hosting","fever","pooja","rainy","travel","power_cut","school","tea_break","general","cooking","home_repair","gifting","electronics","baby_care","personal_care","party","pet_care","fitness","cleaning","breakfast","dairy","frozen_food","condiments","snacks","staples","skincare","pest_control","instant_food","office"],
-  "scenarioLabel": human-readable label e.g. "Hosting" or "Fever Care",
-  "urgency": one of ["High","Medium","Low"],
-  "category": primary product category e.g. "Food & Beverage",
-  "confidence": integer 0-100 representing how confident you are about the scenario,
-  "summary": 6-10 word description of the shopping need,
-  "deliveryMode": one of ["fastest","value","trusted"],
-  "suggestedItems": array of 4-6 item names the user likely needs right now,
-  "secondaryScenario": optional — a second scenario from the same list if the situation spans two needs (e.g. "fever" AND "hosting"). Omit if no secondary scenario is relevant.
-  "secondaryConfidence": integer 0-100, required only if secondaryScenario is set. How confident are you that the secondary scenario applies?
+Example output for scenario=fever:
+{
+  "scenario": "fever",
+  "scenarioLabel": "Fever Care",
+  "urgency": "High",
+  "category": "Health & Medicine",
+  "confidence": 94,
+  "summary": "Fever Care for Sick Child at Home",
+  "deliveryMode": "fastest",
+  "suggestedItems": ["Paracetamol", "ORS", "Thermometer", "Tissues", "Honey"],
+  "secondaryScenario": null,
+  "secondaryConfidence": null
 }`;
+
+const BASE_RULES = `Valid scenario keys:
+hosting, fever, pooja, rainy, travel, power_cut, school, tea_break, general,
+cooking, home_repair, gifting, electronics, baby_care, personal_care, party,
+pet_care, fitness, cleaning, breakfast, dairy, frozen_food, condiments, snacks,
+staples, skincare, pest_control, instant_food, office
+
+Rules:
+- Return ONLY the JSON object. No other text.
+- confidence: 90+ = very clear match, 70-89 = likely, 50-69 = uncertain. Use "general" when confidence < 50.
+
+── SCENARIO DEFINITIONS ──────────────────────────────────────────────────────
+- "hosting": guests are arriving at home, need tea/snacks/beverages for them — NOT gifting.
+- "fever": someone is sick — need medicines, ORS, thermometer, comfort food.
+- "pooja": Indian religious ritual — agarbatti, camphor, flowers, ghee, diya. Includes Navratri, Diwali puja, Ganpati.
+- "rainy": stuck indoors because of rain — comfort mood (hot tea, maggi, bread, candles). The user is NOT explicitly ordering quick meals; it is the weather/mood driving the need.
+- "travel": leaving soon / packing for a trip — water, snacks, sanitizer, charger.
+- "power_cut": electricity outage — torch, batteries, candles, power bank.
+- "school": children's school project deadline — pencils, colour pencils, Fevicol, scissors, drawing sheets. NOT adult office work.
+- "tea_break": someone wants tea and snacks for a relaxing break — low urgency.
+- "general": mixed or unclear everyday shopping — default when nothing else fits confidently.
+- "cooking": user ran out of a specific ingredient MID-COOK or needs one particular item to finish a meal (oil, salt, onions, dal). The scope is narrow — one or two items needed RIGHT NOW for a meal in progress.
+- "staples": user wants to restock the whole pantry — atta, rice, dal, oil, salt, sugar, masala powders. Bulk or monthly grocery restocking. DIFFERENT from cooking: staples = pantry-level, cooking = one missing ingredient.
+- "home_repair": something is broken — bulb, fuse, tape, glue, screwdriver.
+- "gifting": user wants to BUY GIFTS for someone — mentions 'gift', 'present', 'birthday gift', 'Diwali gift', 'for my mother/teacher/colleague'. DIFFERENT from hosting (which is for self/guests at home).
+- "electronics": tech accessories — cables, chargers, earbuds, power banks, extension boards, SD cards, HDMI, mice, keyboards.
+- "baby_care": diapers, baby wipes, baby shampoo, baby formula, feeding bottles — for a baby or infant.
+- "personal_care": daily hygiene and grooming — shampoo, soap, face wash, toothpaste, moisturizer, deodorant, shaving, feminine hygiene. Does NOT include beauty serums, SPF sunscreen, or eye makeup.
+- "skincare": beauty and skincare upgrade — sunscreen/SPF, vitamin C or niacinamide serums, micellar water, eye makeup (kajal), foundation, scrubs, night cream. DIFFERENT from personal_care which is daily hygiene basics.
+- "party": birthday party, anniversary, celebration — balloons, banners, cake mix, party snacks, cold drinks.
+- "pet_care": pet food, treats, accessories for dogs, cats, birds, or aquarium fish.
+- "fitness": gym or workout — protein powder, creatine, protein bars, yoga mat, skipping rope.
+- "cleaning": home cleaning session — floor cleaner, toilet cleaner, dishwash, detergent, scrubbers, room freshener, garbage bags.
+- "breakfast": morning routine restocking — cereals, oats, muesli, bread, jam, Horlicks, Bournvita, upma mix, poha mix.
+- "dairy": dairy replenishment — milk, butter, ghee, paneer, curd, cheese, eggs.
+- "frozen_food": frozen snacks or frozen vegetables — McCain fries, frozen momos, nuggets, frozen paratha, frozen peas.
+- "condiments": sauces, spreads — ketchup, mayo, soy sauce, schezwan, jam, peanut butter.
+- "snacks": packaged munchies purchased independently — namkeen, chips, biscuits, chocolates, makhana, popcorn. NOT when snacks are part of a hosting or party situation.
+- "pest_control": mosquito repellents, cockroach sprays, insect killers — Good Knight, HIT, Mortein, Odomos.
+- "instant_food": user explicitly wants quick / ready-to-eat meals — Maggi, cup noodles, MTR/Haldiram's RTE packs, soup mixes. The driver is convenience, NOT weather. If weather is the driver, use "rainy".
+- "office": adult work-from-home or office supplies — A4 paper, pens, sticky notes, stapler, whiteboard markers, printer ink. NOT children's school stationery.
+
+── DISAMBIGUATION RULES ──────────────────────────────────────────────────────
+- cooking vs staples: If the user mentions ONE or TWO missing items for a meal in progress → "cooking". If they mention buying atta/rice/dal/oil as a restock → "staples".
+- personal_care vs skincare: Soap/shampoo/toothpaste/deodorant → "personal_care". Serums/SPF/kajal/scrubs → "skincare".
+- rainy vs instant_food: Rain/stuck-at-home + mood for comfort food → "rainy". Explicit request for Maggi / RTE / quick meals without weather mention → "instant_food".
+- school vs office: Children, project, craft materials → "school". Adults, printer paper, office work → "office".
+- hosting vs gifting: Guests arriving at home → "hosting". Buying a gift for someone → "gifting".
+- snacks vs hosting: Chips/namkeen bought casually → "snacks". Snacks specifically for arriving guests → "hosting".
+
+── DELIVERY MODE RULES ──────────────────────────────────────────────────────
+Return deliveryMode based on the urgency and nature of the scenario:
+- "fastest": Time-critical or emergency situations where speed is the only priority.
+  Use for: fever, power_cut, travel, hosting, baby_care, dairy, pest_control, party, school.
+- "trusted": Health or safety scenarios where brand quality matters most, even if slightly slower.
+  Use for: fever (when medicine brand matters), baby_care (formula/diapers brand trust), fitness (supplement authenticity).
+  NOTE: fever defaults to "fastest" unless the user specifically asks for a trusted brand.
+- "value": Non-urgent, price-sensitive situations. Speed does not matter.
+  Use for: tea_break, general, staples, cleaning, snacks, condiments, frozen_food, gifting, pet_care, personal_care, office, skincare, fitness, breakfast, pooja, home_repair, rainy, electronics, instant_food, cooking.
+
+── CONTEXT SIGNALS ──────────────────────────────────────────────────────────
+- Use time-of-day to boost confidence: late night + fever/power_cut → raise confidence; afternoon + tea_break → raise confidence; morning + breakfast/dairy → raise confidence.
+- If recent orders show a repeat need (e.g. fever supplies again) → raise urgency to High.
+- Use weather signals: storm/heavy rain → boost "power_cut" or "rainy" confidence; extreme heat → boost ORS/cold drinks relevance.
+
+── SECONDARY SCENARIO ───────────────────────────────────────────────────────
+- If the situation clearly spans two needs (e.g. sick guest = fever + hosting), set secondaryScenario and secondaryConfidence.
+- Only set secondaryScenario if secondaryConfidence >= 30. Otherwise omit both fields entirely.
+
+── SUGGESTED ITEMS ──────────────────────────────────────────────────────────
+- Return 3-6 specific item names that the user most likely needs right now.
+- Use real product names or common generic names (e.g. "Dolo 650", "Amul Milk", "Maggi Noodles", "Paracetamol").
+- Only include items a quick-commerce grocery/essentials app carries: packaged food, beverages, household, medicines, stationery, small electronics, packaged gifts.
+- Do NOT include custom, artisan, clothing, jewellery, or handmade items.
+- Do NOT pad to a minimum — 3 highly relevant items is better than 6 vague ones.`;
 
 function buildSystemPrompt(isMultimodal: boolean, timeContext: string, recentOrdersContext: string, weatherContext: string): string {
   const contextBlock = [timeContext, weatherContext, recentOrdersContext].filter(Boolean).join("\n");
   const imageInstructions = isMultimodal
-    ? "You are given a photo the user uploaded of their current situation, along with a text description they provided.\nAnalyse BOTH the image and the text together to understand what they need, and return ONLY a valid JSON object with these exact fields — no markdown, no explanation, no code blocks:"
-    : "Analyse the user's situation and return ONLY a valid JSON object with these exact fields — no markdown, no explanation, no code blocks:";
+    ? "You are given a photo the user uploaded of their current situation, along with a text description.\nAnalyse BOTH the image and the text together to understand what they need."
+    : "Analyse the user's situation to understand what they need.";
   const imageRule = isMultimodal
     ? "- Use visual cues from the image (e.g. a dinner table, a sick person in bed, candles, textbooks) to raise your confidence.\n"
     : "";
 
   return `You are a deterministic e-commerce intent extraction engine for a quick-commerce app in India called "Amazon Now OS".
 ${imageInstructions}
+
 ${JSON_SCHEMA}
 
-${contextBlock}
-
-${BASE_RULES.replace(
-  "- If the user",
-  `${imageRule}- If the user`
-)}`;
+${contextBlock ? `Context:\n${contextBlock}\n` : ""}${imageRule}${BASE_RULES}`;
 }
 
 // ─── Call Bedrock with optional image ────────────────────────────

@@ -26,6 +26,7 @@ function getBedrockClient(): BedrockRuntimeClient {
 type PatchOp =
   | { action: "remove"; itemId: string }
   | { action: "add_qty"; itemId: string; delta: number }
+  | { action: "set_qty"; itemId: string; quantity: number }
   | { action: "noop"; reason: string };
 
 const SYSTEM_PROMPT = `You are a cart editor assistant for a quick-commerce app.
@@ -33,16 +34,20 @@ The user has a cart with items and wants to modify it using natural language.
 Return ONLY a valid JSON array of operations — no markdown, no explanation:
 [
   { "action": "remove", "itemId": "<id from cart>" },
-  { "action": "add_qty", "itemId": "<id from cart>", "delta": <positive integer> },
+  { "action": "add_qty", "itemId": "<id from cart>", "delta": <positive integer 1-10> },
+  { "action": "set_qty", "itemId": "<id from cart>", "quantity": <target quantity 1-20> },
   { "action": "noop", "reason": "<why no change>" }
 ]
 
 Rules:
 - Match item names case-insensitively. If user says "remove the soup", find the soup item id.
-- "I already have X" or "I don't need X" means remove X.
-- "add more X" or "more X" means add_qty with delta 1 or 2.
+- "I already have X" or "I don't need X" or "remove X" means remove X entirely.
+- "add more X" or "more X" or "one more X" means add_qty with delta 1.
+- "less X" or "remove one X" or "only N of X" means set_qty to the new total (current_qty - 1, or N).
+- "remove the expensive one" means remove the item with the highest price shown in the cart.
 - If nothing matches or the request is unclear, return [{"action":"noop","reason":"..."}].
-- Return ONLY the JSON array. Maximum 3 operations per request.`;
+- Return ONLY the JSON array. Maximum 3 operations per request.
+- Never set quantity above 20 or below 1 via set_qty (use remove if quantity would be 0).`;
 
 /**
  * POST /api/cart/refine
@@ -75,9 +80,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "message required" }, { status: 400 });
     }
 
-    // Build a compact cart summary for context
+    // Build a compact cart summary with price for context
+    // (price helps the model interpret "remove the expensive one")
     const cartSummary = session.cart.items
-      .map((i) => `id:${i.id} name:"${i.name}" qty:${i.quantity}`)
+      .map((i) => `id:${i.id} name:"${i.name}" qty:${i.quantity} price:₹${i.price}`)
       .join("\n");
 
     const command = new ConverseCommand({
@@ -130,6 +136,26 @@ export async function POST(req: NextRequest) {
           const totalPrice = items.reduce((s, i) => s + i.price * i.quantity, 0);
           cart = { ...cart, items, totalPrice };
           appliedOps.push(`Added ${clampedDelta} × ${item.name}`);
+        }
+      } else if (op.action === "set_qty") {
+        const item = cart.items.find((i) => i.id === op.itemId);
+        if (item && typeof op.quantity === "number" && op.quantity >= 0) {
+          const newQty = Math.min(20, Math.max(0, Math.round(op.quantity)));
+          if (newQty === 0) {
+            // Treat as a remove
+            const items = cart.items.filter((i) => i.id !== op.itemId);
+            const totalPrice = items.reduce((s, i) => s + i.price * i.quantity, 0);
+            const estimatedEta = items.length > 0 ? Math.max(...items.map((i) => i.eta)) : 0;
+            cart = { ...cart, items, totalPrice, itemCount: items.length, estimatedEta };
+            appliedOps.push(`Removed ${item.name}`);
+          } else {
+            const items = cart.items.map((i) =>
+              i.id === op.itemId ? { ...i, quantity: newQty } : i
+            );
+            const totalPrice = items.reduce((s, i) => s + i.price * i.quantity, 0);
+            cart = { ...cart, items, totalPrice };
+            appliedOps.push(`Set ${item.name} to ${newQty}`);
+          }
         }
       }
     }
