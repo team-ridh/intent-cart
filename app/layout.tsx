@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { CartHydrator } from "@/components/CartHydrator";
 
 export const metadata: Metadata = {
   title: "Amazon Now OS — Shop by Situation",
@@ -20,7 +21,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full">
-      <body className="min-h-full flex flex-col bg-grid">{children}</body>
+      <body className="min-h-full flex flex-col bg-grid">
+        {/* Rehydrates the Zustand cart store from DynamoDB on every page load.
+            Handles hard-refreshes, direct URL navigation, and back-button recovery. */}
+        <CartHydrator />
+        {children}
+      </body>
     </html>
   );
 }

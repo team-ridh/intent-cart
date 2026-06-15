@@ -237,14 +237,50 @@ export const useCartStore = create<CartStore>((set, get) => ({
   },
 
   // ─── Add item (optimistic + server sync) ─────────────────────
+  //
+  // When cart is null (e.g. user browsing /products with no session),
+  // we auto-bootstrap a "General Shopping" session via POST /api/cart/browse
+  // before adding the item. This makes the Products page work seamlessly
+  // without requiring the intent/AI flow first.
+  //
+  // New items are prepended so they appear at the top of the cart list.
   addItem: async (item) => {
-    const { cart } = get();
-    if (!cart) return;
+    let { cart } = get();
+
+    // ── Bootstrap a browse session if there's no active cart ──────
+    if (!cart) {
+      try {
+        set({ isLoading: true });
+        const res = await fetch("/api/cart/browse", {
+          method: "POST",
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Failed to initialise browse cart");
+        const data = await res.json() as {
+          cart: import("@/lib/types").GeneratedCart;
+          urgencyMode: import("@/lib/types").UrgencyMode;
+          selectedSubstitutes: Record<string, string>;
+        };
+        set({
+          cart: data.cart,
+          urgencyMode: data.urgencyMode,
+          selectedSubstitutes: data.selectedSubstitutes,
+          situationText: "Browsing products",
+          isLoading: false,
+        });
+        cart = data.cart;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Failed to initialise cart";
+        set({ error: message, isLoading: false });
+        return;
+      }
+    }
 
     // Guard: don't add duplicates
     if (cart.items.some((i) => i.id === item.id)) return;
 
-    const items = [...cart.items, item];
+    // Prepend the new item so it appears at the top of the cart
+    const items = [{ ...item, quantity: Math.max(1, item.quantity) }, ...cart.items];
     const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
     const estimatedEta = items.length > 0 ? Math.max(...items.map((i) => i.eta)) : 0;
     const optimisticCart = { ...cart, items, totalPrice, itemCount: items.length, estimatedEta };
@@ -283,5 +319,12 @@ export const useCartStore = create<CartStore>((set, get) => ({
     }, 0);
   },
 
-  reset: () => set(INITIAL),
+  reset: () => {
+    // Clear the hydration guard so the next fresh session can re-hydrate from DynamoDB
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("ic_cart_hydrated");
+    }
+    set(INITIAL);
+  },
+
 }));

@@ -662,10 +662,10 @@ function CartPage() {
                 {isLoading ? "Building cart…" : "Shopping Cart"}
               </h1>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <DataDisclaimerBadge />
                 {!isLoading && cart && cart.items.length > 0 && (
                   <span className="cart-panel__price-label">Price</span>
                 )}
-                <DataDisclaimerBadge />
               </div>
             </div>
 

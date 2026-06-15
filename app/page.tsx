@@ -216,7 +216,6 @@ function SituationPage() {
     urgencyMode, setUrgencyMode,
     photoS3Key, setPhotoS3Key,
     setIntent, setCart, setIsLoading, setSelectedSubstitutes,
-    reset,
   } = useCartStore();
 
   const [activeTab, setActiveTab] = useState<"type" | "voice" | "photo">("type");
@@ -252,9 +251,14 @@ function SituationPage() {
     getSignals,
   } = useContextSignals();
 
-  // Reset store — but NOT if we came here via Refine (preserve the situation text)
+  // Clear the input fields when arriving fresh at the home page, but preserve
+  // the cart in the store so the Navbar badge continues to show the live count.
+  // Full reset() happens only when the user actually submits a new situation.
   useEffect(() => {
-    if (!isRefining) reset();
+    if (!isRefining) {
+      setSituationText("");
+      setPhotoS3Key(null);
+    }
 
     // Fetch last confirmed session from the server so the re-order chip shows up
     // when the user returns after placing an order. Non-critical — ignore errors.

@@ -296,7 +296,7 @@ export function Navbar({
               <span className="navbar__orders-label">Orders</span>
               {orderHistory.length > 0 && (
                 <span className="navbar__orders-badge">
-                  {orderHistory.length > 9 ? "9+" : orderHistory.length}
+                  {orderHistory.length}
                 </span>
               )}
             </button>
@@ -314,7 +314,7 @@ export function Navbar({
               />
               {itemCount > 0 && (
                 <span className="navbar__cart-badge">
-                  {itemCount > 9 ? "9+" : itemCount}
+                  {itemCount}
                 </span>
               )}
             </button>

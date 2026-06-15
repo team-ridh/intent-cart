@@ -202,12 +202,13 @@ export async function PATCH(req: NextRequest) {
       cart = { ...cart, summaryLine: rebuildSummaryLine(cart, urgencyMode) };
     }
 
-    // Add item (from featured items panel)
+    // Add item (from featured items panel / products page)
     if (body.addItem) {
       const newItem = body.addItem as CartItem;
       // Guard: skip if already in cart
       if (!cart.items.some((i) => i.id === newItem.id)) {
-        const items = [...cart.items, { ...newItem, quantity: Math.max(1, newItem.quantity) }];
+        // Prepend so the newly added item appears at the top of the cart
+        const items = [{ ...newItem, quantity: Math.max(1, newItem.quantity) }, ...cart.items];
         const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
         const estimatedEta = items.length > 0 ? Math.max(...items.map((i) => i.eta)) : 0;
         cart = { ...cart, items, totalPrice, itemCount: items.length, estimatedEta };

@@ -610,6 +610,37 @@ function CheckoutPage() {
         </span>
       </div>
 
+      {/* ── Edit Cart shortcut ────────────────────────────────────── */}
+      {!isLoading && cart && (
+        <div style={{
+          maxWidth: 960,
+          margin: "0 auto",
+          padding: "10px clamp(16px, 5vw, 40px) 0",
+          width: "100%",
+        }}>
+          <button
+            id="checkout-edit-cart-btn"
+            className="btn-ghost"
+            onClick={() => router.push("/cart")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 13,
+              fontWeight: 600,
+              color: "var(--accent)",
+              padding: "6px 12px 6px 8px",
+              borderRadius: "var(--radius-pill)",
+              border: "1px solid var(--border-accent)",
+              background: "var(--accent-dim)",
+            }}
+          >
+            <ArrowLeftIcon size={14} weight="bold" />
+            Edit Cart
+          </button>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="checkout-loading">
           {Array.from({ length: 4 }).map((_, i) => (

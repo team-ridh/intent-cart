@@ -58,9 +58,11 @@ export function VoiceCapture({
       style={{
         height: "100%",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
-        gap: 16,
-        padding: "0 4px",
+        justifyContent: "center",
+        gap: 12,
+        padding: "0 16px",
       }}
     >
       {/* Mic / Stop button — pulse rings are siblings, not ancestors, so they can't clip */}
@@ -123,48 +125,88 @@ export function VoiceCapture({
         </button>
       </div>
 
-      {/* Right: label + transcript + clear */}
-      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6, justifyContent: "center" }}>
-        <div
+      {/* Label + transcript + clear */}
+<div
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 4,
+    width: "100%",
+  }}
+>
+  <div
+    style={{
+      fontSize: 13,
+      fontWeight: 500,
+      color: isListening ? "var(--accent)" : "var(--text-muted)",
+      transition: "color 0.2s",
+      textAlign: "center",
+    }}
+  >
+    {isListening ? "Listening… speak now" : "Tap the mic to start speaking"}
+  </div>
+
+  {(transcript || interimTranscript) && (
+    <div
+      style={{
+        position: "relative",
+        width: "100%",
+      }}
+    >
+      <div
+        style={{
+          background: "var(--bg-raised)",
+          borderRadius: 8,
+          padding: "6px 32px 6px 12px",
+          border: "1px solid var(--border)",
+          fontSize: 14,
+          lineHeight: 1.5,
+          maxHeight: 80,
+          overflowY: "auto",
+          width: "100%",
+          textAlign: "center",
+        }}
+      >
+        <span style={{ color: "var(--text-primary)" }}>{transcript}</span>
+        <span
           style={{
-            fontSize: 13,
-            fontWeight: 500,
-            color: isListening ? "var(--accent)" : "var(--text-muted)",
-            transition: "color 0.2s",
+            color: "var(--text-muted)",
+            fontStyle: "italic",
           }}
         >
-          {isListening ? "Listening… speak now" : "Tap the mic to start speaking"}
-        </div>
-
-        {(transcript || interimTranscript) && (
-          <div
-            style={{
-              background: "var(--bg-raised)",
-              borderRadius: 8,
-              padding: "5px 10px",
-              border: "1px solid var(--border)",
-              fontSize: 13,
-              lineHeight: 1.4,
-              maxHeight: 46,
-              overflowY: "auto",
-            }}
-          >
-            <span style={{ color: "var(--text-primary)" }}>{transcript}</span>
-            <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>{interimTranscript}</span>
-          </div>
-        )}
-
-        {transcript && (
-          <button
-            type="button"
-            className="btn-ghost"
-            style={{ padding: "2px 0", display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, alignSelf: "flex-start" }}
-            onClick={onReset}
-          >
-            <XIcon size={11} weight="bold" /> Clear
-          </button>
-        )}
+          {interimTranscript}
+        </span>
       </div>
+
+      {transcript && (
+        <button
+          type="button"
+          onClick={onReset}
+          aria-label="Clear transcript"
+          style={{
+            position: "absolute",
+            right: 8,
+            top: "50%",
+            transform: "translateY(-50%)",
+            background: "var(--bg-elevated)",
+            border: "1px solid var(--border)",
+            cursor: "pointer",
+            padding: 4,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "var(--text-secondary)",
+            borderRadius: 6,
+            lineHeight: 1,
+          }}
+        >
+          <XIcon size={14} weight="bold" />
+        </button>
+      )}
+    </div>
+  )}
+</div>
     </div>
   );
 }
