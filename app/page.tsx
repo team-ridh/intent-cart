@@ -609,7 +609,7 @@ function SituationPage() {
           <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>
             Delivery preference
           </div>
-          <UrgencyBar value={urgencyMode} onChange={handleUrgencyChange} idPrefix="urgency" showDescription />
+          <UrgencyBar value={urgencyMode} onChange={handleUrgencyChange} idPrefix="urgency" />
         </div>
 
         {/* Error */}
