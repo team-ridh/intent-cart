@@ -323,8 +323,10 @@ function SituationPage() {
     }
     // Use a local var — setSituationText is async so reading the store right after
     // would still return the old (empty) value.
+    // When a photo is uploaded without text, tell the model explicitly to
+    // rely on the image — a blank string would confuse it.
     const effectiveInput =
-      input.length >= 4 ? input : "photo of my situation";
+      input.length >= 4 ? input : "Please look at the photo I uploaded and identify what I need.";
     if (effectiveInput !== input) setSituationText(effectiveInput);
 
     setError(null);
@@ -581,7 +583,9 @@ function SituationPage() {
                     setPhotoS3Key(s3Key);
                   }}
                   onConfirm={() => {
-                    setActiveTab("type");
+                    // Trigger submission directly — the photo is ready, no need
+                    // to make the user click "Build My Cart" separately.
+                    handleSubmit();
                   }}
                 />
               </div>

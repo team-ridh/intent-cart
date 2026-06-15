@@ -194,6 +194,7 @@ export function PhotoUpload({ onUploaded, onConfirm }: PhotoUploadProps) {
     file,
     previewUrl,
     s3Key,
+    publicUrl,
     isUploading,
     error,
     handleFile,
@@ -210,15 +211,20 @@ export function PhotoUpload({ onUploaded, onConfirm }: PhotoUploadProps) {
 
   // Notify parent when upload completes (once per key) — must be in
   // useEffect to avoid calling setState on another component during render.
+  // Use the publicUrl returned by the server (already stored in hook state)
+  // rather than re-constructing it client-side from env vars that may be unset.
   useEffect(() => {
     if (s3Key && s3Key !== prevS3Key.current && file) {
       prevS3Key.current = s3Key;
-      const publicUrl = `https://${process.env.NEXT_PUBLIC_S3_BUCKET ?? ""}.s3.${
-        process.env.NEXT_PUBLIC_S3_REGION ?? "us-east-1"
-      }.amazonaws.com/${s3Key}`;
-      onUploaded(s3Key, publicUrl, file.name);
+      // `publicUrl` comes directly from /api/upload response via useImageUpload
+      const resolvedPublicUrl =
+        publicUrl ??
+        `https://${process.env.NEXT_PUBLIC_S3_BUCKET ?? ""}.s3.${
+          process.env.NEXT_PUBLIC_S3_REGION ?? "us-east-1"
+        }.amazonaws.com/${s3Key}`;
+      onUploaded(s3Key, resolvedPublicUrl, file.name);
     }
-  }, [s3Key, file, onUploaded]);
+  }, [s3Key, publicUrl, file, onUploaded]);
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", gap: 8 }}>
