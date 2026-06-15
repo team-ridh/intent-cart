@@ -155,7 +155,9 @@ export async function PATCH(req: NextRequest) {
 
     // Adjust item quantity
     if (body.adjustItem) {
-      const { itemId, delta } = body.adjustItem;
+      const { itemId } = body.adjustItem;
+      // Clamp delta to ±10 to prevent abuse via a single API call
+      const delta = Math.min(10, Math.max(-10, body.adjustItem.delta));
       const items = cart.items
         .map((i) =>
           i.id === itemId ? { ...i, quantity: Math.max(0, i.quantity + delta) } : i

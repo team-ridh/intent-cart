@@ -9,8 +9,14 @@ import type { GeneratedCart, UrgencyMode } from "@/lib/types";
 const SESSION_COOKIE = "ic_session";
 
 function getBedrockClient(): BedrockRuntimeClient {
-  const accessKeyId = process.env.BEDROCK_ACCESS_KEY_ID!;
-  const secretAccessKey = process.env.BEDROCK_SECRET_ACCESS_KEY!;
+  const accessKeyId = process.env.BEDROCK_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.BEDROCK_SECRET_ACCESS_KEY;
+  if (!accessKeyId || !secretAccessKey) {
+    throw new Error(
+      "[/api/cart/refine] BEDROCK_ACCESS_KEY_ID and BEDROCK_SECRET_ACCESS_KEY are required. " +
+        "Set them in .env.local or Amplify environment variables."
+    );
+  }
   return new BedrockRuntimeClient({
     region: process.env.BEDROCK_REGION ?? "us-east-1",
     credentials: { accessKeyId, secretAccessKey },
@@ -58,7 +64,13 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json() as { message?: string };
-    const message = body.message?.trim().slice(0, 200);
+    const raw = body.message;
+    const message = raw
+      ?.trim()
+      .replace(/<[^>]*>/g, "")           // strip HTML tags
+      .replace(/[<>{}[\]\\]/g, "")       // strip prompt-injection chars
+      .slice(0, 200)
+      .trim();
     if (!message) {
       return NextResponse.json({ error: "message required" }, { status: 400 });
     }
