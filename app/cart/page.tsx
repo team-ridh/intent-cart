@@ -36,14 +36,14 @@ import type { CartItem, GeneratedCart, UrgencyMode } from "@/lib/types";
 
 function DataDisclaimerBadge() {
   const [visible, setVisible] = useState(false);
-  const [pos, setPos]         = useState({ top: 0, left: 0 });
-  const triggerRef            = useRef<HTMLSpanElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const triggerRef = useRef<HTMLSpanElement>(null);
 
   const show = () => {
     if (!triggerRef.current) return;
     const r = triggerRef.current.getBoundingClientRect();
     setPos({
-      top:  r.bottom + 8,
+      top: r.bottom + 8,
       left: r.right - 240,   // right-align tooltip to badge
     });
     setVisible(true);
@@ -112,7 +112,7 @@ function DataDisclaimerBadge() {
             height: 8,
             background: "rgba(22,22,32,0.94)",
             borderLeft: "1px solid rgba(255,255,255,0.08)",
-            borderTop:  "1px solid rgba(255,255,255,0.08)",
+            borderTop: "1px solid rgba(255,255,255,0.08)",
             transform: "rotate(45deg)",
             display: "block",
           }} />
@@ -281,18 +281,18 @@ interface MoreActionsSheetProps {
 }
 
 const MORE_ACTIONS = [
-  { id: "ai-edit",  Icon: SparkleIcon,     label: "Edit with AI",     sub: "Tell AI what to change",      colorVar: "var(--accent)" },
-  { id: "refine",   Icon: PencilSimpleIcon, label: "Refine situation", sub: "Go back and rephrase",        colorVar: "var(--text-secondary)" },
-  { id: "save",     Icon: FloppyDiskIcon,   label: "Save cart",        sub: "Save to browser storage",     colorVar: "var(--text-secondary)" },
-  { id: "share",    Icon: ShareNetworkIcon, label: "Share cart",       sub: "Copy or share cart summary",  colorVar: "var(--text-secondary)" },
+  { id: "ai-edit", Icon: SparkleIcon, label: "Edit with AI", sub: "Tell AI what to change", colorVar: "var(--accent)" },
+  { id: "refine", Icon: PencilSimpleIcon, label: "Refine situation", sub: "Go back and rephrase", colorVar: "var(--text-secondary)" },
+  { id: "save", Icon: FloppyDiskIcon, label: "Save cart", sub: "Save to browser storage", colorVar: "var(--text-secondary)" },
+  { id: "share", Icon: ShareNetworkIcon, label: "Share cart", sub: "Copy or share cart summary", colorVar: "var(--text-secondary)" },
 ] as const;
 
 function MoreActionsSheet({ onSave, onRefine, onShare, onAiEdit, onClose }: MoreActionsSheetProps) {
   const handlers: Record<string, () => void> = {
     "ai-edit": onAiEdit,
-    refine:    onRefine,
-    save:      onSave,
-    share:     onShare,
+    refine: onRefine,
+    save: onSave,
+    share: onShare,
   };
 
   return (
@@ -581,10 +581,10 @@ function CartPage() {
     setIntent, setSelectedSubstitutes, setIsLoading,
   } = useCartStore();
 
-  const [drawerItem,       setDrawerItem]       = useState<CartItem | null>(null);
-  const [showRefineSheet,  setShowRefineSheet]   = useState(false);
-  const [showMoreSheet,    setShowMoreSheet]     = useState(false);
-  const [isRegenerating,   setIsRegenerating]    = useState(false);
+  const [drawerItem, setDrawerItem] = useState<CartItem | null>(null);
+  const [showRefineSheet, setShowRefineSheet] = useState(false);
+  const [showMoreSheet, setShowMoreSheet] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   const { toast, show: showToast, dismiss: dismissToast } = useToast();
 
@@ -597,7 +597,7 @@ function CartPage() {
   useEffect(() => {
     // If store is empty (e.g. hard-refresh or direct URL), hydrate from server
     if (!cart) loadFromServer();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Handlers ───────────────────────────────────────────────────
@@ -656,11 +656,11 @@ function CartPage() {
       .slice(0, 5)
       .map((i) => `• ${i.name} — ₹${i.price}`)
       .join("\n");
-    const text = `Amazon Now OS — ${intent.scenarioLabel} Cart\n\n${cart.summaryLine}\n\n${lines}\n\nTotal: ₹${getTotalPrice()} · ETA: ~${cart.estimatedEta} min`;
+    const text = `Intent Cart — ${intent.scenarioLabel} Cart\n\n${cart.summaryLine}\n\n${lines}\n\nTotal: ₹${getTotalPrice()} · ETA: ~${cart.estimatedEta} min`;
 
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
-        await navigator.share({ title: `Amazon Now OS — ${intent.scenarioLabel} Cart`, text, url: window.location.origin });
+        await navigator.share({ title: `Intent Cart — ${intent.scenarioLabel} Cart`, text, url: window.location.origin });
         showToast("Shared!", "success");
       } catch (e) {
         if (e instanceof Error && e.name !== "AbortError") showToast("Could not share", "warning");
@@ -683,26 +683,26 @@ function CartPage() {
     }
 
     const newItem: CartItem = {
-      id:          featured.id,
-      name:        featured.name,
-      brand:       featured.brand,
-      category:    featured.category,
-      price:       featured.price,
-      mrp:         featured.mrp,
-      discount:    featured.discount,
-      quantity:    1,
-      unit:        "1 unit",
-      image:       featured.image,
-      asin:        featured.asin,
-      rating:      featured.rating,
+      id: featured.id,
+      name: featured.name,
+      brand: featured.brand,
+      category: featured.category,
+      price: featured.price,
+      mrp: featured.mrp,
+      discount: featured.discount,
+      quantity: 1,
+      unit: "1 unit",
+      image: featured.image,
+      asin: featured.asin,
+      rating: featured.rating,
       reviewCount: featured.reviewCount,
-      badge:       featured.badge,
-      reason:      "Added from featured items",
-      reasonTag:   featured.reasonTag,
-      eta:         featured.eta,
+      badge: featured.badge,
+      reason: "Added from featured items",
+      reasonTag: featured.reasonTag,
+      eta: featured.eta,
       substitutes: [],
       isEssential: false,
-      isAddon:     true,
+      isAddon: true,
     };
 
     // Optimistic update + server sync (persists to DynamoDB)
@@ -711,8 +711,8 @@ function CartPage() {
   }, [cart, addItem, showToast]);
 
   // ── Derived values ─────────────────────────────────────────────
-  const totalPrice   = getTotalPrice();
-  const itemCount    = cart?.itemCount ?? 0;
+  const totalPrice = getTotalPrice();
+  const itemCount = cart?.itemCount ?? 0;
   const estimatedEta = cart?.estimatedEta ?? 30;
 
   // ── Early returns ──────────────────────────────────────────────
@@ -826,24 +826,24 @@ function CartPage() {
             <div className="cart-panel__items stagger">
               {isLoading
                 ? Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="cart-panel__item-row cart-panel__item-row--skeleton">
-                      <SkeletonCard />
-                    </div>
-                  ))
+                  <div key={i} className="cart-panel__item-row cart-panel__item-row--skeleton">
+                    <SkeletonCard />
+                  </div>
+                ))
                 : (cart?.items ?? []).map((item, idx, arr) => (
-                    <div
-                      key={item.id}
-                      className={`cart-panel__item-row${idx < arr.length - 1 ? " cart-panel__item-row--bordered" : ""}`}
-                    >
-                      <CartItemCard
-                        item={item}
-                        selectedSubId={selectedSubstitutes[item.id]}
-                        onOpenSubs={() => setDrawerItem(item)}
-                        onAdjustQty={(d) => adjustQuantity(item.id, d)}
-                        onRemove={() => removeItem(item.id)}
-                      />
-                    </div>
-                  ))
+                  <div
+                    key={item.id}
+                    className={`cart-panel__item-row${idx < arr.length - 1 ? " cart-panel__item-row--bordered" : ""}`}
+                  >
+                    <CartItemCard
+                      item={item}
+                      selectedSubId={selectedSubstitutes[item.id]}
+                      onOpenSubs={() => setDrawerItem(item)}
+                      onAdjustQty={(d) => adjustQuantity(item.id, d)}
+                      onRemove={() => removeItem(item.id)}
+                    />
+                  </div>
+                ))
               }
             </div>
 

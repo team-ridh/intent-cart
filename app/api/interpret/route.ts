@@ -47,7 +47,7 @@ function getBedrockClient(): BedrockRuntimeClient {
   if (!accessKeyId || !secretAccessKey) {
     throw new Error(
       "[/api/interpret] BEDROCK_ACCESS_KEY_ID and BEDROCK_SECRET_ACCESS_KEY are required. " +
-        "Set them in .env.local or Amplify environment variables."
+      "Set them in .env.local or Amplify environment variables."
     );
   }
   return new BedrockRuntimeClient({
@@ -192,8 +192,8 @@ function buildWeatherContext(signals: ClientContextSignals): string {
       weather.precipMmPerHr > 0 ? ` (${weather.precipMmPerHr}mm/hr)` : "";
     parts.push(
       `Current weather: ${weather.conditionLabel}${precipStr}, ${weather.tempC}°C` +
-        (weather.city && !location ? ` in ${weather.city}` : "") +
-        "."
+      (weather.city && !location ? ` in ${weather.city}` : "") +
+      "."
     );
 
     // Derive scenario hints from weather
@@ -351,7 +351,7 @@ function buildSystemPrompt(isMultimodal: boolean, timeContext: string, recentOrd
     ? "- Use visual cues from the image (e.g. a dinner table, a sick person in bed, candles, textbooks) to raise your confidence.\n"
     : "";
 
-  return `You are a deterministic e-commerce intent extraction engine for a quick-commerce app in India called "Amazon Now OS".
+  return `You are a deterministic e-commerce intent extraction engine for a quick-commerce app in India called "Intent Cart".
 ${imageInstructions}
 
 ${JSON_SCHEMA}
@@ -427,7 +427,7 @@ async function invokeBedrockForIntent(
       candidate = candidate.replace(/,\s*"[^"]*"?\s*:\s*"?[^"\}\]]*$/, "");
       // Close any open arrays then the object
       const openBrackets = (candidate.match(/\[/g) ?? []).length - (candidate.match(/\]/g) ?? []).length;
-      const openBraces   = (candidate.match(/\{/g) ?? []).length - (candidate.match(/\}/g) ?? []).length;
+      const openBraces = (candidate.match(/\{/g) ?? []).length - (candidate.match(/\}/g) ?? []).length;
       candidate += "]".repeat(Math.max(0, openBrackets)) + "}".repeat(Math.max(0, openBraces));
       try {
         parsed = JSON.parse(candidate);
@@ -445,7 +445,7 @@ async function invokeBedrockForIntent(
   if (!scenario || !SCENARIO_META[scenario]) {
     throw new Error(
       `Bedrock returned unknown scenario: "${parsed.scenario}". ` +
-        `Expected one of: ${Object.keys(SCENARIO_META).join(", ")}`
+      `Expected one of: ${Object.keys(SCENARIO_META).join(", ")}`
     );
   }
 
@@ -547,17 +547,17 @@ export async function POST(req: NextRequest) {
     // ─── Sanitise recent orders (client-supplied, treat as untrusted) ─
     const sanitizedRecentOrders = Array.isArray(recentOrders)
       ? recentOrders
-          .filter((s): s is string => typeof s === "string")
-          .map((s) =>
-            s
-              .trim()
-              .replace(/<[^>]*>/g, "")
-              .replace(/[<>{}[\]\\]/g, "")
-              .slice(0, 200)
-              .trim()
-          )
-          .filter((s) => s.length >= 2)
-          .slice(0, 2)
+        .filter((s): s is string => typeof s === "string")
+        .map((s) =>
+          s
+            .trim()
+            .replace(/<[^>]*>/g, "")
+            .replace(/[<>{}[\]\\]/g, "")
+            .slice(0, 200)
+            .trim()
+        )
+        .filter((s) => s.length >= 2)
+        .slice(0, 2)
       : [];
 
     // ─── Sanitise context signals (client-supplied, treat as untrusted) ─
@@ -634,12 +634,12 @@ export async function POST(req: NextRequest) {
     const res = NextResponse.json({ intent, cart, initialSelections, sessionId });
 
     res.cookies.set(SESSION_COOKIE, sessionId, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: COOKIE_MAX_AGE,
-        path: "/",
-      });
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: COOKIE_MAX_AGE,
+      path: "/",
+    });
 
     return res;
   } catch (err) {

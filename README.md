@@ -1,4 +1,4 @@
-# ⚡ Amazon Now OS
+# ⚡ Intent Cart
 
 > **Reimagining urgent shopping.** Describe your situation — get a ready-to-buy cart in seconds.
 
@@ -10,7 +10,7 @@ Built for the **Amazon Hackathon 2025** — *Reimagine Shopping Experience*.
 
 Traditional shopping: `Search → Browse → Compare → Cart`
 
-**Amazon Now OS:** `Describe situation → AI generates cart`
+**Intent Cart:** `Describe situation → AI generates cart`
 
 Instead of asking *"What product do you want?"*, we ask **"What is happening right now?"**
 
