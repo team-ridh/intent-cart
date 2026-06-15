@@ -1,12 +1,163 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import type { CartItem } from "@/lib/types";
 import {
   LightningIcon, TrashIcon, ArrowsLeftRightIcon,
   CheckCircleIcon, PackageIcon, StarIcon, TrophyIcon,
+  SparkleIcon,
 } from "@phosphor-icons/react";
 
+// ─── Build human-readable signal bullets from live CartItem data ──────────────
+//
+// This is the explainability engine. It reads real data fields from the item
+// (eta, rating, discount, badge, isEssential) and converts them into plain-
+// language sentences so users understand exactly why each item was chosen.
+//
+function buildWhySignals(item: CartItem): string[] {
+  const signals: string[] = [];
+
+  // 1. Delivery speed — always included (core quick-commerce value prop)
+  if (item.eta <= 15) {
+    signals.push(`⚡ Arrives in ~${item.eta} min — among the fastest in stock right now`);
+  } else if (item.eta <= 25) {
+    signals.push(`🚚 Delivers in ~${item.eta} min from a nearby fulfilment centre`);
+  } else {
+    signals.push(`📦 Estimated delivery ~${item.eta}–${item.eta + 5} min`);
+  }
+
+  // 2. Discount / savings — only if meaningful
+  if (item.discount && item.discount >= 10) {
+    const saved = item.mrp ? Math.round(item.mrp - item.price) : 0;
+    signals.push(
+      saved > 0
+        ? `💰 ${item.discount}% off — saves ₹${saved} vs. list price`
+        : `💰 ${item.discount}% off the original price`
+    );
+  }
+
+  // 3. Customer rating — only if genuinely strong
+  if (item.rating && item.rating >= 4.3) {
+    const reviewStr = item.reviewCount
+      ? ` across ${item.reviewCount.toLocaleString("en-IN")} reviews`
+      : "";
+    signals.push(`⭐ Rated ${item.rating.toFixed(1)}/5${reviewStr} — consistently well-reviewed`);
+  }
+
+  // 4. Badge (Best Seller / Amazon's Choice) — high-trust signal
+  if (item.badge === "Best Seller") {
+    signals.push("🏆 #1 Best Seller in its category on Amazon India");
+  } else if (item.badge === "Amazon's Choice") {
+    signals.push("✅ Amazon's Choice — highly rated, quickly dispatched, well-priced");
+  }
+
+  // 5. Essential vs add-on context
+  if (item.isEssential) {
+    signals.push("📌 Marked essential for your situation — skipping it may leave a gap");
+  } else {
+    signals.push("➕ Added as a helpful extra based on what people typically need together");
+  }
+
+  return signals;
+}
+
+// --- Why This? Tooltip ---
+
+interface WhyThisTooltipProps {
+  item: CartItem;
+  triggerRef: React.RefObject<HTMLButtonElement | null>;
+  onClose: () => void;
+}
+
+function WhyThisTooltip({ item, triggerRef, onClose }: WhyThisTooltipProps) {
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+
+  useEffect(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const tooltipWidth = 300;
+    const spaceAbove = rect.top;
+    const preferAbove = spaceAbove > 180;
+    setPos({
+      top: preferAbove ? rect.top - 12 : rect.bottom + 12,
+      left: Math.min(
+        Math.max(8, rect.left - 8),
+        window.innerWidth - tooltipWidth - 8
+      ),
+    });
+  }, [triggerRef]);
+
+  const signals = buildWhySignals(item);
+
+  // Don't render until position is calculated (avoids flash at 0,0)
+  if (!pos) return null;
+
+  return createPortal(
+    <div
+      role="tooltip"
+      style={{
+        position: "fixed",
+        top: pos.top,
+        left: pos.left,
+        width: 300,
+        transform: "translateY(-100%)",
+        zIndex: 9999,
+        background: "rgba(15,17,22,0.97)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        border: "1px solid rgba(255,255,255,0.1)",
+        borderRadius: 12,
+        boxShadow: "0 16px 48px rgba(0,0,0,0.36), 0 0 0 1px rgba(232,93,42,0.18)",
+        padding: "14px 16px",
+        pointerEvents: "none",
+        animation: "fadeIn 0.12s ease",
+      }}
+    >
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+        <SparkleIcon size={12} weight="fill" color="var(--accent)" />
+        <span style={{
+          fontFamily: "var(--font-display)",
+          fontSize: 11,
+          fontWeight: 700,
+          color: "var(--accent)",
+          textTransform: "uppercase",
+          letterSpacing: "0.08em",
+        }}>
+          Why this item?
+        </span>
+      </div>
+
+      {/* Primary reason from product data */}
+      <p style={{
+        fontSize: 13,
+        fontWeight: 500,
+        color: "rgba(255,255,255,0.92)",
+        lineHeight: 1.5,
+        margin: "0 0 10px",
+        paddingBottom: 10,
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
+      }}>
+        {item.reason}
+      </p>
+
+      {/* Dynamic signals */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {signals.map((sig, i) => (
+          <div key={i} style={{
+            fontSize: 12,
+            color: "rgba(255,255,255,0.7)",
+            lineHeight: 1.45,
+          }}>
+            {sig}
+          </div>
+        ))}
+      </div>
+    </div>,
+    document.body
+  );
+}
 const TAG_COLORS: Record<string, string> = {
   "Hosting essential": "orange",
   "Required for serving": "orange",
@@ -65,6 +216,8 @@ export function CartItemCard({ item, selectedSubId, onOpenSubs, onAdjustQty, onR
   const [removing, setRemoving] = useState(false);
   const [isGift, setIsGift] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [showWhyTooltip, setShowWhyTooltip] = useState(false);
+  const whyBtnRef = useRef<HTMLButtonElement>(null);
 
   const activeSub    = item.substitutes.find((s) => s.id === selectedSubId);
   const displayPrice = activeSub ? activeSub.price : item.price;
@@ -287,9 +440,38 @@ export function CartItemCard({ item, selectedSubId, onOpenSubs, onAdjustQty, onR
                       : <><ArrowsLeftRightIcon size={11} weight="bold" /> Compare similar ({item.substitutes.length})</>
                     }
                   </button>
-                  {/* <span style={{ color: "#D5D9D9", fontSize: 13, marginRight: 8 }}>|</span> */}
+                  <span style={{ color: "#D5D9D9", fontSize: 13, marginRight: 8 }}>|</span>
                 </>
               ) : null}
+
+              {/* Why this? — explainability tooltip */}
+              <button
+                id={`why-${item.id}`}
+                ref={whyBtnRef}
+                onMouseEnter={() => setShowWhyTooltip(true)}
+                onMouseLeave={() => setShowWhyTooltip(false)}
+                aria-label={`Why was ${item.name} chosen?`}
+                style={{
+                  background: "none", border: "none", cursor: "default",
+                  fontSize: 13, color: "#007185",
+                  padding: 0,
+                  display: "inline-flex", alignItems: "center", gap: 3,
+                }}
+                onFocus={() => setShowWhyTooltip(true)}
+                onBlur={() => setShowWhyTooltip(false)}
+              >
+                <SparkleIcon size={11} weight="fill" color="var(--accent)" />
+                Why this?
+              </button>
+
+              {/* Tooltip portal */}
+              {showWhyTooltip && (
+                <WhyThisTooltip
+                  item={item}
+                  triggerRef={whyBtnRef}
+                  onClose={() => setShowWhyTooltip(false)}
+                />
+              )}
 
               {/* <button
                 style={{
