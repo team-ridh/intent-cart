@@ -110,7 +110,7 @@ export function PhotoUpload({ onUploaded }: PhotoUploadProps) {
                 <div style={{ display: "flex", justifyContent: "center", marginBottom: 6, animation: "rotate-slow 1s linear infinite" }}>
                   <SpinnerIcon size={24} weight="bold" />
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 500 }}>Uploading to S3…</div>
+                <div style={{ fontSize: 13, fontWeight: 500 }}>Uploading…</div>
               </div>
             ) : s3Key ? (
               <div style={{ textAlign: "center", color: "#fff" }}>

@@ -10,6 +10,7 @@ import {
   ShoppingCartSimpleIcon,
   ClockCounterClockwiseIcon,
   XIcon,
+  StorefrontIcon,
 } from "@phosphor-icons/react";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -271,6 +272,17 @@ export function Navbar({
           {/* ── Right: spacer + Orders + Cart ──────────────────── */}
           <div className="navbar__right">
             {rightSlot}
+
+            {/* Products link */}
+            <a
+              id="nav-products-btn"
+              href="/products"
+              className="navbar__products-btn"
+              aria-label="Browse product catalog"
+            >
+              <StorefrontIcon size={16} weight="bold" />
+              <span className="navbar__products-label">Products</span>
+            </a>
 
             {/* Orders button */}
             <button
