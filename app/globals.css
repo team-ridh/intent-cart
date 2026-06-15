@@ -671,7 +671,7 @@ input, textarea, select { font-size: max(16px, 1em); }
   color: var(--text-faint);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .cart-panel__subtotal {

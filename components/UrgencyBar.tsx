@@ -189,8 +189,8 @@ export function UrgencyBar({
                 onClick={() => onChange(m.value)}
                 style={{
                   width: "100%",
-                  minHeight: 36,
-                  padding: "5px 8px",
+                  minHeight: 32,
+                  padding: "4px 6px",
                   borderRadius: "var(--radius-pill)",
                   fontSize: 12,
                   fontWeight: 600,
@@ -259,12 +259,12 @@ export function UrgencyBar({
       {showDescription && (
         <div
           style={{
-            marginTop: 8,
+            marginTop: 5,
             fontSize: 12,
             color: "var(--text-muted)",
             textAlign: "center",
             transition: "all 0.2s ease",
-            minHeight: 18,
+            minHeight: 14,
           }}
         >
           {activeMode.description}

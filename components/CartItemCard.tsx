@@ -103,12 +103,12 @@ function WhyThisTooltip({ item, triggerRef, onClose }: WhyThisTooltipProps) {
         width: 300,
         transform: "translateY(-100%)",
         zIndex: 9999,
-        background: "rgba(15,17,22,0.97)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        border: "1px solid rgba(255,255,255,0.1)",
+        background: "var(--bg-surface)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+        border: "1px solid var(--border)",
         borderRadius: 12,
-        boxShadow: "0 16px 48px rgba(0,0,0,0.36), 0 0 0 1px rgba(232,93,42,0.18)",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(232,93,42,0.10)",
         padding: "14px 16px",
         pointerEvents: "none",
         animation: "fadeIn 0.12s ease",
@@ -133,11 +133,11 @@ function WhyThisTooltip({ item, triggerRef, onClose }: WhyThisTooltipProps) {
       <p style={{
         fontSize: 13,
         fontWeight: 500,
-        color: "rgba(255,255,255,0.92)",
+        color: "var(--text-primary)",
         lineHeight: 1.5,
         margin: "0 0 10px",
         paddingBottom: 10,
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        borderBottom: "1px solid var(--border)",
       }}>
         {item.reason}
       </p>
@@ -147,7 +147,7 @@ function WhyThisTooltip({ item, triggerRef, onClose }: WhyThisTooltipProps) {
         {signals.map((sig, i) => (
           <div key={i} style={{
             fontSize: 12,
-            color: "rgba(255,255,255,0.7)",
+            color: "var(--text-secondary)",
             lineHeight: 1.45,
           }}>
             {sig}
