@@ -418,8 +418,8 @@ function SituationPage() {
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          paddingBottom: 100,
           padding: "0 clamp(16px, 5vw, 80px)",
+          paddingBottom: "max(100px, env(safe-area-inset-bottom, 0px) + 80px)",
         }}
       >
 
