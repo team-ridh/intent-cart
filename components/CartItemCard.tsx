@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { CartItem } from "@/lib/types";
 import {
   LightningIcon, TrashIcon, ArrowsLeftRightIcon,
@@ -64,6 +64,7 @@ interface CartItemCardProps {
 export function CartItemCard({ item, selectedSubId, onOpenSubs, onAdjustQty, onRemove }: CartItemCardProps) {
   const [removing, setRemoving] = useState(false);
   const [isGift, setIsGift] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const activeSub    = item.substitutes.find((s) => s.id === selectedSubId);
   const displayPrice = activeSub ? activeSub.price : item.price;
@@ -75,6 +76,9 @@ export function CartItemCard({ item, selectedSubId, onOpenSubs, onAdjustQty, onR
   const displayDiscount = activeSub ? activeSub.discount : item.discount;
   const badgeColor   = TAG_COLORS[item.reasonTag] ?? "orange";
   const lineTotal    = displayPrice * item.quantity;
+
+  // Reset error state when the displayed image URL changes (e.g. substitute swap)
+  useEffect(() => { setImgError(false); }, [displayImage]);
 
   const handleRemove = () => { setRemoving(true); setTimeout(onRemove, 280); };
 
@@ -102,12 +106,12 @@ export function CartItemCard({ item, selectedSubId, onOpenSubs, onAdjustQty, onR
           display: "flex", alignItems: "center", justifyContent: "center",
           overflow: "hidden",
         }}>
-          {displayImage?.startsWith("http") ? (
+          {displayImage?.startsWith("http") && !imgError ? (
             <img
               src={displayImage}
               alt={displayName}
               style={{ width: "100%", height: "100%", objectFit: "contain", padding: 8 }}
-              onError={(e) => { e.currentTarget.style.display = "none"; }}
+              onError={() => setImgError(true)}
             />
           ) : (
             <PackageIcon size={36} weight="light" color="var(--text-muted)" />
