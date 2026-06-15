@@ -13,7 +13,26 @@ export type Scenario =
   | "tea_break"
   | "general"
   | "cooking"
-  | "home_repair";
+  | "home_repair"
+  | "gifting"
+  | "electronics"
+  | "baby_care"
+  | "personal_care"
+  | "party"
+  | "pet_care"
+  | "fitness"
+  | "cleaning"
+  // ─── Phase 2 & 3 new categories ────────────────────────────
+  | "breakfast"
+  | "dairy"
+  | "frozen_food"
+  | "condiments"
+  | "snacks"
+  | "staples"
+  | "skincare"
+  | "pest_control"
+  | "instant_food"
+  | "office";
 
 export interface ParsedIntent {
   scenario: Scenario;
