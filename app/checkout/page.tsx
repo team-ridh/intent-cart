@@ -613,7 +613,7 @@ function CheckoutPage() {
       {/* ── Edit Cart shortcut ────────────────────────────────────── */}
       {!isLoading && cart && (
         <div style={{
-          maxWidth: 960,
+          maxWidth: 1125,
           margin: "0 auto",
           padding: "10px clamp(16px, 5vw, 40px) 0",
           width: "100%",
