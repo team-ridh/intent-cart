@@ -3750,7 +3750,7 @@ input, textarea, select { font-size: max(16px, 1em); }
 /* Tooltip bubble — hidden by default */
 .data-disclaimer-badge__tooltip {
   position: absolute;
-  bottom: calc(100% + 8px);
+  top: calc(100% + 8px);
   right: 0;
   width: 240px;
   padding: 9px 12px;
@@ -3768,22 +3768,22 @@ input, textarea, select { font-size: max(16px, 1em); }
   z-index: 200;
   pointer-events: none;
   opacity: 0;
-  transform: translateY(4px) scale(0.97);
+  transform: translateY(-4px) scale(0.97);
   transition: opacity 0.2s ease, transform 0.2s ease;
   white-space: normal;
 }
 
-/* Arrow pointing down */
+/* Arrow pointing up */
 .data-disclaimer-badge__tooltip::after {
   content: "";
   position: absolute;
-  bottom: -5px;
+  top: -5px;
   right: 12px;
   width: 8px;
   height: 8px;
   background: rgba(22, 22, 32, 0.94);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   transform: rotate(45deg);
 }
 
@@ -3792,3 +3792,4 @@ input, textarea, select { font-size: max(16px, 1em); }
   opacity: 1;
   transform: translateY(0) scale(1);
 }
+
