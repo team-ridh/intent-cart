@@ -1,7 +1,7 @@
 "use client";
 
 import type { CartItem } from "@/lib/types";
-import { LightningIcon, CurrencyDollarIcon, ShieldCheckIcon, SparkleIcon, XIcon, StarIcon } from "@phosphor-icons/react";
+import { LightningIcon, CurrencyDollarIcon, ShieldCheckIcon, SparkleIcon, XIcon, StarIcon, PackageIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 
 const TYPE_COLOR: Record<string, string> = {
@@ -91,7 +91,7 @@ export function SubstituteDrawer({
                   onError={(e) => { e.currentTarget.style.display = "none"; }}
                 />
               ) : (
-                <span>{item.image}</span>
+                <PackageIcon size={26} weight="light" color="var(--text-muted)" />
               )}
               Substitutes for {item.name}
             </div>
