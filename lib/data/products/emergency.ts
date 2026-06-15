@@ -5,16 +5,16 @@ const CDN = (id: string) => `https://m.media-amazon.com/images/I/${id}._SL300_.j
 const IMG = {
   evereadyTorch: CDN("71T2pNFX2vL"),   // Eveready DL96 LED Torch
   philipsTorch:  CDN("71LNFhH+uXL"),   // Philips LED Torch
-  genericTorch:  CDN("81yRcFk1LzL"),   // Generic torch
+  genericTorch:  CDN("410MMqs2qiL"),   // Generic torch
   duracellAA:    CDN("81yPcFk2L0L"),   // Duracell AA Batteries
-  energizerAA:   CDN("71SKLjH0WRL"),   // Energizer AA Batteries
-  evereadyAA:    CDN("61qMnBP9bXL"),   // Eveready AA Batteries
+  energizerAA:   CDN("71c7-qB2jJL"),   // Energizer AA Batteries
+  evereadyAA:    CDN("71V7PL+pmtL"),   // Eveready AA Batteries
   candle:        CDN("71vPHiWqiL"),    // Paraffin Wax Candles
   havellsCandle: CDN("71EGjHq6xGL"),   // Havells Emergency Candles
   matchbox:      CDN("81I5xEYFpjL"),   // Vivek Matchbox
-  miPowerbank:   CDN("71URK6VPiTL"),   // Mi Power Bank 3i 20000mAh
-  ambrane:       CDN("71I3Y0KNABL"),   // Ambrane 20000mAh
-  anker:         CDN("71NBrKFmEZL"),   // Anker PowerCore
+  miPowerbank:   CDN("71lVwl3q-kL"),   // Mi Power Bank 3i 20000mAh
+  ambrane:       CDN("71lVwl3q-kL"),   // Ambrane 20000mAh
+  anker:         CDN("71RPezJmI0L"),   // Anker PowerCore
   bisleriLarge:  CDN("71VpPHiVqjL"),   // Bisleri 2L Water
 };
 

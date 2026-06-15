@@ -4,28 +4,28 @@ const CDN = (id: string) => `https://m.media-amazon.com/images/I/${id}._SL300_.j
 
 const IMG = {
   // Namkeen & Bhujia
-  haldiramBhujia:   CDN("71g+I3lZA4L"),  // Haldiram's Aloo Bhujia 1kg
+  haldiramBhujia:   CDN("71yRxsNpL6L"),  // Haldiram's Aloo Bhujia 1kg
   haldiramNavratan: CDN("81bXvM-uYML"),  // Haldiram's Navrattan Mixture 400g
-  bikajiBlack:      CDN("81MHpBXjmmL"),  // Bikaji Bikaneri Bhujia 400g
-  leharMixture:     CDN("71DajhNIQPL"),  // Lehar Namkeen Mixture
+  bikajiBlack:      CDN("71POi2z2mhL"),  // Bikaji Bikaneri Bhujia 400g
+  leharMixture:     CDN("71Vyn4VPg-L"),  // Lehar Namkeen Mixture
   // Biscuits & Cookies
   parleG:           CDN("71tO4H-FNZL"),  // Parle-G Original Glucose Biscuits
-  oreo:             CDN("71VoH4oImL"),   // Oreo Original Cream Biscuits 300g
-  britanniaMarie:   CDN("71bfBxdzZmL"),  // Britannia Marie Gold 250g
-  goodDay:          CDN("71iCnP9BZNIL"), // Britannia Good Day Cashew 600g
+  oreo:             CDN("61XPqdX0AjL"),   // Oreo Original Cream Biscuits 300g
+  britanniaMarie:   CDN("71kOonbY70L"),  // Britannia Marie Gold 250g
+  goodDay:          CDN("81bzlTP62UL"), // Britannia Good Day Cashew 600g
   // Chips
-  laysClassic:      CDN("71dY5xCBXCL"),  // Lay's Classic Salted
+  laysClassic:      CDN("91-oWEIaz8L"),  // Lay's Classic Salted
   bingo:            CDN("71lI5i3oDnL"),  // Bingo Mad Angles
   // Chocolates
-  dairyMilkSilk:    CDN("71y4cnjqFwL"),  // Cadbury Dairy Milk Silk 143g
-  kitkat:           CDN("71XpbNhzMML"),  // KitKat 4-Finger 41.5g×3
+  dairyMilkSilk:    CDN("61LojzJ+PuL"),  // Cadbury Dairy Milk Silk 143g
+  kitkat:           CDN("61yA+W2uCiL"),  // KitKat 4-Finger 41.5g×3
   fiveStarSoft:     CDN("71dkNF0IX8L"),  // Cadbury 5 Star Soft 22g×12
   // Healthy Snacks
   makhana:          CDN("71dJkPQSHBL"),  // Phogat Roasted Makhana 100g
-  trueElementsMix:  CDN("81CSmAI5jkL"),  // True Elements Healthy Trail Mix
+  trueElementsMix:  CDN("71uoadMXYJL"),  // True Elements Healthy Trail Mix
   // Popcorn
-  boppop:           CDN("71g5AEgdpAL"),  // Boppop Microwave Popcorn
-  aactiv:           CDN("71X3VPXQ5L"),   // ACT II Instant Popcorn
+  boppop:           CDN("71ep98Zhk9L"),  // Boppop Microwave Popcorn
+  aactiv:           CDN("71ep98Zhk9L"),   // ACT II Instant Popcorn
 };
 
 function sub(id: string, name: string, brand: string, price: number, mrp: number, type: Substitute["type"], label: string, reason: string, eta: number, image: string, asin?: string, rating?: number, reviewCount?: number): Substitute {
@@ -43,7 +43,7 @@ function item(id: string, name: string, brand: string, category: string, price: 
 export const HALDIRAMS_ALOO_BHUJIA = item(
   "snack_001", "Haldiram's Aloo Bhujia", "Haldiram's",
   "Namkeen & Bhujia", 249, 285, 1, "1 kg",
-  IMG.haldiramBhujia, "B07WDHKN3S", 4.5, 289234,
+  IMG.haldiramBhujia, "B012S2KIGS", 4.4, 4992,
   "Best Seller",
   "Crispy, golden potato bhujia with authentic spices — India's most popular namkeen snack, perfect with chai",
   "Crunchy namkeen for snacking or chai time", "Snack essential", 14,
@@ -60,7 +60,7 @@ export const HALDIRAMS_ALOO_BHUJIA = item(
 export const HALDIRAMS_MIXTURE = item(
   "snack_002", "Haldiram's Navrattan Mixture", "Haldiram's",
   "Namkeen & Bhujia", 99, 115, 1, "400g",
-  IMG.haldiramNavratan, "B07WDHKP3S", 4.4, 189234,
+  IMG.haldiramNavratan, "B012S2KIGS", 4.4, 4992,
   "Best Seller",
   "Classic savoury mix of sev, fried peanuts, cornflakes, dal moth and cashews — a celebration in every bite",
   "Mixed namkeen snack for evenings", "Namkeen essential", 12,
@@ -77,7 +77,7 @@ export const HALDIRAMS_MIXTURE = item(
 export const PARLE_G_ORIGINAL = item(
   "snack_003", "Parle-G Original Glucose Biscuits", "Parle Products",
   "Biscuits & Cookies", 80, 80, 1, "828g (value pack)",
-  IMG.parleG, "B07WDHKQ3S", 4.6, 567891,
+  IMG.parleG, "B00C4X841S", 4.4, 3938,
   "Best Seller",
   "World's largest-selling biscuit — glucose biscuits with mild sweetness, eaten with chai across all of India",
   "Classic tea biscuit staple", "Biscuit essential", 10,
@@ -125,7 +125,7 @@ export const BIKAJI_BHUJIA = item(
 export const CADBURY_DAIRY_MILK = item(
   "snack_006", "Cadbury Dairy Milk Silk Chocolate Bar", "Mondelez India",
   "Chocolates", 185, 215, 1, "245g",
-  IMG.dairyMilkSilk, "B07WDHKN6S", 4.5, 289234,
+  IMG.dairyMilkSilk, "B0721MLS73", 4.4, 6935,
   "Best Seller",
   "Smooth, velvety milk chocolate — thick, premium bar that melts in your mouth. India's most loved chocolate",
   "Premium milk chocolate for gifting or indulging", "Chocolate treat", 14,
@@ -190,7 +190,7 @@ export const LAYS_CHIPS = item(
 export const KITKAT_BARS = item(
   "snack_010", "KitKat 4-Finger Chocolate Bar", "Nestle India",
   "Chocolates", 75, 90, 3, "41.5g bars",
-  IMG.kitkat, "B07WDKH3TS", 4.5, 234567,
+  IMG.kitkat, "B09JP88HNR", 4.5, 160,
   "Best Seller",
   "Crispy wafer layers coated in smooth milk chocolate — 'Have a break, have a KitKat'. A global icon",
   "Crispy chocolate wafer bar for a quick treat", "Chocolate snack", 12,

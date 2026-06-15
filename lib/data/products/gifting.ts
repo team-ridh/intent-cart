@@ -4,28 +4,28 @@ const CDN = (id: string) => `https://m.media-amazon.com/images/I/${id}._SL300_.j
 
 const IMG = {
   // Dry Fruits / Gift Boxes
-  haldiramsDryFruit: CDN("71EI56ULsdL"),  // Haldiram's Mixed Dry Fruit Box
-  sattvikMix: CDN("71dJDlJR3mL"),   // Happilo Premium Dry Fruit Mix
-  happilo: CDN("81uc8TdNZSL"),   // Happilo Almonds + Cashews Combo
-  dryfruit500: CDN("71kLZ7rVQoL"),   // Nutraj Mixed Dry Fruits 500g
+  haldiramsDryFruit: CDN("61zFEnYQyTL"),  // Haldiram's Mixed Dry Fruit Box
+  sattvikMix: CDN("813wJNQWEXL"),   // Happilo Premium Dry Fruit Mix
+  happilo: CDN("51aakxBhEKL"),   // Happilo Almonds + Cashews Combo
+  dryfruit500: CDN("81PoUTec-aL"),   // Nutraj Mixed Dry Fruits 500g
   // Sweets / Mithai
-  haldiramGulab: CDN("71yEVu3l3vL"),   // Haldiram's Gulab Jamun Ready Mix
+  haldiramGulab: CDN("71epZ1QoITL"),   // Haldiram's Gulab Jamun Ready Mix
   haldiramSoan: CDN("71E0GvXfUnL"),   // Haldiram's Soan Papdi 250g
   haldiramLadoo: CDN("71LRFBWMwEL"),   // Haldiram's Motichoor Ladoo
   // Chocolates
-  cadburyChoc: CDN("71mj8VgXedL"),   // Cadbury Celebrations Gift Pack
-  cadburySilk: CDN("61HJz3UilGL"),   // Cadbury Dairy Milk Silk
-  ferreroRocher: CDN("71H4m0UJPTL"),   // Ferrero Rocher T-16
-  lindtChoc: CDN("71XnVK9k1QL"),   // Lindt Excellence Dark 70%
+  cadburyChoc: CDN("61BpfdWx6mL"),   // Cadbury Celebrations Gift Pack
+  cadburySilk: CDN("61LojzJ+PuL"),   // Cadbury Dairy Milk Silk
+  ferreroRocher: CDN("71uEi4kvRYL"),   // Ferrero Rocher T-16
+  lindtChoc: CDN("61rVoSLgtJL"),   // Lindt Excellence Dark 70%
   kitkat: CDN("71PnEgrdFCL"),   // KitKat Gift Box
   // Gift Wrapping
-  giftBox: CDN("71kZGvs1S0L"),   // Decorative Gift Box with Lid
-  giftWrap: CDN("71mVE9yJI6L"),   // Premium Gift Wrapping Paper Sheets
-  ribbons: CDN("71JtGIJHOBL"),   // Satin Gift Ribbons Combo
-  giftBag: CDN("71OqaBk7CHL"),   // Kraft Paper Gift Bags set
+  giftBox: CDN("41nWRFtrXvL"),   // Decorative Gift Box with Lid
+  giftWrap: CDN("71m0TcBUVqL"),   // Premium Gift Wrapping Paper Sheets
+  ribbons: CDN("51SLPK78uKL"),   // Satin Gift Ribbons Combo
+  giftBag: CDN("71yNZc8mK2S"),   // Kraft Paper Gift Bags set
   // Diyas / Candles (Indian gifting)
   scented: CDN("71WqJF7PBPL"),   // Iris Scented Candle
-  waxCandle: CDN("71VpPHiVqjL"),   // Scented Pillar Candle
+  waxCandle: CDN("81+-l9DcgtL"),   // Scented Pillar Candle
   diyas: CDN("71T3pNFX2vL"),   // Decorative Diya Set
   // Cards / Stationery
   giftCard: CDN("81I6xEYFpjL"),   // Premium Greeting Cards Pack

@@ -4,27 +4,27 @@ const CDN = (id: string) => `https://m.media-amazon.com/images/I/${id}._SL300_.j
 
 const IMG = {
   // Wheat flour (Atta)
-  aashirvaad:       CDN("71sBr8mPC9L"),  // Aashirvaad Select Sharbati Atta 5kg
-  pillsbury:        CDN("71VmYDvGgXL"),  // Pillsbury Chakki Fresh Atta 5kg
+  aashirvaad:       CDN("71+ZAUgr8vL"),  // Aashirvaad Select Sharbati Atta 5kg
+  pillsbury:        CDN("71+ZAUgr8vL"),  // Pillsbury Chakki Fresh Atta 5kg
   // Rice
-  indiaGate:        CDN("81W1Gy5GLQL"),  // India Gate Basmati Rice Classic 5kg
-  daawat:           CDN("71bPDVsKRLL"),  // Daawat Rozana Basmati 5kg
+  indiaGate:        CDN("71W1XCVDlML"),  // India Gate Basmati Rice Classic 5kg
+  daawat:           CDN("61hI83GWpzL"),  // Daawat Rozana Basmati 5kg
   // Dal (Pulses)
   tataSampannChana: CDN("71kTgq5+tQL"),  // Tata Sampann Chana Dal 1kg
-  tataSampannMoong: CDN("71TKGDyV4ZL"),  // Tata Sampann Moong Dal 1kg
-  tataSampannToor:  CDN("71Z6YNSK5PL"),  // Tata Sampann Toor Dal 1kg
+  tataSampannMoong: CDN("61KkFKuWV4L"),  // Tata Sampann Moong Dal 1kg
+  tataSampannToor:  CDN("61KkFKuWV4L"),  // Tata Sampann Toor Dal 1kg
   // Cooking Oil
-  fortuneSunflower: CDN("71Bm0t4NKQL"),  // Fortune Sunflower Refined Oil 1L
+  fortuneSunflower: CDN("612ivkXZObL"),  // Fortune Sunflower Refined Oil 1L
   fortuneMustard:   CDN("71WI8yNq6LL"),  // Fortune Kachi Ghani Mustard Oil 1L
-  dharaMustard:     CDN("71vkRIPz0LL"),  // Dhara Mustard Oil 1L Pouch
+  dharaMustard:     CDN("518+dxn1xZL"),  // Dhara Mustard Oil 1L Pouch
   // Salt & Sugar
   tataSalt:         CDN("71oR1PnMqgL"),  // Tata Salt Iodised 1kg
   tataSugar:        CDN("71-VrxTZj7L"),  // Tata Sugar 5kg
   // Spices & Masala
-  everestGaram:     CDN("71dtTXREHHL"),  // Everest Garam Masala 100g
-  catchTurmeric:    CDN("71Xype8Z8lL"),  // Catch Turmeric Powder 200g
-  mdhChana:         CDN("71WrJG8QBQL"),  // MDH Chana Masala 100g
-  tataSampannSpice: CDN("71VqPIiWrjL"),  // Tata Sampann Spices Combo
+  everestGaram:     CDN("81uv9-YZ+bL"),  // Everest Garam Masala 100g
+  catchTurmeric:    CDN("71g3a5tPj0L"),  // Catch Turmeric Powder 200g
+  mdhChana:         CDN("81rq2ma2OmL"),  // MDH Chana Masala 100g
+  tataSampannSpice: CDN("611f8vOFr3L"),  // Tata Sampann Spices Combo
 };
 
 function sub(id: string, name: string, brand: string, price: number, mrp: number, type: Substitute["type"], label: string, reason: string, eta: number, image: string, asin?: string, rating?: number, reviewCount?: number): Substitute {
@@ -59,7 +59,7 @@ export const AASHIRVAAD_ATTA = item(
 export const INDIA_GATE_BASMATI = item(
   "stpl_002", "India Gate Basmati Rice — Classic", "KRBL Limited",
   "Rice & Grains", 555, 625, 1, "5 kg",
-  IMG.indiaGate, "B01LZ5TGXT", 4.5, 345678,
+  IMG.indiaGate, "B0BBF1FT93", 3.7, 711,
   "Best Seller",
   "Long-grain aged basmati rice with naturally aromatic flavour — stays fluffy and separate after cooking",
   "Premium aged basmati rice for daily meals", "Rice essential", 22,

@@ -4,25 +4,25 @@ const CDN = (id: string) => `https://m.media-amazon.com/images/I/${id}._SL300_.j
 
 const IMG = {
   // Dog Food
-  pedigreeDry:    CDN("71VmXDvFgXL"),   // Pedigree Adult Dry Dog Food Chicken & Vegetables
-  royalCaninDog:  CDN("81uc8TdNYSL"),   // Royal Canin Adult Dog Food
+  pedigreeDry:    CDN("71Ht1USGwiL"),   // Pedigree Adult Dry Dog Food Chicken & Vegetables
+  royalCaninDog:  CDN("71Ht1USGwiL"),   // Royal Canin Adult Dog Food
   dogChewDentastix: CDN("71kLZ7rVQpL"), // Pedigree Dentastix
-  droolsDog:      CDN("71EI56ULseL"),   // Drools Adult Dry Dog Food
+  droolsDog:      CDN("81NLVNXoP5S"),   // Drools Adult Dry Dog Food
   // Cat Food
-  whiskasDry:     CDN("81W0Gy4FLRL"),   // Whiskas Adult Dry Cat Food Mackerel
-  royalCaninCat:  CDN("71bPCVsJRML"),   // Royal Canin Indoor Adult Cat Food
+  whiskasDry:     CDN("61njWyuO-dL"),   // Whiskas Adult Dry Cat Food Mackerel
+  royalCaninCat:  CDN("61Yxqu5HvCL"),   // Royal Canin Indoor Adult Cat Food
   whiskasTuna:    CDN("71kTgp5+tQL"),   // Whiskas Tuna Wet Food Pouches
-  droolsCat:      CDN("71TKGCyU4AL"),   // Drools Adult Dry Cat Food
+  droolsCat:      CDN("81NLVNXoP5S"),   // Drools Adult Dry Cat Food
   // Pet Accessories
-  petBowl:        CDN("71Z5YNRK4PL"),   // Stainless Steel Dog/Cat Bowl
-  petLeash:       CDN("71Bm9t3MKQL"),   // Nylon Dog Leash
-  petShampoo:     CDN("71WH8yMq5LL"),   // Himalaya Erina Dog Shampoo
-  petTreats:      CDN("71vkQIPz8LL"),   // Pedigree Chicken Jerky Treats
-  scratchPost:    CDN("71oQ1PmMqfL"),   // Whiskas Cat Scratch Post
+  petBowl:        CDN("61ZZKkgEykL"),   // Stainless Steel Dog/Cat Bowl
+  petLeash:       CDN("51U7u8mHO+L"),   // Nylon Dog Leash
+  petShampoo:     CDN("51UYPTXkUhL"),   // Himalaya Erina Dog Shampoo
+  petTreats:      CDN("71YR0J+VfIL"),   // Pedigree Chicken Jerky Treats
+  scratchPost:    CDN("71hoJJn0SVL"),   // Whiskas Cat Scratch Post
   catLitter:      CDN("71-UrxTYj6L"),   // SKS Cat Litter Bentonite
   // Bird Food / Aquarium
-  fishFood:       CDN("71dsTXQDFHL"),   // Taiyo Plus Premium Fish Food
-  birdSeed:       CDN("71Xwpe7Y8lL"),   // Veg Bird Seed Mix for Parrots
+  fishFood:       CDN("91mp-A5s1pL"),   // Taiyo Plus Premium Fish Food
+  birdSeed:       CDN("51zWu4O06CL"),   // Veg Bird Seed Mix for Parrots
 };
 
 function sub(

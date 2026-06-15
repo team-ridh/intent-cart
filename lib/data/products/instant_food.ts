@@ -8,7 +8,7 @@ const IMG = {
   mtrDal:           CDN("81bXvM-uBML"),  // MTR Dal Makhani 300g
   mtrRajma:         CDN("81MHpBXjppL"),  // MTR Rajma Masala 300g
   // Haldiram's Minute Khana
-  haldiramPBhaji:   CDN("71DajhNITPL"),  // Haldiram's Pav Bhaji Minute Khana 300g
+  haldiramPBhaji:   CDN("719XIsbM5CL"),  // Haldiram's Pav Bhaji Minute Khana 300g
   haldiramChicken:  CDN("71tO4H-FOCL"),  // Haldiram's Chicken Biryani 250g
   // ITC Aashirvaad RTE
   itcChole:         CDN("71VoH7oImL"),   // ITC Aashirvaad Chole Masala 285g
@@ -16,14 +16,14 @@ const IMG = {
   maggiCuppa:       CDN("71bfBxdCZmL"),  // Maggi Cuppa Mania Masala 70g
   yippeeCup:        CDN("71iCnP9BZNML"), // Yippee Cup Noodles Magic Masala
   // Noodles
-  maggiMasala:      CDN("71dY5xCEXCL"),  // Maggi 2-Minute Noodles Masala 280g (4 packs)
-  yippeeNoodles:    CDN("71lI5i6oDnL"),  // Yippee Magic Masala Noodles 280g
-  waiWai:           CDN("71y4cnjsFwL"),  // Wai Wai Chicken Flavour Noodles 75g×6
+  maggiMasala:      CDN("716SKXIC8MS"),  // Maggi 2-Minute Noodles Masala 280g (4 packs)
+  yippeeNoodles:    CDN("71wu-NQh6AL"),  // Yippee Magic Masala Noodles 280g
+  waiWai:           CDN("71gAtd6CxgL"),  // Wai Wai Chicken Flavour Noodles 75g×6
   // Soups
   knorrTomato:      CDN("71XpbNiBMML"),  // Knorr Classic Cream of Tomato Soup 48g
   maggiVeg:         CDN("71dkNF0KX8L"),  // Maggi Vegetable Atta Noodles 4 pack
   // Dessert Mixes
-  gitsGulab:        CDN("71dJkPQUHBL"),  // Gits Gulab Jamun Mix 200g
+  gitsGulab:        CDN("71R59iz31TL"),  // Gits Gulab Jamun Mix 200g
 };
 
 function sub(id: string, name: string, brand: string, price: number, mrp: number, type: Substitute["type"], label: string, reason: string, eta: number, image: string, asin?: string, rating?: number, reviewCount?: number): Substitute {

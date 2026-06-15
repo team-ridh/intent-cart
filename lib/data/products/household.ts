@@ -3,19 +3,19 @@ import type { CartItem, Substitute } from "../../types";
 const CDN = (id: string) => `https://m.media-amazon.com/images/I/${id}._SL300_.jpg`;
 
 const IMG = {
-  cookingOil:   CDN("71SKKjG5WRL"),   // Fortune Sunflower Oil
+  cookingOil:   CDN("61qpCi0hgDS"),   // Fortune Sunflower Oil
   sunflower:    CDN("71LMFhI+uXL"),   // Saffola Gold Oil
-  salt:         CDN("81yRcGk1LzL"),   // Tata Salt
-  rice:         CDN("71I2X1KNABL"),   // India Gate Rice 5kg
-  dal:          CDN("71MBrLFmEZL"),   // Toor Dal
+  salt:         CDN("61UUssyGluL"),   // Tata Salt
+  rice:         CDN("71W1XCVDlML"),   // India Gate Rice 5kg
+  dal:          CDN("81F81c9o62L"),   // Toor Dal
   onion:        CDN("71VpOHiWqjL"),   // Onion 1kg
   tomato:       CDN("71qMen9PbXL"),   // Tomato 500g
   scrubber:     CDN("71T2pOFX2vL"),   // Scotch-Brite Scrubber
   dishSoap:     CDN("71LNHhH+uXL"),   // Vim Dishwash Liquid
   mop:          CDN("81yTcFk1LzL"),   // Scotch-Brite Mop
-  bulb:         CDN("71SKMjI0WRL"),   // Wipro LED Bulb
+  bulb:         CDN("51T0RbnCy6L"),   // Wipro LED Bulb
   fuseWire:     CDN("61qOanBP9bXL"),  // Fuse Wire
-  tape:         CDN("71vRHiWqiL"),    // Tesa Tape
+  tape:         CDN("813FyK8KsQL"),    // Tesa Tape
 };
 
 function sub(

@@ -14,7 +14,7 @@ const IMG = {
   vadilalPeas:      CDN("71iCnP9BZMGL"), // Vadilal Frozen Green Peas 500g
   nandiniParatha:   CDN("71dY5xC9xCL"),  // Frozen Lachha Paratha
   safaSpinach:      CDN("71lI5i1oDnL"),  // Safal Frozen Spinach 500g
-  frozenCorn:       CDN("71y4cnjoBwL"),  // Sumeru Sweet Corn 500g
+  frozenCorn:       CDN("71myoabMY8L"),  // Sumeru Sweet Corn 500g
   mccainBites:      CDN("71XpbNhxMML"),  // McCain Chilli Garlic Bites 400g
 };
 

@@ -5,20 +5,20 @@ const CDN = (id: string) => `https://m.media-amazon.com/images/I/${id}._SL300_.j
 
 // ─── Verified Amazon India image IDs (sourced from amazon.in product pages) ───
 const IMG = {
-  tataTea:        CDN("81y9PcFkL2L"),   // Tata Tea Gold 500g
+  tataTea:        CDN("51QF8woKr5S"),   // Tata Tea Gold 500g
   brookeBond:     CDN("71LMFhF-uUL"),   // Brooke Bond Red Label
-  liptonBags:     CDN("71T2pMFW3vL"),   // Lipton Tea Bags
-  tetleyBags:     CDN("71eMqvUxT8L"),   // Tetley Green Tea Bags
-  wagh:           CDN("81hFJvqD9kL"),   // Wagh Bakri Tea
-  amulMilk:       CDN("81oS0ayUJVL"),   // Amul Taaza Milk 1L
+  liptonBags:     CDN("61U9SDWMAnL"),   // Lipton Tea Bags
+  tetleyBags:     CDN("81Uz9yNSVLL"),   // Tetley Green Tea Bags
+  wagh:           CDN("61OO040R0yL"),   // Wagh Bakri Tea
+  amulMilk:       CDN("41hheOaj6bL"),   // Amul Taaza Milk 1L
   motherDairy:    CDN("71-3N0G89IL"),   // Mother Dairy Full Cream
-  bru:            CDN("71vOHiVqheL"),   // Bru Instant Coffee
-  nescafe:        CDN("71H5xDYFqjL"),   // Nescafe Classic
+  bru:            CDN("61AB3TEhpkL"),   // Bru Instant Coffee
+  nescafe:        CDN("51eDlORG3xL"),   // Nescafe Classic
   cadburyDrinking:CDN("71V5xDnEtxL"),   // Cadbury Drinking Chocolate
   starbucks:      CDN("71LcEbhNv3L"),   // Starbucks VIA Instant
   bisleri:        CDN("61LMoY3EYQL"),   // Bisleri Water 1L
   kinley:         CDN("71I2X0KNCBL"),   // Kinley Water
-  evian:          CDN("71EFjHq5zGL"),   // Evian Natural Mineral Water
+  evian:          CDN("61abGGyVCKL"),   // Evian Natural Mineral Water
   tropicana:      CDN("71MBrJFnEZL"),   // Tropicana Orange Juice
   realJuice:      CDN("71GUVJRm+kL"),   // Real Juice Mixed Fruit
 };
@@ -60,7 +60,7 @@ export const TATA_TEA_GOLD = item(
   "Tea, Coffee & Beverages",
   219, 259, 1, "500 g",
   IMG.tataTea,
-  "B07GNHK45P", 4.4, 58234,
+  "B08H654828", 4.4, 36945,
   "Best Seller",
   "Rich Assam blend with GaiGai leaves for an invigorating taste",
   "Core hosting essential for serving guests", "Hosting essential", 12,

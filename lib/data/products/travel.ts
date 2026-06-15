@@ -5,16 +5,16 @@ const CDN = (id: string) => `https://m.media-amazon.com/images/I/${id}._SL300_.j
 const IMG = {
   bisleri:       CDN("61LMoY3EYQL"),   // Bisleri 1L Water
   kinley:        CDN("71I2X0KNCBL"),   // Kinley Water
-  evian:         CDN("71EFjHq5zGL"),   // Evian Natural Mineral Water
+  evian:         CDN("61abGGyVCKL"),   // Evian Natural Mineral Water
   tooyumm:       CDN("71lniJyDMjL"),   // Too Yumm Trail Mix
-  yogabar:       CDN("81H5xDYFpjL"),   // Yoga Bar Oats & Berries
+  yogabar:       CDN("61NMkU1X0tL"),   // Yoga Bar Oats & Berries
   snickers:      CDN("71LMFhG+uXL"),   // Snickers Bar
   haldirams:     CDN("81yPcFk1LzL"),   // Haldirams Bhujia (for cheapest sub)
-  dettol:        CDN("71SKKjG2WRL"),   // Dettol Hand Sanitizer
-  purell:        CDN("81yPcGk1LzL"),   // Purell Hand Sanitizer
+  dettol:        CDN("51lbhLBG1yS"),   // Dettol Hand Sanitizer
+  purell:        CDN("51lbhLBG1yS"),   // Purell Hand Sanitizer
   syska:         CDN("61qNanBQ9bXL"),  // Syska Travel Charger
-  ambrane:       CDN("71I3Y0KNABL"),   // Ambrane Charger
-  anker:         CDN("71NBrKFmEZL"),   // Anker Travel Charger
+  ambrane:       CDN("61uuEwUl5mL"),   // Ambrane Charger
+  anker:         CDN("71ecSLrHgAL"),   // Anker Travel Charger
   classmateNB:   CDN("81yScFk1LzL"),   // Classmate Notebook
   napkins:       CDN("71vPHiWqiL"),    // Tork Napkins
   torkNapkins:   CDN("71TORKNapkin"),  // Tork Napkins alt

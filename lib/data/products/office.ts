@@ -5,16 +5,16 @@ const CDN = (id: string) => `https://m.media-amazon.com/images/I/${id}._SL300_.j
 const IMG = {
   jkCopier:         CDN("71g+I7lZA4L"),  // JK Copier A4 75gsm Paper 500 sheets
   classmateSpiralA4: CDN("81bXvM-uCML"), // Classmate Spiral Notebook A4 180 pages
-  pilotV7:          CDN("81MHpBXjqqL"),  // Pilot V7 Hi-Techpoint Pen Blue
-  faberPen:         CDN("71DajhNIUPL"),  // Faber-Castell Grip Ballpoint Pen 10-pack
+  pilotV7:          CDN("41n5ZCWJ-zL"),  // Pilot V7 Hi-Techpoint Pen Blue
+  faberPen:         CDN("81IPdljBXJL"),  // Faber-Castell Grip Ballpoint Pen 10-pack
   postIt:           CDN("71tO4H-FODL"),  // Post-it Super Sticky Notes 90s × 3 pads
-  scotchTape:       CDN("71VoH8oImL"),   // Scotch Magic Tape 19mm × 33m
+  scotchTape:       CDN("813FyK8KsQL"),   // Scotch Magic Tape 19mm × 33m
   whiteboardMarker: CDN("71bfBxdDZmL"),  // Expo Whiteboard Markers 4-pack
   stapler:          CDN("71iCnP9BZNML"), // Kangaro DS-45N Stapler + 1000 pins
-  hp680Ink:         CDN("71dY5xCFXCL"),  // HP 680 Black Ink Cartridge
+  hp680Ink:         CDN("61NLVeOt9BL"),  // HP 680 Black Ink Cartridge
   highlighters:     CDN("71lI5i7oDnL"),  // Camlin Sticky Highlighter 5-pack
-  scissors:         CDN("71y4cnjuFwL"),  // Classmate 7-inch Scissors
-  cello:            CDN("71XpbNiCMML"),  // Cello Butterflow Ballpoint Pen 10-pack
+  scissors:         CDN("51ez6qHBe7L"),  // Classmate 7-inch Scissors
+  cello:            CDN("41n5ZCWJ-zL"),  // Cello Butterflow Ballpoint Pen 10-pack
 };
 
 function sub(id: string, name: string, brand: string, price: number, mrp: number, type: Substitute["type"], label: string, reason: string, eta: number, image: string, asin?: string, rating?: number, reviewCount?: number): Substitute {

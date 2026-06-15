@@ -9,12 +9,12 @@ const IMG = {
   mangaldeep:    CDN("71SKKjH0WRL"),   // Mangaldeep Camphor
   camphor:       CDN("61qKanBQdXL"),   // Shudh Plus Camphor Tablets
   marigold:      CDN("71vOHiWqiL"),    // Fresh Marigold Flowers
-  rose:          CDN("71EFjHq6xGL"),   // Rose Petals Garland
+  rose:          CDN("812OVKYDqOL"),   // Rose Petals Garland
   coconut:       CDN("81H5xEYFpjL"),   // Coconut Pooja Pack
   amulGhee:      CDN("61UML6VPiTL"),   // Amul Pure Ghee
   patanjali:     CDN("71I3X0KNABL"),   // Patanjali Cow Ghee
-  indiaGate:     CDN("71MBrKFmEZL"),   // India Gate Basmati Rice
-  everest:       CDN("71VpOHiVqjL"),   // Everest Haldi Powder
+  indiaGate:     CDN("71W1XCVDlML"),   // India Gate Basmati Rice
+  everest:       CDN("51rUpp9SZQL"),   // Everest Haldi Powder
   kumkum:        CDN("71qLan9PbXL"),   // Sindoor / Kumkum
 };
 

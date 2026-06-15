@@ -7,22 +7,22 @@ const IMG = {
   // Cereals
   kelloggsCornFlakes:   CDN("71qFiSjGTRL"),  // Kellogg's Corn Flakes Original 875g
   kellChoco:            CDN("71ZxO0cqDNL"),  // Kellogg's Chocos 700g
-  kellMuesli:           CDN("71wUHSZLzpL"),  // Kellogg's Muesli Fruit Nut & Seeds
-  quakerOats:           CDN("817rQf5AGPL"),  // Quaker Rolled Oats 2kg
-  saffolaOats:          CDN("71VFLWmNxmL"),  // Saffola Oats 1kg
-  bagrrys:              CDN("71UT9xHrFQL"),  // Bagrry's Muesli Crunchy
+  kellMuesli:           CDN("81K68tjZCPL"),  // Kellogg's Muesli Fruit Nut & Seeds
+  quakerOats:           CDN("71uOnLjkxyL"),  // Quaker Rolled Oats 2kg
+  saffolaOats:          CDN("817PuYlDYyL"),  // Saffola Oats 1kg
+  bagrrys:              CDN("61CZWb0INLL"),  // Bagrry's Muesli Crunchy
   // Hot Malts / Mixes
   horlicks:             CDN("71hQ4h+MNML"),  // Horlicks Classic Malt 500g
-  bournvita:            CDN("71Y8IFBgxGL"),  // Cadbury Bournvita 750g
+  bournvita:            CDN("71h-dgTYzrL"),  // Cadbury Bournvita 750g
   milo:                 CDN("71mT+N5MCFL"),  // Nestle Milo Refill 400g
   complan:              CDN("71kM5ZvAGIL"),  // Complan Royale Chocolate 500g
   // Breakfast Mixes (Indian)
-  mtrUpma:              CDN("81GRF4NZGKL"),  // MTR Breakfast Mix Upma 500g
-  mtrPoha:              CDN("71PnGNE7GJL"),  // MTR Poha Breakfast Mix 500g
+  mtrUpma:              CDN("811UdPi0cEL"),  // MTR Breakfast Mix Upma 500g
+  mtrPoha:              CDN("61k8KeYNhOL"),  // MTR Poha Breakfast Mix 500g
   // Bread / Spreads
-  britanniaBrown:       CDN("71kZGvs1U0L"),  // Britannia 100% Whole Wheat Bread 400g
-  kissamJam:            CDN("71mVE9yJK6L"),  // Kissan Mixed Fruit Jam 500g
-  britanniaBread:       CDN("71JtGIJJBL"),   // Britannia Milk Bread 400g
+  britanniaBrown:       CDN("81gWXMxs4RL"),  // Britannia 100% Whole Wheat Bread 400g
+  kissamJam:            CDN("810-RMl3lyL"),  // Kissan Mixed Fruit Jam 500g
+  britanniaBread:       CDN("81gWXMxs4RL"),   // Britannia Milk Bread 400g
 };
 
 function sub(

@@ -7,7 +7,7 @@ const IMG = {
   crocin:        CDN("71T2pMFW2vL"),   // Crocin Advance 500mg
   calpol:        CDN("71vOHiVqiL"),    // Calpol 500 Paracetamol
   vicks:         CDN("71SKKjG0WRL"),   // Vicks VapoRub 25g
-  moov:          CDN("71qKanBPeXL"),   // Moov Fast Pain Relief
+  moov:          CDN("51B1Sef4zUL"),   // Moov Fast Pain Relief
   zanduBalm:     CDN("71T3pMFW3vL"),   // Zandu Balm
   kleenex:       CDN("81lniJyDSjL"),   // Kleenex Tissues
   puffs:         CDN("71UMK6VPjTL"),   // P&G Puffs Tissues
@@ -16,8 +16,8 @@ const IMG = {
   glucose:       CDN("71MBrJFmEZL"),   // Glucon-D Glucose Powder
   knorrChicken:  CDN("71VqOHiVqjL"),   // Knorr Chicken Soup
   chingsSoup:    CDN("71EFjHq5xGL"),   // Ching's Manchow Soup
-  dabur:         CDN("71qKan9PbXL"),   // Dabur Honey
-  vitamin:       CDN("71h5xDYFpjL"),   // Limcee Vitamin C
+  dabur:         CDN("81B7LUtg1ZL"),   // Dabur Honey
+  vitamin:       CDN("41SCNrRm5RL"),   // Limcee Vitamin C
   betadine:      CDN("61UMK8VRiTL"),   // Betadine Antiseptic
 };
 

@@ -3,11 +3,11 @@ import type { CartItem, Substitute } from "../../types";
 const CDN = (id: string) => `https://m.media-amazon.com/images/I/${id}._SL300_.jpg`;
 
 const IMG = {
-  mariGold:      CDN("81lniJyDRjL"),   // Britannia Marie Gold
-  parleG:        CDN("61qKanBP9bL"),   // Parle-G Glucose Biscuits
-  goodDay:       CDN("71qqk0SkQ8L"),   // Britannia Good Day
-  monaco:        CDN("81cO5N7QVNL"),   // Parle Monaco
-  khari:         CDN("71vN5xKBP4L"),   // Parle Khari Biscuit
+  mariGold:      CDN("61EP5COKj4L"),   // Britannia Marie Gold
+  parleG:        CDN("61kZskdmJzL"),   // Parle-G Glucose Biscuits
+  goodDay:       CDN("61EP5COKj4L"),   // Britannia Good Day
+  monaco:        CDN("61kZskdmJzL"),   // Parle Monaco
+  khari:         CDN("41Ye7PBGgzL"),   // Parle Khari Biscuit
   maggi:         CDN("71SKKjG1WRL"),   // Maggi Noodles 2-Min
 
   yippee:        CDN("71Uf5n8KPNL"),   // Sunfeast YiPPee Noodles
@@ -19,15 +19,15 @@ const IMG = {
   amulButter:    CDN("61UMK6VPiTL"),   // Amul Butter 100g
   britanniaButter:CDN("71SKKjG3WRL"),  // Britannia Winkin' Cow Butter
   amulGoldButter: CDN("71LMFhF+uUL"),  // Amul Gold Butter
-  eggs:          CDN("71N5xKFBPRL"),   // Farm Fresh Eggs
+  eggs:          CDN("61emkv50hvL"),   // Farm Fresh Eggs
   haldirams:     CDN("81yPcFk1LzL"),   // Haldirams Bhujia
-  bikajiMix:     CDN("71vOHiVKhRL"),   // Bikaji Namkeen Mix
-  tooyumm:       CDN("71lniJyDMjL"),   // Too Yumm Multigrain Chips
+  bikajiMix:     CDN("91lxOzQhSgL"),   // Bikaji Namkeen Mix
+  tooyumm:       CDN("71NIHBImUsL"),   // Too Yumm Multigrain Chips
   snickers:      CDN("71LMFhG+uXL"),   // Snickers Bar
   yogabar:       CDN("81H5xDYFpjL"),   // Yoga Bar Oats & Berries
   knorrSoup:     CDN("71VqOHiVqjL"),   // Knorr Chicken Soup
   chingsSoup:    CDN("71EFjHq5xGL"),   // Ching's Manchow Soup
-  dabur:         CDN("71qKan9PbXL"),   // Dabur Honey
+  dabur:         CDN("81B7LUtg1ZL"),   // Dabur Honey
   lemon:         CDN("61UMK8VQiTL"),   // Fresh Lemons
 };
 

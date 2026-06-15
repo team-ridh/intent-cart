@@ -5,13 +5,13 @@ const CDN = (id: string) => `https://m.media-amazon.com/images/I/${id}._SL300_.j
 const IMG = {
   // Milk
   amulTaaza:        CDN("71w5K+q2Y3L"),  // Amul Taaza Full Cream Milk 1L Tetra
-  amulGold:         CDN("71uDjFlCf6L"),  // Amul Gold Full Cream Milk 1L
+  amulGold:         CDN("41hheOaj6bL"),  // Amul Gold Full Cream Milk 1L
   // Butter & Ghee
   amulButter:       CDN("71JKMaCNV5L"),  // Amul Pasteurised Butter 500g
   amulGhee:         CDN("71o3YHe9UML"),  // Amul Pure Ghee 500ml Tin
-  motherGhee:       CDN("71aGR1SWHCL"),  // Mother Dairy Pure Ghee 500ml
+  motherGhee:       CDN("61ZYYrmeHuL"),  // Mother Dairy Pure Ghee 500ml
   // Cheese
-  amulCheese:       CDN("71a3fjJKNKL"),  // Amul Processed Cheese Block 400g
+  amulCheese:       CDN("41tHt+3R4RL"),  // Amul Processed Cheese Block 400g
   britanniaCheese:  CDN("71mFIV+pVhL"),  // Britannia Cheese Slices 10s
   goCheeseSlice:    CDN("715mUo0JKLL"),  // Go Cheese Singles 10s
   amulSpread:       CDN("71JKGP9K7LL"),  // Amul Cheese Spread Garlic 200g
@@ -26,7 +26,7 @@ const IMG = {
   keggFarm:         CDN("71oQ1PmMqgL"),  // Kegg Farm White Eggs
   nationalEggs:     CDN("71-UrxTYj7L"),  // National Eggs Brown Country Eggs
   // Flavoured Milk
-  amulKool:         CDN("71dsTXQDGHL"),  // Amul Kool Chocolate Milk 200ml
+  amulKool:         CDN("51Py8ECXrUL"),  // Amul Kool Chocolate Milk 200ml
 };
 
 function sub(id: string, name: string, brand: string, price: number, mrp: number, type: Substitute["type"], label: string, reason: string, eta: number, image: string, asin?: string, rating?: number, reviewCount?: number): Substitute {

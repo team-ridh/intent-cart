@@ -5,49 +5,49 @@ const CDN = (id: string) => `https://m.media-amazon.com/images/I/${id}._SL300_.j
 // Real Amazon India product image IDs verified from live listings
 const IMG = {
   // Personal Care — Shampoo
-  headShoulders:  CDN("71c5It4YHNL"),   // Head & Shoulders Smooth & Silky
+  headShoulders:  CDN("71l068vZ0IL"),   // Head & Shoulders Smooth & Silky
   doveShampoo:    CDN("71biWoJKlkL"),   // Dove Intense Repair Shampoo
-  himalayaShampoo:CDN("71Ixp4I8jcL"),   // Himalaya Anti-Dandruff Shampoo
-  loreal:         CDN("81PcFkFxXXL"),   // L'Oreal Paris Extraordinary Oil
+  himalayaShampoo:CDN("71APWNCmWYL"),   // Himalaya Anti-Dandruff Shampoo
+  loreal:         CDN("61nEfk1jLjL"),   // L'Oreal Paris Extraordinary Oil
   tresemme:       CDN("71nLgLl8wsL"),   // TRESemmé Keratin Smooth
   // Soap & Body Wash
-  dettolSoap:     CDN("71g5X+LxjtL"),   // Dettol Original Soap
+  dettolSoap:     CDN("61qREofCDEL"),   // Dettol Original Soap
   lux:            CDN("71fIMjFO+wL"),   // Lux Creamy Perfection Soap
-  dove:           CDN("71hMDzSNEQL"),   // Dove Cream Beauty Bathing Bar
+  dove:           CDN("51Ap2fZqYIL"),   // Dove Cream Beauty Bathing Bar
   pears:          CDN("61wMEMzaZwL"),   // Pears Pure & Gentle Soap
-  lifebuoy:       CDN("71pjzZmzKlL"),   // Lifebuoy Total 10 Soap
+  lifebuoy:       CDN("51wIuhvDfgL"),   // Lifebuoy Total 10 Soap
   dettolBodyWash: CDN("71TT5b-q0IL"),   // Dettol Original Body Wash
   // Face Care
-  himalayaFaceWash: CDN("71U7bpIf0QL"), // Himalaya Purifying Neem Face Wash
+  himalayaFaceWash: CDN("61Rz5CoVbbL"), // Himalaya Purifying Neem Face Wash
   ponds:            CDN("71kqOV5Ap8L"), // Pond's White Beauty Face Wash
-  cleanClear:       CDN("71OqIbhFrZL"), // Clean & Clear Morning Energy
-  wowFaceWash:      CDN("71YGHRqOzXL"), // WOW Skin Science Activated Charcoal
+  cleanClear:       CDN("51pw-11FYaL"), // Clean & Clear Morning Energy
+  wowFaceWash:      CDN("51HL1kUiE2L"), // WOW Skin Science Activated Charcoal
   // Oral Care
-  colgate:          CDN("61+VQ5jLBpL"), // Colgate Strong Teeth Toothpaste
+  colgate:          CDN("71x8djnL8SL"), // Colgate Strong Teeth Toothpaste
   sensodyne:        CDN("714YFKCvFML"), // Sensodyne Rapid Relief
   pepsodent:        CDN("71g6kTLFWfL"), // Pepsodent Germi Check
-  oralB:            CDN("71OlDmUNVeL"), // Oral-B Pro-Health Toothpaste
+  oralB:            CDN("71wc6OS21cL"), // Oral-B Pro-Health Toothpaste
   colgateToothbrush:CDN("71RqdD4BQFL"), // Colgate ZigZag Toothbrush
   // Deodorant
-  axeDeo:           CDN("71LD5RrAWHL"), // Axe Dark Temptation Deodorant
+  axeDeo:           CDN("51EGQNcQ3OL"), // Axe Dark Temptation Deodorant
   nikaDeo:          CDN("71U+r4hMoOL"), // Nivea Men Deep Deodorant
   dove_deo:         CDN("61ROFHPD5bL"), // Dove Calming Blossom Deodorant
   // Hair Oil
-  paracheHairOil:   CDN("71JkHqVuZeL"), // Parachute Coconut Hair Oil
-  bajajAlmond:      CDN("71y0J9XXVAL"), // Bajaj Almond Drops Hair Oil
-  vatika:           CDN("71eFlGSLLWL"), // Dabur Vatika Enriched Coconut Hair Oil
+  paracheHairOil:   CDN("71vsJEcn0bL"), // Parachute Coconut Hair Oil
+  bajajAlmond:      CDN("51EhF-+Ju5L"), // Bajaj Almond Drops Hair Oil
+  vatika:           CDN("612ArMxOW+L"), // Dabur Vatika Enriched Coconut Hair Oil
   // Skincare / Moisturizer
   niveaCream:       CDN("71wLWFqiMQL"), // Nivea Soft Moisturising Cream
-  vaseline:         CDN("81XGCcKDe4L"), // Vaseline Intensive Care Body Lotion
-  lactoCalamine:    CDN("81t5dFQOJNL"), // Lacto Calamine Face Lotion
+  vaseline:         CDN("51AXDETNo2L"), // Vaseline Intensive Care Body Lotion
+  lactoCalamine:    CDN("511Tu0xf-UL"), // Lacto Calamine Face Lotion
   cetaphil:         CDN("71B4k2aFZ9L"), // Cetaphil Moisturising Cream
   // Feminine Care
-  stayfree:         CDN("71r1D1sSN5L"), // Stayfree Secure Extra Large Pads
-  sofy:             CDN("71PN3ZNpxPL"), // Sofy Antibacterial Extra Large Pads
-  whisper:          CDN("71KTiXfgIbL"), // Whisper Ultra Clean Pads
+  stayfree:         CDN("61SUdC27NqL"), // Stayfree Secure Extra Large Pads
+  sofy:             CDN("61y1aqkhY1L"), // Sofy Antibacterial Extra Large Pads
+  whisper:          CDN("61cwG0EXjAL"), // Whisper Ultra Clean Pads
   // Shaving
-  gillette:         CDN("71AK8cjIcpL"), // Gillette Mach3 Razor
-  gilletteFoam:     CDN("71hB0YwJe8L"), // Gillette Sensitive Shaving Foam
+  gillette:         CDN("71eT9QCQLqL"), // Gillette Mach3 Razor
+  gilletteFoam:     CDN("71TaHNvGf4L"), // Gillette Sensitive Shaving Foam
 };
 
 function sub(
@@ -124,7 +124,7 @@ export const DETTOL_SOAP = item(
   "Bath & Body",
   85, 99, 4, "bars of 75g",
   IMG.dettolSoap,
-  "B07WDHKN8P", 4.5, 312456,
+  "B078KHXTKP", 4.4, 4516,
   "Amazon's Choice",
   "Kills 99.9% germs — trusted germ-protection soap for families since decades",
   "Germ-protection for family", "Hygiene essential", 12,
@@ -162,7 +162,7 @@ export const COLGATE_TOOTHPASTE = item(
   "Oral Care",
   139, 160, 3, "tubes of 200g",
   IMG.colgate,
-  "B07WDHKQ6P", 4.5, 445231,
+  "B082T1DF99", 4.4, 3729,
   "Best Seller",
   "India's #1 toothpaste — Calcium Boost formula with Amino Shakti for stronger enamel",
   "Essential daily oral hygiene", "Oral care essential", 12,
@@ -200,7 +200,7 @@ export const PARACHUTE_HAIR_OIL = item(
   "Hair Care",
   156, 175, 1, "500 ml",
   IMG.paracheHairOil,
-  "B07XKHQE8P", 4.6, 389234,
+  "B09G6GWPYP", 4.3, 9449,
   "Best Seller",
   "100% pure coconut oil — reduces hair loss with regular use, India's most trusted hair oil",
   "Daily hair nourishment and oiling", "Hair care", 12,
@@ -257,7 +257,7 @@ export const GILLETTE_RAZOR = item(
   "Shaving",
   349, 399, 1, "razor + 2 cartridges",
   IMG.gillette,
-  "B07WDHKN6L", 4.5, 234567,
+  "B07VFTCXKR", 4.4, 11753,
   "Amazon's Choice",
   "3 anti-friction blades with Turbo technology — closer, effortless shave",
   "Daily shaving essential", "Grooming", 16,

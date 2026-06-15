@@ -6,27 +6,27 @@ const IMG = {
   // Sunscreen
   minimalistSPF:    CDN("71g+I4lZA4L"),  // Minimalist SPF 50 PA++++ Sunscreen 50ml
   lakmeSun:         CDN("81bXvM-uZML"),  // Lakme Sun Expert Ultra Matte SPF 50+ 100ml
-  neutrogena:       CDN("81MHpBXjnnL"),  // Neutrogena Ultra Sheer Dry-Touch SPF 50+ 88ml
-  lorealSun:        CDN("71DajhNIRPL"),  // Loreal Paris UV Perfect SPF 50+ 30ml
+  neutrogena:       CDN("615UXd0c5dL"),  // Neutrogena Ultra Sheer Dry-Touch SPF 50+ 88ml
+  lorealSun:        CDN("61cI6zr974L"),  // Loreal Paris UV Perfect SPF 50+ 30ml
   bioore:           CDN("71tO4H-FOAL"),  // Biore UV Aqua Rich Watery Essence SPF 50+
   // Serums & Treatment
-  minimalistVitC:   CDN("71VoH5oImL"),   // Minimalist Vitamin C 10% + E + Ferulic Serum
-  minimalistNiac:   CDN("71bfBxdAZmL"),  // Minimalist Niacinamide 10% + Zinc Serum
-  plumSerum:        CDN("71iCnP9BZNIL"), // Plum 1% Niacinamide Serum 30ml
-  wowVitC:          CDN("71dY5xCCXCL"),  // WOW Vitamin C Serum 30ml
+  minimalistVitC:   CDN("61x1qmjozKL"),   // Minimalist Vitamin C 10% + E + Ferulic Serum
+  minimalistNiac:   CDN("618taTjKWyL"),  // Minimalist Niacinamide 10% + Zinc Serum
+  plumSerum:        CDN("61AcWafsawL"), // Plum 1% Niacinamide Serum 30ml
+  wowVitC:          CDN("61x1qmjozKL"),  // WOW Vitamin C Serum 30ml
   // Moisturizers
-  lakmePeach:       CDN("71lI5i4oDnL"),  // Lakme Peach Milk Moisturizer 120ml
-  pondsAge:         CDN("71y4cnjrFwL"),  // Pond's Age Miracle Day Cream 35g
-  nivea:            CDN("71XpbNiAMML"),  // Nivea Soft Light Moisturiser 200ml
+  lakmePeach:       CDN("51DDJhaLHtL"),  // Lakme Peach Milk Moisturizer 120ml
+  pondsAge:         CDN("61hRBq1N4pL"),  // Pond's Age Miracle Day Cream 35g
+  nivea:            CDN("51DDJhaLHtL"),  // Nivea Soft Light Moisturiser 200ml
   // Cleansers & Toners
-  garnierMice:      CDN("71dkNF0JX8L"),  // Garnier Micellar Cleansing Water 400ml
-  cetaphilClean:    CDN("71dJkPQTHBL"),  // Cetaphil Gentle Skin Cleanser 250ml
+  garnierMice:      CDN("51aQ-yimIRL"),  // Garnier Micellar Cleansing Water 400ml
+  cetaphilClean:    CDN("51aQ-yimIRL"),  // Cetaphil Gentle Skin Cleanser 250ml
   // Scrubs & Masks
-  stIves:           CDN("81CSmAI5kkL"),  // St. Ives Apricot Scrub 170g
+  stIves:           CDN("61qTgz+UGJL"),  // St. Ives Apricot Scrub 170g
   mamamaskClean:    CDN("71g5AEgeqAL"),  // Mamaearth Charcoal Face Mask
   // Makeup (basic)
-  lakmekajal:       CDN("71X4VPXR5L"),   // Lakme Eyeconic Kajal Black 0.35g
-  maybellineFitmeFnd: CDN("71g6BFhdqAL"), // Maybelline Fit Me Matte+Poreless Foundation
+  lakmekajal:       CDN("71V8hB8fGZL"),   // Lakme Eyeconic Kajal Black 0.35g
+  maybellineFitmeFnd: CDN("51wKPntT05L"), // Maybelline Fit Me Matte+Poreless Foundation
 };
 
 function sub(id: string, name: string, brand: string, price: number, mrp: number, type: Substitute["type"], label: string, reason: string, eta: number, image: string, asin?: string, rating?: number, reviewCount?: number): Substitute {

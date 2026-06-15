@@ -4,29 +4,29 @@ const CDN = (id: string) => `https://m.media-amazon.com/images/I/${id}._SL300_.j
 
 const IMG = {
   // Party Decorations
-  balloons:       CDN("81j6vUzPnCL"),   // Party Propz Birthday Balloons
-  foilBalloon:    CDN("71qFiSjGTQL"),   // Star Foil Balloon Set
-  bannerSet:      CDN("71Z5YNR3PNL"),   // Happy Birthday Banner & Garland
+  balloons:       CDN("61fFZMiNnUL"),   // Party Propz Birthday Balloons
+  foilBalloon:    CDN("71QHLehX9ML"),   // Star Foil Balloon Set
+  bannerSet:      CDN("71sRRjf7f-L"),   // Happy Birthday Banner & Garland
   partyHats:      CDN("81CSmAI5gkL"),   // Colourful Party Hats
-  streamers:      CDN("71NtFuqIHvL"),   // Paper Streamers Rolls
+  streamers:      CDN("71bhDxObkCL"),   // Paper Streamers Rolls
   confetti:       CDN("71TKGAy4ZQL"),   // Biodegradable Confetti
   // Cakes / Bakes
-  betaMix:        CDN("71gEdFiHxcL"),   // Betty Crocker Super Moist Cake Mix
-  cakeCandles:    CDN("71SKMjH1WRL"),   // Number Birthday Candles
+  betaMix:        CDN("71BbKlFO9rL"),   // Betty Crocker Super Moist Cake Mix
+  cakeCandles:    CDN("61Qpnw0WriL"),   // Number Birthday Candles
   birthdayCandle: CDN("71vQHiWpjL"),    // Spiral Twist Birthday Candles
-  cakeMould:      CDN("81I6xFYFpjL"),   // Non-stick Round Cake Pan
+  cakeMould:      CDN("314gUYkYANL"),   // Non-stick Round Cake Pan
   // Snacks for Party
   lays:           CDN("71g3X+LxjuL"),   // Lay's Classic Chips Variety Pack
   doritos:        CDN("71fIMjFQ+wL"),   // Doritos Nacho Cheese Party Pack
-  kurkure:        CDN("61wNEMzaZwL"),   // Kurkure Masala Munch
+  kurkure:        CDN("817tDCgQIrL"),   // Kurkure Masala Munch
   partyMix:       CDN("81sBr7nOC9L"),   // Lehar Mixtures Party Pack
   // Drinks
   lemonade:       CDN("71c5It4YHNL"),   // Nimbooz Party Pack
-  sprite:         CDN("71biWoJKllL"),   // Sprite 2L PET Bottle
-  thumsUp:        CDN("71Ixp4I8jdL"),   // Thums Up 2L PET Bottle
+  sprite:         CDN("71S2omhRPUL"),   // Sprite 2L PET Bottle
+  thumsUp:        CDN("71Iu8ORdJPL"),   // Thums Up 2L PET Bottle
   // Plates / Cups (Disposable)
-  disposablePlates: CDN("71PnGNE7FJL"), // Areca Leaf Disposable Plates
-  paperCups:      CDN("81CSmAI5gL"),    // Solo Paper Cups 12oz
+  disposablePlates: CDN("71MfJVXuiRL"), // Areca Leaf Disposable Plates
+  paperCups:      CDN("41aBHdtbgmL"),    // Solo Paper Cups 12oz
   partyStraws:    CDN("71X3VPXP-5L"),   // Biodegradable Paper Straws
 };
 

@@ -5,23 +5,23 @@ const CDN = (id: string) => `https://m.media-amazon.com/images/I/${id}._SL300_.j
 const IMG = {
   // Baby Diapers
   pampers:        CDN("81sBr7mOC9L"),   // Pampers Premium Care Pants
-  mammyPoko:      CDN("71VmXDvFfXL"),   // MamyPoko Extra Absorb Pants
-  huggies:        CDN("81W0Gy4FLQL"),   // Huggies Wonder Pants
-  kiddies:        CDN("71bPCVsJRLL"),   // Pampers All Round Protection
+  mammyPoko:      CDN("61CtRCJBd+L"),   // MamyPoko Extra Absorb Pants
+  huggies:        CDN("81k2+QlCCsL"),   // Huggies Wonder Pants
+  kiddies:        CDN("61w+ov8-TjL"),   // Pampers All Round Protection
   // Baby Wipes
   pamperWipes:    CDN("71kTgp5+tPL"),   // Pampers Fresh Clean Baby Wipes
   meeWipes:       CDN("71TKGCyU4ZL"),   // Mee Mee Gentle Baby Wipes
   johnsons:       CDN("71Z5YNRK3PL"),   // Johnson's Baby Wipes
   // Baby Food / Formula
   aptamil:        CDN("71Bm9t3MKPL"),   // Aptamil Follow-Up Formula Stage 2
-  nestleNan:      CDN("71WH8yMq4LL"),   // Nestle NAN PRO Stage 1
+  nestleNan:      CDN("71iUNVArnyL"),   // Nestle NAN PRO Stage 1
   cerelac:        CDN("71vkQIPz7LL"),   // Nestle CERELAC Wheat Apple
   gerber:         CDN("71oQ1PmMqeL"),   // Gerber Rice Cereal
   // Baby Bath & Skincare
   johnsonsShampoo:CDN("71-UrxTYj5L"),   // Johnson's Baby Shampoo
   johnsonsOil:    CDN("71dsTXQDEHL"),   // Johnson's Baby Oil
   johnsonsLotion: CDN("71Xwpe7Y7lL"),   // Johnson's Baby Lotion
-  himalayaBaby:   CDN("81OAEF9IQ+L"),   // Himalaya Baby Cream
+  himalayaBaby:   CDN("51uU0AFPIsL"),   // Himalaya Baby Cream
   // Baby Accessories
   nuk:            CDN("71HCknSYqdL"),   // NUK Soother/Pacifier
   pigeon:         CDN("71LJpCqFWRL"),   // Pigeon Wide-Neck Feeding Bottle
@@ -86,8 +86,8 @@ export const PAMPERS_DIAPERS_L = item(
   "Baby Diapers",
   799, 899, 1, "pack of 44",
   IMG.kiddies,
-  "B07WDHKP4L", 4.5, 198765,
-  "Amazon's Choice",
+  "B081QVFQLD", 4.3, 234745,
+  "Best Seller",
   "360° protection with stretchable sides — designed for active babies who are learning to walk",
   "Large size diaper for active older baby", "Diaper essential", 20,
   [
@@ -159,7 +159,7 @@ export const JOHNSONS_BABY_LOTION = item(
   "Baby Bath & Body",
   249, 289, 1, "400 ml",
   IMG.johnsonsLotion,
-  "B07XKHQM5L", 4.6, 189234,
+  "B00QGEN6C8", 4.4, 34460,
   "Best Seller",
   "24-hour moisturisation with NaturalCalm technology — gentle enough for newborns",
   "Daily baby skin moisturisation", "Baby skincare", 16,
@@ -207,8 +207,8 @@ export const APTAMIL_FORMULA = item(
   "Baby Formula",
   799, 895, 1, "400g (6-12 months)",
   IMG.aptamil,
-  "B07WDHKQ5L", 4.3, 78234,
-  "Amazon's Choice",
+  "B07GB45YNZ", 4.5, 5710,
+  "Best Seller",
   "GOS/FOS prebiotic blend with DHA/ARA — supports immunity and brain development",
   "Nutritional formula supplement for baby", "Baby formula", 22,
   [

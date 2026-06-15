@@ -6,11 +6,11 @@ const IMG = {
   camlinPencil:  CDN("71T3pNFX2vL"),   // Camlin HB Pencils
   natraj:        CDN("71LNGhH+uXL"),   // Natraj HB Pencils
   classmateNB:   CDN("81yScFk1LzL"),   // Classmate Notebook A4
-  longBookNB:    CDN("71SKMjH0WRL"),   // Classmate Long Book
+  longBookNB:    CDN("71xw2saUu9L"),   // Classmate Long Book
   camlinColour:  CDN("61qNanBP9bXL"),  // Camlin Colour Pencils 12s
   apsaraColour:  CDN("71vQHiWqiL"),    // Apsara Colour Pencils
-  fevicol:       CDN("71EHjHq6xGL"),   // Fevicol SH Adhesive
-  classmateScis: CDN("81I6xEYFpjL"),   // Classmate Scissors
+  fevicol:       CDN("51KTS1CKa3L"),   // Fevicol SH Adhesive
+  classmateScis: CDN("61-NAYfI8dL"),   // Classmate Scissors
   drawingSheet:  CDN("71UTK6VPiTL"),   // Drawing Sheets ITC
   ruler:         CDN("71I4Y0KNABL"),   // Camlin Ruler 30cm
   camlinCrayon:  CDN("71OCrKFmEZL"),   // Camlin Crayons 24s

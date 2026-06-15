@@ -6,36 +6,36 @@ const IMG = {
   // Mobile Accessories
   boatEarbuds:    CDN("71g+I0lZA4L"),   // boAt Airdopes 141
   oneplusNord:    CDN("81bXvM-uVLL"),   // OnePlus Nord Buds
-  noiseBuds:      CDN("71DajhNIOOL"),   // Noise Buds VS104
+  noiseBuds:      CDN("518tWXSz9PS"),   // Noise Buds VS104
   // Cables
   amkette:        CDN("71tO4H-FNVL"),   // Amkette USB-C Cable
-  amazonBasicsC:  CDN("71VoH3oFGmL"),   // AmazonBasics USB-C Cable
-  ankerCable:     CDN("71gy7r4e0XL"),   // Anker USB-C to C Cable
-  microUsb:       CDN("71e6czReMTL"),   // Micro USB Cable
+  amazonBasicsC:  CDN("61zY-Cpy-vL"),   // AmazonBasics USB-C Cable
+  ankerCable:     CDN("31UVSdjsFEL"),   // Anker USB-C to C Cable
+  microUsb:       CDN("411EQGiWDRL"),   // Micro USB Cable
   // Chargers
   portronicsCharger: CDN("71bfBxdvZmL"), // Portronics Adapto 20W
-  ambrane20w:     CDN("71iCnP9BZFL"),   // Ambrane 20W PD Charger
-  ankerCharger:   CDN("71gy7r4e0XL"),   // Anker 20W USB-C Charger
+  ambrane20w:     CDN("61uuEwUl5mL"),   // Ambrane 20W PD Charger
+  ankerCharger:   CDN("31UVSdjsFEL"),   // Anker 20W USB-C Charger
   // Power Banks
-  miPowerbank:    CDN("71URK6VPiTL"),   // Mi Power Bank 3i 20000mAh
-  ambranePB:      CDN("71I3Y0KNABL"),   // Ambrane 20000mAh
-  urbn10k:        CDN("71NBrKFmEZL"),   // URBN 10000mAh Slim
+  miPowerbank:    CDN("71lVwl3q-kL"),   // Mi Power Bank 3i 20000mAh
+  ambranePB:      CDN("71lVwl3q-kL"),   // Ambrane 20000mAh
+  urbn10k:        CDN("81S2EQ9N86L"),   // URBN 10000mAh Slim
   // LED Lights / Smart Bulb
-  syska:          CDN("71dY5xC7xCL"),   // Syska SSK-PAR20-W LED Bulb
-  havellsLed:     CDN("71lI5i0oDnL"),   // Havells LED Bulb 9W
-  philipsLed:     CDN("71y4cnjmFwL"),   // Philips LED Bulb 9W Base B22
+  syska:          CDN("71+gif4STGL"),   // Syska SSK-PAR20-W LED Bulb
+  havellsLed:     CDN("71ReMk16cjL"),   // Havells LED Bulb 9W
+  philipsLed:     CDN("71KmoHMs2eL"),   // Philips LED Bulb 9W Base B22
   // Extension Boards
   anchExtension:  CDN("71XpbNhvMML"),   // Anchor Extension Cord
-  havellsExt:     CDN("71dkNF0FX8L"),   // Havells 6-Socket Extension
+  havellsExt:     CDN("51lXl98es-L"),   // Havells 6-Socket Extension
   // Screen Protectors / Accessories
   spigen:         CDN("71dJkPQPHBL"),   // Spigen Tempered Glass
   // Laptop Accessories
-  lapProtector:   CDN("71g5AEgbpAL"),   // Laptop Screen Protector
-  usbHub:         CDN("81CSmAI5OkL"),   // AmazonBasics USB-A Hub
-  mouseLogitech:  CDN("81MHpBXjijL"),   // Logitech M235 Wireless Mouse
+  lapProtector:   CDN("71FXZOfR2LL"),   // Laptop Screen Protector
+  usbHub:         CDN("51AW9kyMaSL"),   // AmazonBasics USB-A Hub
+  mouseLogitech:  CDN("519DPaSOa5L"),   // Logitech M235 Wireless Mouse
   // IoT / Electronics components
   sdCard:         CDN("71X3VPXP-4L"),   // SanDisk 32GB Ultra MicroSD
-  hdmi:           CDN("71PnGNE7FIL"),   // AmazonBasics HDMI Cable
+  hdmi:           CDN("81Bxo64d2-L"),   // AmazonBasics HDMI Cable
 };
 
 function sub(
@@ -150,7 +150,7 @@ export const PHILIPS_LED_BULB_9W = item(
   "Lighting",
   89, 99, 2, "bulbs",
   IMG.philipsLed,
-  "B07WDHKN5P", 4.5, 189234,
+  "B016W0ZPVU", 4.1, 27683,
   "Best Seller",
   "50,000 hours life, energy-saving 9W replaces 60W incandescent — instant full brightness",
   "Replacement LED bulb for home lighting", "Lighting essential", 14,

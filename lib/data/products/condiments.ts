@@ -13,13 +13,13 @@ const IMG = {
   hellmanns:        CDN("71VoH3oImL"),   // Hellmann's Real Mayonnaise 400g
   // Sauces
   chingsSoy:        CDN("71bfBxdyZmL"),  // Ching's Secret Soy Sauce 750ml
-  wingreensSchz:    CDN("71iCnP9BZMHL"), // Wingreens Farms Schezwan Sauce 450g
+  wingreensSchz:    CDN("510WnfwatXL"), // Wingreens Farms Schezwan Sauce 450g
   chingsChilli:     CDN("71dY5xCAXCL"),  // Ching's Chilli Sauce 680g
-  maggiHotChilli:   CDN("71lI5i2oDnL"),  // Maggi Hot & Sweet Chilli Sauce
-  delMonteOlive:    CDN("71y4cnjpFwL"),  // Del Monte Olive Oil Extra Virgin
+  maggiHotChilli:   CDN("71pM1yWGdnL"),  // Maggi Hot & Sweet Chilli Sauce
+  delMonteOlive:    CDN("711sOwYbYWL"),  // Del Monte Olive Oil Extra Virgin
   // Spreads
-  kissamJam:        CDN("71XpbNhyMML"),  // Kissan Mixed Fruit Jam 500g
-  sundropPB:        CDN("71dkNF0HX8L"),  // Sundrop Peanut Butter Creamy 924g
+  kissamJam:        CDN("810-RMl3lyL"),  // Kissan Mixed Fruit Jam 500g
+  sundropPB:        CDN("717YqOTzg4L"),  // Sundrop Peanut Butter Creamy 924g
   // Vinegar & Others
   chingsVinegar:    CDN("71dJkPQRHBL"),  // Ching's White Vinegar
   maggiMasala:      CDN("81CSmAI5ikL"),  // Maggi Masala ae Magic 6g×18

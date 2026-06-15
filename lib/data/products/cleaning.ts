@@ -5,31 +5,31 @@ const CDN = (id: string) => `https://m.media-amazon.com/images/I/${id}._SL300_.j
 const IMG = {
   // Floor & Surface Cleaning
   colinFloor:     CDN("71EI56ULsfL"),   // Colin Glass & Surface Cleaner
-  dettolFloor:    CDN("71dJDlJR4mL"),   // Dettol Floor Cleaner Citrus
-  lizolFloor:     CDN("81uc8TdNZTL"),   // Lizol Disinfectant Surface Cleaner
-  harpicToilet:   CDN("71kLZ7rVQqL"),   // Harpic Power Plus Toilet Cleaner
+  dettolFloor:    CDN("61WgfSMLxJL"),   // Dettol Floor Cleaner Citrus
+  lizolFloor:     CDN("71JpUMx956L"),   // Lizol Disinfectant Surface Cleaner
+  harpicToilet:   CDN("51dTSG1mo2L"),   // Harpic Power Plus Toilet Cleaner
   // Dishwash
-  vimBar:         CDN("71yEVu3l4vL"),   // Vim Dishwash Lemon Bar
-  vimGel:         CDN("71E0GvXgUnL"),   // Vim Dishwash Gel
-  pril:           CDN("71LRFBWMxEL"),   // Pril Concentrated Dishwash
+  vimBar:         CDN("51lHyYX+jcL"),   // Vim Dishwash Lemon Bar
+  vimGel:         CDN("71blMTsgNSL"),   // Vim Dishwash Gel
+  pril:           CDN("51lHyYX+jcL"),   // Pril Concentrated Dishwash
   // Laundry
-  ariel:          CDN("71mj8VgXeeL"),   // Ariel Matic Front Load Washing Powder
-  surfExcel:      CDN("61HJz3UilHL"),   // Surf Excel Easy Wash Detergent Powder
-  tide:           CDN("71H4m0UKPTL"),   // Tide Plus Double Power Detergent
-  comfortFabric:  CDN("71XnVK9k2QL"),   // Comfort After Wash Fabric Conditioner
+  ariel:          CDN("71G9Nf0q4bL"),   // Ariel Matic Front Load Washing Powder
+  surfExcel:      CDN("61KFEAQk4GL"),   // Surf Excel Easy Wash Detergent Powder
+  tide:           CDN("71Hy3CV9M7L"),   // Tide Plus Double Power Detergent
+  comfortFabric:  CDN("61LCIyBMcqL"),   // Comfort After Wash Fabric Conditioner
   // Bathroom / Toilet
-  domexToilet:    CDN("71PnEgrdGCL"),   // Domex Ultra Toilet Cleaner
-  scrubber:       CDN("71kZGvs1T0L"),   // Scotch-Brite Multi-Use Scrub Pad
+  domexToilet:    CDN("51ogQYikFYL"),   // Domex Ultra Toilet Cleaner
+  scrubber:       CDN("61XIB4m1oBL"),   // Scotch-Brite Multi-Use Scrub Pad
   mop:            CDN("71mVE9yJJ6L"),   // Scotch-Brite Mop Head
   // Air & Space
-  airwick:        CDN("71JtGIJIBL"),    // Air Wick Freshmatic Automatic Spray
+  airwick:        CDN("51KDHkBOalS"),    // Air Wick Freshmatic Automatic Spray
   odonil:         CDN("71OqaBk8CHL"),   // Odonil Room Freshener Blocks
   // Kitchen & Surfaces
-  colinSpray:     CDN("71WqJF7QBPL"),   // Colin Multi-Surface Cleaner Spray
-  mrMuscle:       CDN("71VpPHiWqjL"),   // Mr Muscle Kitchen Cleaner
+  colinSpray:     CDN("81w7hisi2ML"),   // Colin Multi-Surface Cleaner Spray
+  mrMuscle:       CDN("51kNtaHtYmL"),   // Mr Muscle Kitchen Cleaner
   // Protective
-  rubberGloves:   CDN("71T3pNFY2vL"),   // Vguard Rubber Cleaning Gloves
-  garbage:        CDN("71UTK6WPiTL"),   // Garbage Bags Strong Oxo-Biodegradable
+  rubberGloves:   CDN("71ejp6RZo3L"),   // Vguard Rubber Cleaning Gloves
+  garbage:        CDN("414C3BhSeKL"),   // Garbage Bags Strong Oxo-Biodegradable
 };
 
 function sub(

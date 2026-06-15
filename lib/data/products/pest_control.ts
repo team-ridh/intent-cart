@@ -6,7 +6,7 @@ const IMG = {
   goodKnightMachine: CDN("71g+I5lZA4L"),  // Good Knight Advanced Activ+ Machine + Refill
   goodKnightPower:   CDN("81bXvM-uAML"),  // Good Knight Power Shot Automatic Room Spray 400ml
   goodKnightCoils:   CDN("81MHpBXjooL"),  // Good Knight Mosquito Coils 10s + stand
-  allOut:            CDN("71DajhNISPL"),  // All Out Ultra Mosquito Repellent Machine + 45ml Refill
+  allOut:            CDN("61hZQRKc4hL"),  // All Out Ultra Mosquito Repellent Machine + 45ml Refill
   allOutRefill:      CDN("71tO4H-FOBL"),  // All Out Ultra Refill 45ml x3
   hitCockroach:      CDN("71VoH6oImL"),   // HIT Cockroach Spray 200ml
   hitFly:            CDN("71bfBxdBZmL"),  // HIT Flying Insect Killer 400ml
