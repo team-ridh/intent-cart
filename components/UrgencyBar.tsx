@@ -16,7 +16,7 @@ const MODES: {
   {
     value: "fastest",
     label: "Fastest",
-    icon: <Lightning size={14} weight="fill" />,
+    icon: <Lightning size={12} weight="fill" />,
     description: "In-stock items, lowest delivery time",
     tooltip: {
       title: "Fastest Delivery",
@@ -30,7 +30,7 @@ const MODES: {
   {
     value: "value",
     label: "Best Value",
-    icon: <CurrencyDollar size={14} weight="bold" />,
+    icon: <CurrencyDollar size={12} weight="bold" />,
     description: "Lowest total cost, smart substitutes",
     tooltip: {
       title: "Best Value",
@@ -44,7 +44,7 @@ const MODES: {
   {
     value: "trusted",
     label: "Most Trusted",
-    icon: <ShieldCheck size={14} weight="fill" />,
+    icon: <ShieldCheck size={12} weight="fill" />,
     description: "Top-rated brands, purchase confidence",
     tooltip: {
       title: "Most Trusted",
@@ -183,17 +183,16 @@ export function UrgencyBar({
             // data-urgency-btn lets getBoundingClientRect target the full button wrapper
             <div key={m.value} style={{ flex: 1, position: "relative" }} data-urgency-btn>
 
-              {/* Main button */}
+              {/* Main button — ⓘ is now the last inline flex child, no absolute positioning needed */}
               <button
                 id={`${idPrefix}-${m.value}`}
                 onClick={() => onChange(m.value)}
                 style={{
                   width: "100%",
-                  minHeight: 44,
-                  padding: "8px 6px",
-                  paddingRight: 28,
+                  minHeight: 36,
+                  padding: "5px 8px",
                   borderRadius: "var(--radius-pill)",
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: 600,
                   fontFamily: "var(--font-display)",
                   cursor: "pointer",
@@ -205,56 +204,52 @@ export function UrgencyBar({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: 5,
+                  gap: 4,
                   boxShadow: isActive ? "0 2px 10px rgba(0,0,0,0.15)" : "none",
                   transform: isActive ? "scale(1.02)" : "scale(1)",
                   position: "relative",
+                  overflow: "hidden",
                 }}
               >
                 {m.icon}
-                <span style={{ whiteSpace: "nowrap" }}>{m.label}</span>
+                <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{m.label}</span>
+
+                {/* ⓘ inline — part of the flex row, no absolute positioning */}
+                <span
+                  id={`${idPrefix}-info-${m.value}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`About ${m.label}`}
+                  onFocus={(e) => openTooltip(m.value, e.currentTarget as HTMLElement)}
+                  onBlur={() => closeTooltip(m.value)}
+                  style={{
+                    flexShrink: 0,
+                    width: 16,
+                    height: 16,
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    zIndex: 10,
+                    color: isActive ? "rgba(255,255,255,0.65)" : "var(--text-faint)",
+                    background: isActive ? "rgba(255,255,255,0.18)" : "transparent",
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    openTooltip(m.value, e.currentTarget as HTMLElement);
+                    (e.currentTarget as HTMLElement).style.color = isActive ? "#fff" : "var(--text-secondary)";
+                    (e.currentTarget as HTMLElement).style.background = isActive ? "rgba(255,255,255,0.3)" : "var(--bg-elevated)";
+                  }}
+                  onMouseLeave={(e) => {
+                    closeTooltip(m.value);
+                    (e.currentTarget as HTMLElement).style.color = isActive ? "rgba(255,255,255,0.65)" : "var(--text-faint)";
+                    (e.currentTarget as HTMLElement).style.background = isActive ? "rgba(255,255,255,0.18)" : "transparent";
+                  }}
+                >
+                  <Info size={10} weight="bold" />
+                </span>
               </button>
-
-              {/* ⓘ info icon */}
-              <div
-                id={`${idPrefix}-info-${m.value}`}
-                role="button"
-                tabIndex={0}
-                aria-label={`About ${m.label}`}
-                onFocus={(e) => openTooltip(m.value, e.currentTarget as HTMLElement)}
-                onBlur={() => closeTooltip(m.value)}
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  right: 8,
-                  transform: "translateY(-50%)",
-                  width: 18,
-                  height: 18,
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  zIndex: 10,
-                  color: isActive ? "rgba(255,255,255,0.65)" : "var(--text-faint)",
-                  background: isActive ? "rgba(255,255,255,0.18)" : "transparent",
-                  transition: "all 0.15s ease",
-                }}
-                onMouseEnter={(e) => {
-                  openTooltip(m.value, e.currentTarget as HTMLElement);
-                  (e.currentTarget as HTMLElement).style.color = isActive ? "#fff" : "var(--text-secondary)";
-                  (e.currentTarget as HTMLElement).style.background = isActive ? "rgba(255,255,255,0.3)" : "var(--bg-elevated)";
-                }}
-                onMouseLeave={(e) => {
-                  closeTooltip(m.value);
-                  (e.currentTarget as HTMLElement).style.color = isActive ? "rgba(255,255,255,0.65)" : "var(--text-faint)";
-                  (e.currentTarget as HTMLElement).style.background = isActive ? "rgba(255,255,255,0.18)" : "transparent";
-                }}
-              >
-
-
-                <Info size={11} weight="bold" />
-              </div>
             </div>
           );
         })}
