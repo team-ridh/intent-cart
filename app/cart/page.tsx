@@ -22,7 +22,6 @@ import {
   SparkleIcon,
   ArrowLeftIcon,
   DotsThreeIcon,
-  GiftIcon,
   TruckIcon,
   LockSimpleIcon,
 } from "@phosphor-icons/react";
@@ -239,12 +238,10 @@ function MoreActionsSheet({ onSave, onRefine, onShare, onAiEdit, onClose }: More
 interface OrderSummaryProps {
   itemCount: number;
   totalPrice: number;
-  isGift: boolean;
-  onGiftToggle: () => void;
   onCheckout: () => void;
 }
 
-function OrderSummary({ itemCount, totalPrice, isGift, onGiftToggle, onCheckout }: OrderSummaryProps) {
+function OrderSummary({ itemCount, totalPrice, onCheckout }: OrderSummaryProps) {
   return (
     <div className="order-summary">
       <p className="order-summary__subtotal">
@@ -252,17 +249,6 @@ function OrderSummary({ itemCount, totalPrice, isGift, onGiftToggle, onCheckout 
         ):{" "}
         <strong>₹{totalPrice.toLocaleString("en-IN")}</strong>
       </p>
-
-      <label className="order-summary__gift-label">
-        <input
-          type="checkbox"
-          checked={isGift}
-          onChange={onGiftToggle}
-          className="order-summary__gift-checkbox"
-        />
-        <GiftIcon size={12} weight="regular" />
-        This order contains a gift
-      </label>
 
       <button
         id="proceed-checkout-btn"
@@ -393,7 +379,6 @@ function CartPage() {
   const [drawerItem,       setDrawerItem]       = useState<CartItem | null>(null);
   const [showRefineSheet,  setShowRefineSheet]   = useState(false);
   const [showMoreSheet,    setShowMoreSheet]     = useState(false);
-  const [isGift,           setIsGift]           = useState(false);
 
   const { toast, show: showToast, dismiss: dismissToast } = useToast();
 
@@ -649,8 +634,6 @@ function CartPage() {
                   <OrderSummary
                     itemCount={itemCount}
                     totalPrice={totalPrice}
-                    isGift={isGift}
-                    onGiftToggle={() => setIsGift((v) => !v)}
                     onCheckout={() => router.push("/checkout")}
                   />
 
