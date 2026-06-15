@@ -11,6 +11,7 @@ import {
   SpinnerIcon,
   WarningCircleIcon,
   XCircleIcon,
+  InfoIcon,
 } from "@phosphor-icons/react";
 import type { WeatherResult } from "@/app/api/weather/route";
 import type { LocationSignal, SignalStatus } from "@/hooks/useContextSignals";
@@ -103,7 +104,7 @@ export function ContextSignals({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-      {/* Section label — same style as "Quick Situations" */}
+      {/* Section label */}
       <div
         style={{
           fontSize: 14,
@@ -112,9 +113,49 @@ export function ContextSignals({
           marginBottom: 12,
           fontFamily: "var(--font-display)",
           whiteSpace: "nowrap",
+          display: "flex",
+          alignItems: "center",
+          gap: 5,
         }}
       >
         Location &amp; Weather
+
+        {/* ⓘ icon with CSS hover tooltip */}
+        <span
+          style={{ position: "relative", display: "inline-flex", alignItems: "center" }}
+          className="ctx-info-wrap"
+        >
+          <InfoIcon
+            size={13}
+            weight="bold"
+            style={{ color: "var(--text-faint)", cursor: "default", flexShrink: 0 }}
+          />
+          <span
+            style={{
+              position: "absolute",
+              top: "calc(100% + 6px)",
+              left: 0,
+              width: 220,
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border)",
+              borderRadius: 12,
+              padding: "10px 12px",
+              fontSize: 12,
+              lineHeight: 1.55,
+              color: "var(--text-secondary)",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.10)",
+              pointerEvents: "none",
+              opacity: 0,
+              transition: "opacity 0.15s ease",
+              zIndex: 50,
+              whiteSpace: "normal",
+            }}
+            className="ctx-info-tip"
+          >
+            Uses your location and current weather conditions to personalize recommendations.
+          </span>
+          <style>{`.ctx-info-wrap:hover .ctx-info-tip { opacity: 1 !important; pointer-events: auto; }`}</style>
+        </span>
       </div>
 
       {/*
