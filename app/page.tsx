@@ -316,9 +316,14 @@ function SituationPage() {
   // ─── Submit — calls Bedrock via /api/interpret ───────────────────
   const handleSubmit = useCallback(async () => {
     const input = situationText.trim();
-    if (!input || input.length < 4) {
-      setError("Please describe your situation in a few words");
+    // A photo alone is valid — the AI will analyse the image
+    if ((!input || input.length < 4) && !photoS3Key) {
+      setError("Please describe your situation in a few words, or upload a photo");
       return;
+    }
+    // If only a photo was provided, use a minimal text so the API gets a non-empty string
+    if ((!input || input.length < 4) && photoS3Key) {
+      setSituationText("photo of my situation");
     }
 
     setError(null);
@@ -378,7 +383,7 @@ function SituationPage() {
 
   const handleUrgencyChange = (mode: UrgencyMode) => setUrgencyMode(mode);
 
-  const canSubmit = situationText.trim().length > 3 && !isSubmitting;
+  const canSubmit = (situationText.trim().length > 3 || !!photoS3Key) && !isSubmitting;
 
   return (
     <main
