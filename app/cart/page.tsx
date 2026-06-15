@@ -371,7 +371,7 @@ function CartPage() {
     cart, intent, urgencyMode, selectedSubstitutes,
     syncUrgencyMode, syncSubstitute,
     adjustQuantity, removeItem, addItem,
-    getTotalPrice, getFinalItems,
+    getTotalPrice, getFinalItems, setCart,
     loadFromServer, isLoading, error,
     situationText,
   } = useCartStore();
@@ -516,7 +516,7 @@ function CartPage() {
       {showRefineSheet && (
         <CartRefineSheet
           onApplied={(updatedCart, fb) => {
-            useCartStore.setState({ cart: updatedCart });
+            setCart(updatedCart);
             showToast(fb, "success");
             setShowRefineSheet(false);
           }}

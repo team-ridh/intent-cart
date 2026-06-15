@@ -413,6 +413,9 @@ function CheckoutPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+  // Snapshot the grand total at confirmation time so the confirmed screen
+  // is never stale if the component remounts and paymentMethod resets.
+  const [confirmedGrandTotal, setConfirmedGrandTotal] = useState<number | null>(null);
 
   // Address state
   const [address, setAddress] = useState<Address>(DEFAULT_ADDRESS);
@@ -455,13 +458,17 @@ function CheckoutPage() {
 
       if (!res.ok) throw new Error(data.error ?? "Confirmation failed");
 
+      // Snapshot the total before any state resets can happen
+      const snapshotTotal = grandTotal;
+      setConfirmedGrandTotal(snapshotTotal);
+
       if (cart && intent) {
         saveOrderToHistory({
           sessionId: data.sessionId ?? crypto.randomUUID(),
           situationText: useCartStore.getState().situationText,
           scenarioLabel: intent.scenarioLabel,
           itemCount: cart.itemCount,
-          totalPrice: getTotalPrice() + platformFee,
+          totalPrice: snapshotTotal, // includes platformFee + codFee
           estimatedEta: cart.estimatedEta,
           confirmedAt: Date.now(),
           items: finalItems.map((item) => ({
@@ -532,7 +539,7 @@ function CheckoutPage() {
           <div className="checkout-confirmed__card">
             <div className="checkout-confirmed__row">
               <span>Order Total</span>
-              <strong>₹{grandTotal.toLocaleString("en-IN")}</strong>
+              <strong>₹{(confirmedGrandTotal ?? grandTotal).toLocaleString("en-IN")}</strong>
             </div>
             <div className="checkout-confirmed__row">
               <span>Items</span>
