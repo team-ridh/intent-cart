@@ -262,7 +262,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
       if (!subId) return item;
       const sub = item.substitutes.find((s) => s.id === subId);
       if (!sub) return item;
-      return { ...item, name: sub.name, brand: sub.brand, price: sub.price, eta: sub.eta, image: sub.image };
+      return { ...item, name: sub.name, brand: sub.brand, price: sub.price, mrp: sub.mrp, discount: sub.discount, eta: sub.eta, image: sub.image };
     });
   },
 
