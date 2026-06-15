@@ -122,12 +122,14 @@ export async function POST(req: NextRequest) {
       } else if (op.action === "add_qty") {
         const item = cart.items.find((i) => i.id === op.itemId);
         if (item && op.delta > 0) {
+          // Cap delta at 10 — Bedrock could hallucinate unreasonably large values
+          const clampedDelta = Math.min(op.delta, 10);
           const items = cart.items.map((i) =>
-            i.id === op.itemId ? { ...i, quantity: i.quantity + op.delta } : i
+            i.id === op.itemId ? { ...i, quantity: i.quantity + clampedDelta } : i
           );
           const totalPrice = items.reduce((s, i) => s + i.price * i.quantity, 0);
           cart = { ...cart, items, totalPrice };
-          appliedOps.push(`Added ${op.delta} × ${item.name}`);
+          appliedOps.push(`Added ${clampedDelta} × ${item.name}`);
         }
       }
     }

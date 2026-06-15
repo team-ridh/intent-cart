@@ -14,7 +14,9 @@ function valueScore(candidate: Substitute): number {
 
 function trustedScore(candidate: Substitute): number {
   // Higher rating is better. Tiebreak: more reviews = more reliable signal.
-  const rating = candidate.rating ?? 0;
+  // Unrated items default to 2.5 (mid-scale neutral) so they don't unfairly
+  // underrank against items with reviews but no explicit rating.
+  const rating = candidate.rating ?? 2.5;
   const reviews = candidate.reviewCount ?? 0;
   return rating * 10000 + Math.log1p(reviews);
 }

@@ -548,7 +548,11 @@ export async function POST(req: NextRequest) {
     );
 
     // ─── Generate cart server-side ─────────────────────────────────
-    const urgencyMode: UrgencyMode = "fastest";
+    // Use the deliveryMode Bedrock returned for this scenario (e.g. "value" for tea_break/general).
+    // Falls back to "fastest" if Bedrock returned something unexpected.
+    const urgencyMode: UrgencyMode = (["fastest", "value", "trusted"].includes(intent.deliveryMode as string)
+      ? (intent.deliveryMode as UrgencyMode)
+      : "fastest");
     const cart = generateCart(intent, urgencyMode);
     const initialSelections = generateInitialSelections(cart.items, urgencyMode);
 

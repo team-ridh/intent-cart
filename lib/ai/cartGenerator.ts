@@ -12,13 +12,16 @@ function boostBySuggestedItems(items: CartItem[], suggestedItems: string[]): Car
   if (!suggestedItems || suggestedItems.length === 0) return items;
   const normalized = suggestedItems.map((s) => s.toLowerCase().trim());
 
+  // Bidirectional substring only: item name contains the suggestion, or suggestion
+  // contains the item name, or the reasonTag/category matches.
+  // The previous first-word check (s.includes(item.name.split(" ")[0])) was too
+  // aggressive — short first words like "Oil", "Milk", "Tea" produced false boosts.
   const matches = items.filter((item) =>
     normalized.some(
       (s) =>
         item.name.toLowerCase().includes(s) ||
-        s.includes(item.name.toLowerCase().split(" ")[0]) ||
-        item.reasonTag.toLowerCase().includes(s) ||
-        item.category.toLowerCase().includes(s)
+        s.includes(item.name.toLowerCase()) ||
+        item.reasonTag.toLowerCase().includes(s)
     )
   );
   const rest = items.filter((item) => !matches.includes(item));
@@ -63,19 +66,20 @@ export function generateCart(
   intent: ParsedIntent,
   mode: UrgencyMode = "fastest"
 ): GeneratedCart {
-  let rawItems: CartItem[] = SCENARIO_CARTS[intent.scenario] ?? SCENARIO_CARTS.general;
+  const rawItems: CartItem[] = SCENARIO_CARTS[intent.scenario] ?? SCENARIO_CARTS.general;
 
-  // Blend secondary scenario items if AI detected a dual-need situation
-  if (intent.secondaryScenario && (intent.secondaryConfidence ?? 0) >= 35) {
-    rawItems = mergeSecondaryScenario(rawItems, intent.secondaryScenario, 2);
-  }
-
-  // Boost items that match what the AI explicitly suggested
+  // Boost primary items first — secondary items must not receive this boost
   const boostedItems = boostBySuggestedItems(rawItems, intent.suggestedItems ?? []);
+
+  // Blend secondary scenario items AFTER boosting so they don't inherit the
+  // primary's suggested-item boost (Improvement 3 fix)
+  const mergedItems = (intent.secondaryScenario && (intent.secondaryConfidence ?? 0) >= 35)
+    ? mergeSecondaryScenario(boostedItems, intent.secondaryScenario, 2)
+    : boostedItems;
 
   // Apply urgency-based ETA multiplier (affects initial ETA at generation time only)
   const etaMultiplier = mode === "fastest" ? 1.0 : mode === "value" ? 1.2 : 1.1;
-  const itemsWithEta = boostedItems.map((i) => ({
+  const itemsWithEta = mergedItems.map((i) => ({
     ...i,
     eta: Math.round(i.eta * etaMultiplier),
   }));
@@ -90,7 +94,7 @@ export function generateCart(
   const estimatedEta = sortedItems.length > 0 ? Math.max(...sortedItems.map((i) => i.eta)) : 0;
   const essentialCount = sortedItems.filter((i) => i.isEssential).length;
 
-  const summaryLine = buildSummaryLine(intent, sortedItems.length, essentialCount, estimatedEta);
+  const summaryLine = buildSummaryLine(intent, sortedItems.length, essentialCount, estimatedEta, mode);
 
   return {
     items: sortedItems,
@@ -117,14 +121,17 @@ function buildSummaryLine(
   intent: ParsedIntent,
   total: number,
   essential: number,
-  eta: number
+  eta: number,
+  mode: UrgencyMode
 ): string {
-  const urgencyStr =
-    intent.urgency === "High"
-      ? "urgent"
-      : intent.urgency === "Medium"
-      ? "time-sensitive"
-      : "relaxed";
+  // Use the user-facing mode label rather than the scenario's inherent urgency.
+  // This way the summary updates correctly when the user switches modes.
+  const modeStr =
+    mode === "fastest"
+      ? "fastest delivery"
+      : mode === "value"
+      ? "best value"
+      : "most trusted";
 
-  return `${total} items curated for your ${urgencyStr} ${intent.scenarioLabel.toLowerCase()} need · typically ready in ~${eta} min`;
+  return `${total} items · ${modeStr} · ${intent.scenarioLabel.toLowerCase()} · ready in ~${eta} min`;
 }
