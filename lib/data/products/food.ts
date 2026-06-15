@@ -18,7 +18,7 @@ const IMG = {
   harvestGold:   CDN("71vN6xKCP4L"),   // Harvest Gold Bread
   amulButter:    CDN("61UMK6VPiTL"),   // Amul Butter 100g
   britanniaButter:CDN("71SKKjG3WRL"),  // Britannia Winkin' Cow Butter
-  amulGoldButter: CDN("71LMFhF+uUL"),  // Amul Gold Butter
+  amulGoldButter: CDN("71WH8yMq6LL"),  // Amul Gold Butter
   eggs:          CDN("61emkv50hvL"),   // Farm Fresh Eggs
   haldirams:     CDN("81yPcFk1LzL"),   // Haldirams Bhujia
   bikajiMix:     CDN("91lxOzQhSgL"),   // Bikaji Namkeen Mix

@@ -153,7 +153,15 @@ export async function PATCH(req: NextRequest) {
       urgencyMode = body.urgencyMode;
       const rerankedItems = applyUrgencyMode(cart.items, urgencyMode);
       const sortedItems = sortItemsByMode(rerankedItems, urgencyMode);
-      cart = { ...cart, items: sortedItems, estimatedEta: sortedItems.length > 0 ? Math.max(...sortedItems.map((i) => i.eta)) : 0 };
+      // Recompute totalPrice and itemCount alongside estimatedEta — previously
+      // these were left stale when only the mode changed.
+      const totalPrice = sortedItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+      const estimatedEta = sortedItems.length > 0 ? Math.max(...sortedItems.map((i) => i.eta)) : 0;
+      // Regenerate summaryLine to reflect the new mode label.
+      const modeStr = urgencyMode === "fastest" ? "fastest delivery" : urgencyMode === "value" ? "best value" : "most trusted";
+      const essentialCount = sortedItems.filter((i) => i.isEssential).length;
+      const summaryLine = `${sortedItems.length} items · ${modeStr} · ${cart.intent.scenarioLabel.toLowerCase()} · ready in ~${estimatedEta} min`;
+      cart = { ...cart, items: sortedItems, totalPrice, itemCount: sortedItems.length, estimatedEta, summaryLine };
       // Auto-select the best substitute per item for the new mode
       selectedSubstitutes = computeAutoSelections(sortedItems, urgencyMode);
     }
@@ -161,6 +169,12 @@ export async function PATCH(req: NextRequest) {
     // Update selected substitutes
     if (body.selectedSubstitutes !== undefined) {
       selectedSubstitutes = { ...selectedSubstitutes, ...body.selectedSubstitutes };
+    }
+
+    // ─── Helper: rebuild summaryLine after any cart mutation ────────────────
+    function rebuildSummaryLine(c: GeneratedCart, mode: UrgencyMode): string {
+      const modeStr = mode === "fastest" ? "fastest delivery" : mode === "value" ? "best value" : "most trusted";
+      return `${c.items.length} items · ${modeStr} · ${c.intent.scenarioLabel.toLowerCase()} · ready in ~${c.estimatedEta} min`;
     }
 
     // Adjust item quantity
@@ -176,6 +190,7 @@ export async function PATCH(req: NextRequest) {
       const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
       const estimatedEta = items.length > 0 ? Math.max(...items.map((i) => i.eta)) : 0;
       cart = { ...cart, items, totalPrice, itemCount: items.length, estimatedEta };
+      cart = { ...cart, summaryLine: rebuildSummaryLine(cart, urgencyMode) };
     }
 
     // Remove item
@@ -184,6 +199,7 @@ export async function PATCH(req: NextRequest) {
       const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
       const estimatedEta = items.length > 0 ? Math.max(...items.map((i) => i.eta)) : 0;
       cart = { ...cart, items, totalPrice, itemCount: items.length, estimatedEta };
+      cart = { ...cart, summaryLine: rebuildSummaryLine(cart, urgencyMode) };
     }
 
     // Add item (from featured items panel)
@@ -195,6 +211,7 @@ export async function PATCH(req: NextRequest) {
         const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
         const estimatedEta = items.length > 0 ? Math.max(...items.map((i) => i.eta)) : 0;
         cart = { ...cart, items, totalPrice, itemCount: items.length, estimatedEta };
+        cart = { ...cart, summaryLine: rebuildSummaryLine(cart, urgencyMode) };
       }
     }
 

@@ -403,6 +403,7 @@ function CheckoutPage() {
   const {
     cart,
     intent,
+    situationText,
     getFinalItems,
     getTotalPrice,
     loadFromServer,
@@ -465,7 +466,7 @@ function CheckoutPage() {
       if (cart && intent) {
         saveOrderToHistory({
           sessionId: data.sessionId ?? crypto.randomUUID(),
-          situationText: useCartStore.getState().situationText,
+          situationText,
           scenarioLabel: intent.scenarioLabel,
           itemCount: cart.itemCount,
           totalPrice: snapshotTotal, // includes platformFee + codFee

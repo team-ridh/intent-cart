@@ -5,7 +5,7 @@ const CDN = (id: string) => `https://m.media-amazon.com/images/I/${id}._SL300_.j
 const IMG = {
   // Milk
   amulTaaza:        CDN("71w5K+q2Y3L"),  // Amul Taaza Full Cream Milk 1L Tetra
-  amulGold:         CDN("41hheOaj6bL"),  // Amul Gold Full Cream Milk 1L
+  amulGold:         CDN("71WH8yMq6LL"),  // Amul Gold Full Cream Milk 1L
   // Butter & Ghee
   amulButter:       CDN("71JKMaCNV5L"),  // Amul Pasteurised Butter 500g
   amulGhee:         CDN("71o3YHe9UML"),  // Amul Pure Ghee 500ml Tin

@@ -25,6 +25,7 @@ import {
   WarningCircleIcon,
   LightningIcon,
   SparkleIcon,
+  ArrowCounterClockwiseIcon,
 } from "@phosphor-icons/react";
 import type { GeneratedCart, ParsedIntent, UrgencyMode } from "@/lib/types";
 import { getOrderHistory } from "@/lib/orderHistory";
@@ -227,6 +228,13 @@ function SituationPage() {
   const [pendingIntent, setPendingIntent] = useState<ParsedIntent | null>(null);
   const [pendingCart, setPendingCart] = useState<GeneratedCart | null>(null);
   const [pendingSelections, setPendingSelections] = useState<Record<string, string>>({});
+  // Last confirmed session chip (fetched from /api/reorder on mount)
+  const [lastOrder, setLastOrder] = useState<{
+    situationText: string;
+    scenarioLabel: string;
+    totalPrice: number;
+    itemCount: number;
+  } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const {
@@ -247,6 +255,15 @@ function SituationPage() {
   // Reset store — but NOT if we came here via Refine (preserve the situation text)
   useEffect(() => {
     if (!isRefining) reset();
+
+    // Fetch last confirmed session from the server so the re-order chip shows up
+    // when the user returns after placing an order. Non-critical — ignore errors.
+    fetch("/api/reorder", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.session) setLastOrder(data.session);
+      })
+      .catch(() => { /* non-fatal */ });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // When refining, switch to type tab and focus textarea
@@ -423,6 +440,44 @@ function SituationPage() {
           paddingBottom: "max(100px, env(safe-area-inset-bottom, 0px) + 80px)",
         }}
       >
+
+        {/* Re-order chip — only shown when user has a previous confirmed order */}
+        {lastOrder && !isRefining && (
+          <div className="animate-float-in" style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}>
+            <button
+              onClick={() => {
+                setSituationText(lastOrder.situationText);
+                textareaRef.current?.focus();
+              }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "8px 16px",
+                background: "var(--bg-surface)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius-pill)",
+                cursor: "pointer",
+                fontSize: 13,
+                color: "var(--text-secondary)",
+                fontFamily: "var(--font-body)",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+              }}
+            >
+              <ArrowCounterClockwiseIcon size={13} weight="bold" color="var(--accent-teal)" />
+              <span>
+                Re-order:{" "}
+                <strong style={{ color: "var(--text-primary)" }}>
+                  {lastOrder.scenarioLabel}
+                </strong>
+                {" · "}
+                <span className="badge badge-teal" style={{ fontSize: 10 }}>
+                  {lastOrder.itemCount} items · ₹{lastOrder.totalPrice}
+                </span>
+              </span>
+            </button>
+          </div>
+        )}
 
         {/* Hero — compact */}
         <div style={{ textAlign: "center", marginBottom: 20 }} className="animate-float-in">

@@ -594,8 +594,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ─── Always create a fresh session for each new intent ───────
-    const sessionId = uuidv4();
+    // ─── Reuse the session from /api/upload if one exists, otherwise create fresh ───
+    // If the user uploaded a photo first, /api/upload already created a session and
+    // set the ic_session cookie. Reuse that session ID so the photo S3 key stays
+    // associated and the pre-created DynamoDB record isn't orphaned.
+    const existingSessionId = req.cookies.get(SESSION_COOKIE)?.value;
+    const sessionId = existingSessionId ?? uuidv4();
 
     // ─── Call Bedrock (with optional image + context signals) ─────
     const intent = await invokeBedrockForIntent(

@@ -193,7 +193,7 @@ interface ProductCardProps {
   product: CartItem;
   inCart: boolean;
   onView: (p: CartItem) => void;
-  onAddToCart: (p: CartItem) => void;
+  onAddToCart: (p: CartItem, qty: number) => void;
 }
 
 function ProductCard({ product, inCart, onView, onAddToCart }: ProductCardProps) {
@@ -346,7 +346,7 @@ function ProductCard({ product, inCart, onView, onAddToCart }: ProductCardProps)
 
       {/* Add to Cart */}
       <button
-        onClick={() => onAddToCart(product)}
+        onClick={() => onAddToCart(product, 1)}
         id={`add-${product.id}`}
         aria-label={inCart ? `${product.name} is in cart` : `Add ${product.name} to cart`}
         style={{
@@ -386,7 +386,7 @@ function ProductCard({ product, inCart, onView, onAddToCart }: ProductCardProps)
 interface ProductDetailModalProps {
   product: CartItem;
   inCart: boolean;
-  onAddToCart: (p: CartItem) => void;
+  onAddToCart: (p: CartItem, qty: number) => void;
   onClose: () => void;
 }
 
@@ -675,7 +675,7 @@ function ProductDetailModal({ product, inCart, onAddToCart, onClose }: ProductDe
               </div>
               <button
                 id="modal-add-cart-btn"
-                onClick={() => onAddToCart(product)}
+                onClick={() => onAddToCart(product, qty)}
                 style={{
                   flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
                   padding: "12px 20px",
@@ -786,12 +786,12 @@ function ProductsPage() {
   }, [activeCategory, search, sortKey]);
 
   const handleAddToCart = useCallback(
-    async (product: CartItem) => {
+    async (product: CartItem, qty = 1) => {
       if (cartItemIds.has(product.id) || addedIds.has(product.id)) {
         router.push("/cart");
         return;
       }
-      const newItem: CartItem = { ...product, quantity: 1, isEssential: false, isAddon: true };
+      const newItem: CartItem = { ...product, quantity: Math.max(1, qty), isEssential: false, isAddon: true };
       setAddedIds((prev) => new Set([...prev, product.id]));
       await addItem(newItem);
       showToast(`${product.name.split(" ").slice(0, 3).join(" ")} added to cart`);
