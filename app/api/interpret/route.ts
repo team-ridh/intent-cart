@@ -238,13 +238,15 @@ function buildRecentOrdersContext(recentOrders: string[]): string {
 const BASE_RULES = `Rules:
 - Return ONLY the JSON object. No other text.
 - confidence should reflect how clearly the situation maps to a scenario (95+ = very clear, 70-90 = likely, 50-70 = uncertain, use "general" below 50).
-- For Indian contexts: "pooja" includes puja, prayer, festival rituals. "hosting" includes guests, visitors, parties.
+- For Indian contexts: "pooja" includes puja, prayer, festival rituals. "hosting" includes guests, visitors, parties, AND gift buying for someone (e.g. gifts for mother, gifts for teacher, gifting someone).
 - "cooking" includes ran out of ingredients, need groceries, cooking essentials, oil/salt/onions.
 - "home_repair" includes broken bulb, fuse gone, need tape, repair, fix, maintenance.
 - Use the current time-of-day hint to boost confidence when it matches the scenario (e.g. evening + hosting, late night + fever, afternoon + tea_break).
 - If recent orders show a repeat need (e.g. fever supplies again), raise urgency to High.
 - If the user's situation clearly involves two scenarios (e.g. sick guest at home = "fever" + "hosting"), set secondaryScenario and secondaryConfidence. Only set secondaryScenario if secondaryConfidence >= 30.
-- If there is no clear secondary scenario, omit both fields.`;
+- If there is no clear secondary scenario, omit both fields.
+- suggestedItems must ONLY contain items that a quick-commerce grocery/essentials app carries (packaged food, beverages, household, medicines, stationery, small electronics). Do NOT suggest custom, artisan, clothing, jewellery, or handmade items.`;
+
 
 const JSON_SCHEMA = `{
   "scenario": one of ["hosting","fever","pooja","rainy","travel","power_cut","school","tea_break","general","cooking","home_repair"],

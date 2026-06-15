@@ -79,6 +79,28 @@ function ClarifyModal({ intent, onConfirm, onRefine }: ClarifyModalProps) {
           padding: "28px 24px 36px",
         }}
       >
+        {/* Low-confidence notice */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 6,
+          marginBottom: 16,
+          padding: "6px 14px",
+          background: "rgba(217, 119, 6, 0.08)",
+          border: "1px solid rgba(217, 119, 6, 0.2)",
+          borderRadius: 50,
+          width: "fit-content",
+          margin: "0 auto 16px",
+          fontSize: 11,
+          fontWeight: 600,
+          color: "var(--accent-amber)",
+          letterSpacing: "0.04em",
+          textTransform: "uppercase",
+        }}>
+          <span>⚠</span> AI confidence below 65% — please confirm
+        </div>
+
         <div style={{ textAlign: "center", marginBottom: 24 }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
             <QuestionIcon size={44} weight="fill" color="var(--accent)" />
@@ -103,12 +125,17 @@ function ClarifyModal({ intent, onConfirm, onRefine }: ClarifyModalProps) {
             . Does this sound right?
           </p>
           {intent.suggestedItems.length > 0 && (
-            <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
-              {intent.suggestedItems.slice(0, 4).map((item) => (
-                <span key={item} className="badge badge-teal" style={{ fontSize: 11 }}>
-                  {item}
-                </span>
-              ))}
+            <div style={{ marginTop: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
+                What we think you need
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
+                {intent.suggestedItems.slice(0, 4).map((item) => (
+                  <span key={item} className="badge badge-teal" style={{ fontSize: 11 }}>
+                    {item}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>
