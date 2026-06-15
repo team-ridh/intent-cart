@@ -8,16 +8,16 @@ interface LogoProps {
 }
 
 export function Logo({ variant = "nav" }: LogoProps) {
-  const size = variant === "full" ? 240 : 120;
+  const width = variant === "full" ? 240 : 120;
 
   return (
     <Image
       src="/intent-cart-logo-latest.png"
       alt="Intent Cart"
-      width={size}
-      height={size}
+      width={width}
+      height={0}
       priority
-      style={{ objectFit: "contain" }}
+      style={{ width, height: "auto", objectFit: "contain" }}
     />
   );
 }

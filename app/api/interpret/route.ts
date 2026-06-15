@@ -319,7 +319,7 @@ async function invokeBedrockForIntent(
     system: [{ text: buildSystemPrompt(isMultimodal, timeContext, recentOrdersContext, weatherContext) }],
     messages: [{ role: "user", content }],
     inferenceConfig: {
-      maxTokens: 512,
+      maxTokens: 1024,
       temperature: 0,
       topP: 0.9,
     },
@@ -339,7 +339,26 @@ async function invokeBedrockForIntent(
   try {
     parsed = JSON.parse(cleaned);
   } catch {
-    throw new Error(`Bedrock returned invalid JSON: ${rawText.slice(0, 200)}`);
+    // Bedrock sometimes truncates mid-response when tokens run out.
+    // Attempt to extract a complete JSON object and repair missing closing chars.
+    const jsonStart = cleaned.indexOf("{");
+    if (jsonStart !== -1) {
+      let candidate = cleaned.slice(jsonStart);
+      // Drop everything after the last complete value (strip trailing incomplete key/string)
+      candidate = candidate.replace(/,\s*"[^"]*"?\s*:\s*"?[^"\}\]]*$/, "");
+      // Close any open arrays then the object
+      const openBrackets = (candidate.match(/\[/g) ?? []).length - (candidate.match(/\]/g) ?? []).length;
+      const openBraces   = (candidate.match(/\{/g) ?? []).length - (candidate.match(/\}/g) ?? []).length;
+      candidate += "]".repeat(Math.max(0, openBrackets)) + "}".repeat(Math.max(0, openBraces));
+      try {
+        parsed = JSON.parse(candidate);
+        console.warn("[interpret] Repaired truncated Bedrock JSON successfully");
+      } catch {
+        throw new Error(`Bedrock returned invalid JSON: ${rawText.slice(0, 300)}`);
+      }
+    } else {
+      throw new Error(`Bedrock returned invalid JSON: ${rawText.slice(0, 300)}`);
+    }
   }
 
   // Validate scenario
