@@ -56,46 +56,93 @@ function getCategories(products: CartItem[]): string[] {
 
 // ─── Data disclaimer badge ───────────────────────────────────────────────────
 
-function DataDisclaimerBadge({ style }: { style?: React.CSSProperties }) {
+function DataDisclaimerBadge() {
+  const [visible, setVisible] = useState(false);
+  const [pos, setPos]         = useState({ top: 0, left: 0 });
+  const triggerRef            = useRef<HTMLSpanElement>(null);
+
+  const show = () => {
+    if (!triggerRef.current) return;
+    const r = triggerRef.current.getBoundingClientRect();
+    setPos({
+      top:  r.bottom + 8,
+      left: r.right - 240,
+    });
+    setVisible(true);
+  };
+
   return (
-    <span
-      style={{
-        position: "relative",
-        display: "inline-flex",
-        alignItems: "center",
-        cursor: "default",
-        ...style,
-      }}
-      className="data-disclaimer-badge"
-    >
+    <>
       <span
+        ref={triggerRef}
+        onMouseEnter={show}
+        onMouseLeave={() => setVisible(false)}
         style={{
           display: "inline-flex",
           alignItems: "center",
           gap: 4,
           fontSize: 11,
           fontWeight: 500,
-          color: "var(--text)",
-          opacity: 0.45,
-          transition: "opacity 0.2s ease",
+          color: visible ? "var(--text-muted)" : "var(--text-faint)",
+          opacity: visible ? 1 : 0.4,
+          transition: "opacity 0.2s ease, color 0.2s ease",
           userSelect: "none",
           padding: "2px 6px",
           borderRadius: 4,
-          border: "1px solid transparent",
+          border: `1px solid ${visible ? "var(--border)" : "transparent"}`,
+          background: visible ? "var(--bg-raised)" : "transparent",
+          cursor: "default",
         }}
-        className="data-disclaimer-badge__trigger"
       >
         <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }}>
           <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm.75 4.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM7.25 7a.75.75 0 0 1 1.5 0v4a.75.75 0 0 1-1.5 0V7Z" />
         </svg>
-        Product Data and Image
+        Dataset
       </span>
-      <span className="data-disclaimer-badge__tooltip">
-        Product images &amp; data are sourced from a publicly available dataset and may not be 100% accurate to the actual product.
-      </span>
-    </span>
+
+      {visible && (
+        <span
+          style={{
+            position: "fixed",
+            top: pos.top,
+            left: Math.max(8, pos.left),
+            width: 240,
+            padding: "9px 12px",
+            background: "rgba(22, 22, 32, 0.94)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 10,
+            fontSize: 11.5,
+            lineHeight: 1.55,
+            color: "rgba(255,255,255,0.82)",
+            fontFamily: "var(--font-body)",
+            fontWeight: 400,
+            boxShadow: "0 8px 28px rgba(0,0,0,0.28)",
+            zIndex: 9999,
+            pointerEvents: "none",
+            whiteSpace: "normal",
+          }}
+        >
+          <span style={{
+            position: "absolute",
+            top: -5,
+            right: 12,
+            width: 8,
+            height: 8,
+            background: "rgba(22,22,32,0.94)",
+            borderLeft: "1px solid rgba(255,255,255,0.08)",
+            borderTop:  "1px solid rgba(255,255,255,0.08)",
+            transform: "rotate(45deg)",
+            display: "block",
+          }} />
+          Product image and data may not be 100% accurate, as it is sourced from a public dataset and mock data.
+        </span>
+      )}
+    </>
   );
 }
+
 
 type SortKey = "relevance" | "price_asc" | "price_desc" | "rating" | "reviews";
 
