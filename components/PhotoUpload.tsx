@@ -46,11 +46,14 @@ export function PhotoUpload({ onUploaded }: PhotoUploadProps) {
             border: `2px dashed ${isDragging ? "var(--accent)" : "var(--border)"}`,
             background: isDragging ? "var(--accent-dim)" : "var(--bg-raised)",
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
-            gap: 12,
+            justifyContent: "center",
+            gap: 8,
             cursor: "pointer",
             transition: "all 0.2s ease",
             padding: "0 16px",
+            textAlign: "center",
           }}
           onMouseEnter={(e) => {
             if (!isDragging) {

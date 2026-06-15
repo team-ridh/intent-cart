@@ -23,6 +23,13 @@ export function useSpeechRecognition(): SpeechRecognitionState {
   const [error, setError] = useState<string | null>(null);
   const [isSupported, setIsSupported] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionInstance>(null);
+  // Mirror isListening in a ref so callbacks never capture a stale value
+  const isListeningRef = useRef(false);
+
+  const setListening = (val: boolean) => {
+    isListeningRef.current = val;
+    setIsListening(val);
+  };
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,11 +73,11 @@ export function useSpeechRecognition(): SpeechRecognitionState {
     recognition.onerror = (event: any) => {
       if (event.error === "aborted") return;
       setError(`Voice error: ${event.error}`);
-      setIsListening(false);
+      setListening(false);
     };
 
     recognition.onend = () => {
-      setIsListening(false);
+      setListening(false);
       setInterimTranscript("");
     };
 
@@ -82,32 +89,32 @@ export function useSpeechRecognition(): SpeechRecognitionState {
   }, []);
 
   const start = useCallback(() => {
-    if (!recognitionRef.current || isListening) return;
+    if (!recognitionRef.current || isListeningRef.current) return;
     setError(null);
     setInterimTranscript("");
     try {
       recognitionRef.current.start();
-      setIsListening(true);
+      setListening(true);
     } catch {
       setError("Could not start voice recognition");
     }
-  }, [isListening]);
+  }, []);
 
   const stop = useCallback(() => {
-    if (!recognitionRef.current || !isListening) return;
+    if (!recognitionRef.current || !isListeningRef.current) return;
     recognitionRef.current.stop();
-    setIsListening(false);
-  }, [isListening]);
+    setListening(false);
+  }, []);
 
   const reset = useCallback(() => {
-    if (recognitionRef.current && isListening) {
+    if (recognitionRef.current && isListeningRef.current) {
       recognitionRef.current.abort();
     }
     setTranscript("");
     setInterimTranscript("");
-    setIsListening(false);
+    setListening(false);
     setError(null);
-  }, [isListening]);
+  }, []);
 
   return { transcript, interimTranscript, isListening, isSupported, error, start, stop, reset };
 }

@@ -504,7 +504,7 @@ function SituationPage() {
                   setActiveTab(t);
                   if (t !== "voice" && isListening) stop();
                 }}
-                style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
+            style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5 }}
               >
                 {t === "type"
                   ? <><KeyboardIcon size={13} weight="bold" /> Type</>
@@ -517,7 +517,7 @@ function SituationPage() {
           </div>
 
           {/* Tab panels — fixed-height container keeps card size consistent */}
-          <div style={{ height: 120, position: "relative", overflow: "hidden" }}>
+          <div style={{ height: 120, position: "relative" }}>
 
             {/* Type tab */}
             {activeTab === "type" && (
@@ -550,7 +550,7 @@ function SituationPage() {
 
             {/* Voice tab */}
             {activeTab === "voice" && (
-              <div style={{ height: "100%", overflow: "auto" }}>
+              <div style={{ height: "100%" }}>
                 <VoiceCapture
                   isListening={isListening}
                   isSupported={isSupported}
