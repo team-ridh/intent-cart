@@ -206,14 +206,19 @@ export function PhotoUpload({ onUploaded, onConfirm }: PhotoUploadProps) {
 
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [thumbHovered, setThumbHovered] = useState(false);
-
-  // Notify parent when upload completes (once per key)
   const prevS3Key = useRef<string | null>(null);
-  if (s3Key && s3Key !== prevS3Key.current && file) {
-    prevS3Key.current = s3Key;
-    const publicUrl = `https://${process.env.NEXT_PUBLIC_S3_BUCKET ?? ""}.s3.${process.env.NEXT_PUBLIC_S3_REGION ?? "us-east-1"}.amazonaws.com/${s3Key}`;
-    onUploaded(s3Key, publicUrl, file.name);
-  }
+
+  // Notify parent when upload completes (once per key) — must be in
+  // useEffect to avoid calling setState on another component during render.
+  useEffect(() => {
+    if (s3Key && s3Key !== prevS3Key.current && file) {
+      prevS3Key.current = s3Key;
+      const publicUrl = `https://${process.env.NEXT_PUBLIC_S3_BUCKET ?? ""}.s3.${
+        process.env.NEXT_PUBLIC_S3_REGION ?? "us-east-1"
+      }.amazonaws.com/${s3Key}`;
+      onUploaded(s3Key, publicUrl, file.name);
+    }
+  }, [s3Key, file, onUploaded]);
 
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", gap: 8 }}>

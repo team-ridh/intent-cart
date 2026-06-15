@@ -321,10 +321,11 @@ function SituationPage() {
       setError("Please describe your situation in a few words, or upload a photo");
       return;
     }
-    // If only a photo was provided, use a minimal text so the API gets a non-empty string
-    if ((!input || input.length < 4) && photoS3Key) {
-      setSituationText("photo of my situation");
-    }
+    // Use a local var — setSituationText is async so reading the store right after
+    // would still return the old (empty) value.
+    const effectiveInput =
+      input.length >= 4 ? input : "photo of my situation";
+    if (effectiveInput !== input) setSituationText(effectiveInput);
 
     setError(null);
     setPendingIntent(null);
@@ -341,7 +342,7 @@ function SituationPage() {
         .filter(Boolean);
 
       const { intent, cart, initialSelections } = await parseIntent(
-        input,
+        effectiveInput,
         photoS3Key ?? undefined,
         recentOrders,
         getSignals()
