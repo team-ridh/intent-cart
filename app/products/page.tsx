@@ -54,6 +54,49 @@ function getCategories(products: CartItem[]): string[] {
   return ["All", ...Array.from(cats).sort()];
 }
 
+// ─── Data disclaimer badge ───────────────────────────────────────────────────
+
+function DataDisclaimerBadge({ style }: { style?: React.CSSProperties }) {
+  return (
+    <span
+      style={{
+        position: "relative",
+        display: "inline-flex",
+        alignItems: "center",
+        cursor: "default",
+        ...style,
+      }}
+      className="data-disclaimer-badge"
+    >
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 4,
+          fontSize: 11,
+          fontWeight: 500,
+          color: "var(--text)",
+          opacity: 0.45,
+          transition: "opacity 0.2s ease",
+          userSelect: "none",
+          padding: "2px 6px",
+          borderRadius: 4,
+          border: "1px solid transparent",
+        }}
+        className="data-disclaimer-badge__trigger"
+      >
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }}>
+          <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm.75 4.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM7.25 7a.75.75 0 0 1 1.5 0v4a.75.75 0 0 1-1.5 0V7Z" />
+        </svg>
+        Product Data and Image
+      </span>
+      <span className="data-disclaimer-badge__tooltip">
+        Product images &amp; data are sourced from a publicly available dataset and may not be 100% accurate to the actual product.
+      </span>
+    </span>
+  );
+}
+
 type SortKey = "relevance" | "price_asc" | "price_desc" | "rating" | "reviews";
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
@@ -894,14 +937,17 @@ function ProductsPage() {
         {/* Products grid */}
         <div className="prod-main-col" style={{ flex: 1, minWidth: 0, paddingLeft: 20 }}>
           {/* Result meta */}
-          <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 14, paddingBottom: 10, borderBottom: "1px solid var(--border)" }}>
-            <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>
-              {filteredProducts.length === 0
-                ? "No products found"
-                : `${filteredProducts.length.toLocaleString("en-IN")} result${filteredProducts.length !== 1 ? "s" : ""}`}
+          <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 14, paddingBottom: 10, borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
+            <span>
+              <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>
+                {filteredProducts.length === 0
+                  ? "No products found"
+                  : `${filteredProducts.length.toLocaleString("en-IN")} result${filteredProducts.length !== 1 ? "s" : ""}`}
+              </span>
+              {search && <span style={{ color: "var(--accent)" }}> for &ldquo;{search}&rdquo;</span>}
+              {activeCategory !== "All" && <span style={{ color: "var(--accent)" }}> in {activeCategory}</span>}
             </span>
-            {search && <span style={{ color: "var(--accent)" }}> for &ldquo;{search}&rdquo;</span>}
-            {activeCategory !== "All" && <span style={{ color: "var(--accent)" }}> in {activeCategory}</span>}
+            <DataDisclaimerBadge />
           </div>
 
           {filteredProducts.length === 0 ? (

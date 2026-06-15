@@ -3711,3 +3711,84 @@ input, textarea, select { font-size: max(16px, 1em); }
   border-left: 1px solid rgba(255, 255, 255, 0.08);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   DATA DISCLAIMER BADGE  (cart + products pages)
+   Invisible by default; tooltip appears on hover
+   ═══════════════════════════════════════════════════════════════ */
+
+.data-disclaimer-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: default;
+}
+
+/* The trigger label — fades to full opacity on hover */
+.data-disclaimer-badge__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-faint);
+  opacity: 0.38;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  user-select: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+
+.data-disclaimer-badge:hover .data-disclaimer-badge__trigger {
+  opacity: 1;
+  color: var(--text-muted);
+  border-color: var(--border);
+  background: var(--bg-raised);
+}
+
+/* Tooltip bubble — hidden by default */
+.data-disclaimer-badge__tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  width: 240px;
+  padding: 9px 12px;
+  background: rgba(22, 22, 32, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+  font-family: var(--font-body);
+  font-weight: 400;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px) scale(0.97);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  white-space: normal;
+}
+
+/* Arrow pointing down */
+.data-disclaimer-badge__tooltip::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  right: 12px;
+  width: 8px;
+  height: 8px;
+  background: rgba(22, 22, 32, 0.94);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transform: rotate(45deg);
+}
+
+/* Show tooltip on hover */
+.data-disclaimer-badge:hover .data-disclaimer-badge__tooltip {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}

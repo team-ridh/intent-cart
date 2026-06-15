@@ -427,11 +427,11 @@ function SituationPage() {
         {/* Hero — compact */}
         <div style={{ textAlign: "center", marginBottom: 20 }} className="animate-float-in">
           <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "clamp(22px, 5vw, 34px)", lineHeight: 1.2, letterSpacing: "-0.03em", marginBottom: 8 }}>
-            What is happening{" "}
-            <span className="gradient-text">right now?</span>
+            Tell us your situation.{" "}
+            <span className="gradient-text">We'll build the cart.</span>
           </h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14, maxWidth: 420, margin: "0 auto", lineHeight: 1.5 }}>
-            Describe your situation and we&apos;ll build the cart instantly.
+            Describe what&apos;s happening and we&apos;ll build the cart instantly.
           </p>
         </div>
 

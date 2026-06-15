@@ -27,6 +27,50 @@ import {
 } from "@phosphor-icons/react";
 import type { CartItem, GeneratedCart, UrgencyMode } from "@/lib/types";
 
+// ───────────────────────────────────────────────────────────────────────────────
+// Data disclaimer badge
+// ───────────────────────────────────────────────────────────────────────────────
+
+function DataDisclaimerBadge() {
+  return (
+    <span
+      style={{
+        position: "relative",
+        display: "inline-flex",
+        alignItems: "center",
+        cursor: "default",
+      }}
+      className="data-disclaimer-badge"
+    >
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 4,
+          fontSize: 11,
+          fontWeight: 500,
+          color: "var(--text-faint)",
+          opacity: 0.45,
+          transition: "opacity 0.2s ease",
+          userSelect: "none",
+          padding: "2px 6px",
+          borderRadius: 4,
+          border: "1px solid transparent",
+        }}
+        className="data-disclaimer-badge__trigger"
+      >
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }}>
+          <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm.75 4.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM7.25 7a.75.75 0 0 1 1.5 0v4a.75.75 0 0 1-1.5 0V7Z" />
+        </svg>
+        Dataset
+      </span>
+      <span className="data-disclaimer-badge__tooltip">
+        Product images &amp; data are sourced from a publicly available dataset and may not be 100% accurate to the actual product.
+      </span>
+    </span>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Toast
 // ─────────────────────────────────────────────────────────────────────────────
@@ -568,9 +612,12 @@ function CartPage() {
               <h1 className="cart-panel__title">
                 {isLoading ? "Building cart…" : "Shopping Cart"}
               </h1>
-              {!isLoading && cart && cart.items.length > 0 && (
-                <span className="cart-panel__price-label">Price</span>
-              )}
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                {!isLoading && cart && cart.items.length > 0 && (
+                  <span className="cart-panel__price-label">Price</span>
+                )}
+                <DataDisclaimerBadge />
+              </div>
             </div>
 
             {/* Situation context */}
