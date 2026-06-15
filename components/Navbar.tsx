@@ -157,10 +157,19 @@ export function Navbar({
   const [orderHistory, setOrderHistory] = useState<OrderHistoryEntry[]>([]);
   const [showDrawer, setShowDrawer] = useState(false);
   const [isReordering, setIsReordering] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // Read order history on mount (client-only)
   useEffect(() => {
     setOrderHistory(getOrderHistory());
+  }, []);
+
+  // Transparent → frosted-glass on scroll
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 10);
+    onScroll(); // set correct state immediately on mount
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   // Derive item count: prop override > store cart
@@ -219,7 +228,7 @@ export function Navbar({
 
   return (
     <>
-      <nav className="navbar" aria-label="Main navigation">
+      <nav className={`navbar${isScrolled ? " navbar--scrolled" : ""}`} aria-label="Main navigation">
         <div className="navbar__inner">
           {/* ── Left: Logo ──────────────────────────────────────── */}
           <a
