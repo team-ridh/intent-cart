@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { CartItem } from "@/lib/types";
+import { resolveProductImage } from "@/lib/utils/productImage";
 import {
   LightningIcon, TrashIcon, ArrowsLeftRightIcon,
   CheckCircleIcon, PackageIcon, StarIcon, TrophyIcon,
@@ -62,9 +63,9 @@ interface CartItemCardProps {
 }
 
 export function CartItemCard({ item, selectedSubId, onOpenSubs, onAdjustQty, onRemove }: CartItemCardProps) {
-  const [removing, setRemoving] = useState(false);
-  const [isGift, setIsGift] = useState(false);
-  const [imgError, setImgError] = useState(false);
+  const [removing, setRemoving]       = useState(false);
+  const [imgError, setImgError]       = useState(false);
+  const [resolvedImage, setResolvedImage] = useState<string>("");
 
   const activeSub    = item.substitutes.find((s) => s.id === selectedSubId);
   const displayPrice = activeSub ? activeSub.price : item.price;
@@ -77,8 +78,11 @@ export function CartItemCard({ item, selectedSubId, onOpenSubs, onAdjustQty, onR
   const badgeColor   = TAG_COLORS[item.reasonTag] ?? "orange";
   const lineTotal    = displayPrice * item.quantity;
 
-  // Reset error state when the displayed image URL changes (e.g. substitute swap)
-  useEffect(() => { setImgError(false); }, [displayImage]);
+  // Resolve image from productImages.json map, falling back to existing image field
+  useEffect(() => {
+    setImgError(false);
+    resolveProductImage(item.id, displayImage).then(setResolvedImage);
+  }, [item.id, displayImage]);
 
   const handleRemove = () => { setRemoving(true); setTimeout(onRemove, 280); };
 
@@ -106,9 +110,9 @@ export function CartItemCard({ item, selectedSubId, onOpenSubs, onAdjustQty, onR
           display: "flex", alignItems: "center", justifyContent: "center",
           overflow: "hidden",
         }}>
-          {displayImage?.startsWith("http") && !imgError ? (
+          {resolvedImage?.startsWith("http") && !imgError ? (
             <img
-              src={displayImage}
+              src={resolvedImage}
               alt={displayName}
               style={{ width: "100%", height: "100%", objectFit: "contain", padding: 8 }}
               onError={() => setImgError(true)}
