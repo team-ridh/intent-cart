@@ -158,92 +158,89 @@ export function ContextSignals({
         </span>
       </div>
 
-      {/*
-        Chip wrapper — wider than situation chips (110 × 90 vs 90 × 90) so it
-        reads as a distinct "card" shape rather than a square.
-        overflow: visible is critical — without it the absolutely-positioned X
-        badge is silently clipped by the inline-block stacking context.
-      */}
-      <div style={{ position: "relative", display: "inline-block", overflow: "visible" }}>
-        <button
-          id="context-signals-chip"
-          onClick={isActive || isLoading ? undefined : onRequest}
-          disabled={isLoading}
-          style={{
-            flexShrink: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-            width: 110,
-            height: 90,
-            borderRadius: 18,
-            border: `1.5px ${isActive ? "solid" : isError ? "solid" : "dashed"} ${
-              isError
-                ? "rgba(239,68,68,0.5)"
-                : isActive
-                ? "var(--accent-teal)"
-                : "var(--border)"
-            }`,
-            background: isActive
-              ? "var(--accent-teal-dim)"
-              : isError
-              ? "rgba(239,68,68,0.07)"
-              : "var(--bg-raised)",
-            color: isActive
+      <button
+        id="context-signals-chip"
+        onClick={isActive || isLoading ? undefined : onRequest}
+        disabled={isLoading}
+        style={{
+          position: "relative",
+          flexShrink: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+          width: "100%",
+          height: 90,
+          borderRadius: 18,
+          border: `1.5px ${isActive ? "solid" : isError ? "solid" : "dashed"} ${
+            isError
+              ? "rgba(239,68,68,0.5)"
+              : isActive
               ? "var(--accent-teal)"
-              : isError
-              ? "#EF4444"
-              : "var(--text-secondary)",
-            cursor: isActive || isLoading ? "default" : "pointer",
-            transition: "all 0.15s ease",
-            padding: "12px 10px 10px",
-            boxShadow: isActive
-              ? "0 0 0 3px rgba(0,153,187,0.18)"
-              : "0 1px 3px rgba(0,0,0,0.06)",
-          }}
-          onMouseEnter={(e) => {
-            if (!isActive && !isLoading && !isError) {
-              (e.currentTarget as HTMLElement).style.borderColor = "var(--accent-teal)";
-              (e.currentTarget as HTMLElement).style.color = "var(--accent-teal)";
-              (e.currentTarget as HTMLElement).style.background = "var(--accent-teal-dim)";
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isActive && !isLoading && !isError) {
-              (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
-              (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
-              (e.currentTarget as HTMLElement).style.background = "var(--bg-raised)";
-            }
-          }}
-        >
-          <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-            {icon}
-          </span>
-          <span style={labelStyle}>
-            {line1}
-            {line2 ? (
-              <>
-                <br />
-                <span style={{ fontSize: 10, opacity: 0.75 }}>{line2}</span>
-              </>
-            ) : null}
-          </span>
-        </button>
+              : "var(--border)"
+          }`,
+          background: isActive
+            ? "var(--accent-teal-dim)"
+            : isError
+            ? "rgba(239,68,68,0.07)"
+            : "var(--bg-raised)",
+          color: isActive
+            ? "var(--accent-teal)"
+            : isError
+            ? "#EF4444"
+            : "var(--text-secondary)",
+          cursor: isActive || isLoading ? "default" : "pointer",
+          transition: "all 0.15s ease",
+          padding: "12px 10px 10px",
+          boxShadow: isActive
+            ? "0 0 0 3px rgba(0,153,187,0.18)"
+            : "0 1px 3px rgba(0,0,0,0.06)",
+        }}
+        onMouseEnter={(e) => {
+          if (!isActive && !isLoading && !isError) {
+            (e.currentTarget as HTMLElement).style.borderColor = "var(--accent-teal)";
+            (e.currentTarget as HTMLElement).style.color = "var(--accent-teal)";
+            (e.currentTarget as HTMLElement).style.background = "var(--accent-teal-dim)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isActive && !isLoading && !isError) {
+            (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
+            (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
+            (e.currentTarget as HTMLElement).style.background = "var(--bg-raised)";
+          }
+        }}
+      >
+        <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {icon}
+        </span>
+        <span style={labelStyle}>
+          {line1}
+          {line2 ? (
+            <>
+              <br />
+              <span style={{ fontSize: 10, opacity: 0.75 }}>{line2}</span>
+            </>
+          ) : null}
+        </span>
 
-        {/* Clear × — precisely anchored to the chip's top-right corner */}
+        {/* Clear × — anchored inside the chip at its top-right corner */}
         {isActive && (
-          <button
+          <span
             id="context-signals-clear"
-            onClick={onClear}
+            role="button"
             aria-label="Clear location and weather"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClear();
+            }}
             style={{
               position: "absolute",
-              top: -8,
-              right: -8,
-              width: 22,
-              height: 22,
+              top: 7,
+              right: 7,
+              width: 18,
+              height: 18,
               borderRadius: "50%",
               background: "var(--bg-surface)",
               border: "1.5px solid var(--border)",
@@ -251,11 +248,10 @@ export function ContextSignals({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              padding: 0,
-              zIndex: 10,
               color: "var(--text-muted)",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.10)",
               transition: "color 0.12s ease, background 0.12s ease",
+              zIndex: 2,
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLElement).style.color = "#EF4444";
@@ -266,10 +262,10 @@ export function ContextSignals({
               (e.currentTarget as HTMLElement).style.background = "var(--bg-surface)";
             }}
           >
-            <XCircleIcon size={15} weight="fill" />
-          </button>
+            <XCircleIcon size={13} weight="fill" />
+          </span>
         )}
-      </div>
+      </button>
     </div>
   );
 }

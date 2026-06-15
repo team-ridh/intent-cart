@@ -419,22 +419,24 @@ function SituationPage() {
           display: "flex",
           flexDirection: "column",
           padding: "0 clamp(16px, 5vw, 80px)",
+          paddingTop: "clamp(16px, 3vh, 32px)",
           paddingBottom: "max(100px, env(safe-area-inset-bottom, 0px) + 80px)",
         }}
       >
 
         {/* Hero — compact */}
-        <div style={{ textAlign: "center", marginBottom: 16 }} className="animate-float-in">
-          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "clamp(22px, 5vw, 34px)", lineHeight: 1.2, letterSpacing: "-0.03em", marginBottom: 6 }}>
+        <div style={{ textAlign: "center", marginBottom: 20 }} className="animate-float-in">
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "clamp(22px, 5vw, 34px)", lineHeight: 1.2, letterSpacing: "-0.03em", marginBottom: 8 }}>
             What is happening{" "}
             <span className="gradient-text">right now?</span>
           </h1>
           <p style={{ color: "var(--text-secondary)", fontSize: 14, maxWidth: 420, margin: "0 auto", lineHeight: 1.5 }}>
-            Describe your situation and we'll build the cart instantly.          </p>
+            Describe your situation and we&apos;ll build the cart instantly.
+          </p>
         </div>
 
         {/* Input card */}
-        <div className="glass-elevated animate-slide-up" style={{ padding: 16, marginBottom: 14 }}>
+        <div className="glass-elevated animate-slide-up" style={{ padding: 16, marginBottom: 16 }}>
 
           {/* Tab bar */}
           <div className="tab-bar" style={{ marginBottom: 14 }}>
@@ -523,26 +525,28 @@ function SituationPage() {
 
         </div>
 
-        {/* Situation chips + Context signals — side by side */}
-        <div style={{ marginBottom: 14, display: "flex", gap: 12, alignItems: "flex-start" }}>
+        {/* Situation chips + Context signals — side by side, headers aligned */}
+        <div style={{ marginBottom: 16, display: "flex", gap: 16, alignItems: "flex-start" }}>
           {/* Chips — flex-grow so it fills available space */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <SituationChips activeText={situationText} onSelect={handleChipSelect} />
           </div>
 
-          {/* Context signal cards — fixed column on the right */}
-          <ContextSignals
-            location={location}
-            weather={weather}
-            status={contextStatus}
-            error={contextError}
-            onRequest={requestContext}
-            onClear={clearContext}
-          />
+          {/* Context signal — fixed width column on the right */}
+          <div style={{ flexShrink: 0, width: 150 }}>
+            <ContextSignals
+              location={location}
+              weather={weather}
+              status={contextStatus}
+              error={contextError}
+              onRequest={requestContext}
+              onClear={clearContext}
+            />
+          </div>
         </div>
 
         {/* Urgency mode */}
-        <div style={{ marginBottom: 14 }}>
+        <div style={{ marginBottom: 16 }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>
             Delivery preference
           </div>

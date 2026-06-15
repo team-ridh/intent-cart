@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, useRef, useEffect, useCallback, type ReactNode } from "react";
 import {
   UsersThreeIcon,
   CloudRainIcon,
@@ -30,6 +30,8 @@ import {
   BugIcon,
   BowlFoodIcon,
   PaperclipIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
 } from "@phosphor-icons/react";
 
 interface Chip {
@@ -193,6 +195,37 @@ interface SituationChipsProps {
 }
 
 export function SituationChips({ activeText, onSelect }: SituationChipsProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [perPage, setPerPage] = useState(5);
+  const [page, setPage] = useState(0);
+
+  const CHIP_W = 86;
+  const GAP = 10;
+
+  // Compute how many chips fit using the full container width
+  const computePerPage = useCallback(() => {
+    if (!containerRef.current) return;
+    const available = containerRef.current.clientWidth;
+    const count = Math.max(1, Math.floor((available + GAP) / (CHIP_W + GAP)));
+    setPerPage(count);
+    setPage((p) => {
+      const maxPage = Math.max(0, Math.ceil(CHIPS.length / count) - 1);
+      return Math.min(p, maxPage);
+    });
+  }, []);
+
+  useEffect(() => {
+    computePerPage();
+    const ro = new ResizeObserver(computePerPage);
+    if (containerRef.current) ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, [computePerPage]);
+
+  const totalPages = Math.ceil(CHIPS.length / perPage);
+  const canPrev = page > 0;
+  const canNext = page < totalPages - 1;
+  const visibleChips = CHIPS.slice(page * perPage, page * perPage + perPage);
+
   return (
     <div>
       {/* Section label */}
@@ -208,88 +241,226 @@ export function SituationChips({ activeText, onSelect }: SituationChipsProps) {
         Quick Situations
       </div>
 
-      {/* Horizontally scrollable row of cards */}
-      <div
-        style={{
-          display: "flex",
-          gap: 10,
-          overflowX: "auto",
-          paddingBottom: 4,
-          WebkitOverflowScrolling: "touch" as React.CSSProperties["WebkitOverflowScrolling"],
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
-        }}
-        className="chips-scroll"
-      >
-        {CHIPS.map((c) => {
-          const isActive = activeText === c.text;
-          return (
-            <button
-              key={c.label}
-              id={`chip-${c.label.toLowerCase().replace(/[\s\n]+/g, "-")}`}
-              onClick={() => onSelect(c.text)}
-              style={{
-                flexShrink: 0,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                width: 86,
-                height: 86,
-                borderRadius: 14,
-                border: `1.5px solid ${isActive ? "var(--accent)" : "var(--border)"}`,
-                background: isActive ? "var(--accent-dim)" : "var(--bg-raised)",
-                color: isActive ? "var(--accent)" : "var(--text-secondary)",
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-                padding: "10px 6px 8px",
-                boxShadow: isActive
-                  ? "0 0 0 3px var(--accent-glow)"
-                  : "0 1px 3px rgba(0,0,0,0.06)",
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  (e.currentTarget as HTMLElement).style.borderColor = "var(--accent)";
-                  (e.currentTarget as HTMLElement).style.color = "var(--accent)";
-                  (e.currentTarget as HTMLElement).style.background = "var(--accent-dim)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
-                  (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
-                  (e.currentTarget as HTMLElement).style.background = "var(--bg-raised)";
-                }
-              }}
-            >
-              {/* Icon */}
-              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                {c.icon}
-              </span>
+      {/* Chips track — relative container so nav overlays can be absolute */}
+      <div style={{ position: "relative" }}>
 
-              {/* Label — two physical lines via white-space: pre-line */}
-              <span
+        {/* Chips row — fills full width */}
+        <div
+          ref={containerRef}
+          style={{ display: "flex", gap: GAP, justifyContent: "flex-start" }}
+        >
+          {visibleChips.map((c) => {
+            const isActive = activeText === c.text;
+            return (
+              <button
+                key={c.label}
+                id={`chip-${c.label.toLowerCase().replace(/[\s\n]+/g, "-")}`}
+                onClick={() => onSelect(c.text)}
                 style={{
-                  fontSize: 10.5,
-                  fontWeight: 500,
-                  textAlign: "center",
-                  lineHeight: 1.3,
-                  whiteSpace: "pre-line",
-                  maxWidth: "100%",
-                  overflow: "hidden",
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical" as React.CSSProperties["WebkitBoxOrient"],
-                  fontFamily: "var(--font-body)",
+                  flexShrink: 0,
+                  width: `calc((100% - ${(perPage - 1) * GAP}px) / ${perPage})`,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  height: 86,
+                  borderRadius: 14,
+                  border: `1.5px solid ${isActive ? "var(--accent)" : "var(--border)"}`,
+                  background: isActive ? "var(--accent-dim)" : "var(--bg-raised)",
+                  color: isActive ? "var(--accent)" : "var(--text-secondary)",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                  padding: "10px 6px 8px",
+                  boxShadow: isActive
+                    ? "0 0 0 3px var(--accent-glow)"
+                    : "0 1px 3px rgba(0,0,0,0.06)",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLElement).style.borderColor = "var(--accent)";
+                    (e.currentTarget as HTMLElement).style.color = "var(--accent)";
+                    (e.currentTarget as HTMLElement).style.background = "var(--accent-dim)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
+                    (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
+                    (e.currentTarget as HTMLElement).style.background = "var(--bg-raised)";
+                  }
                 }}
               >
-                {c.label}
-              </span>
+                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  {c.icon}
+                </span>
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 500,
+                    textAlign: "center",
+                    lineHeight: 1.3,
+                    whiteSpace: "pre-line",
+                    maxWidth: "100%",
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical" as React.CSSProperties["WebkitBoxOrient"],
+                    fontFamily: "var(--font-body)",
+                  }}
+                >
+                  {c.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── Left overlay nav ── */}
+        {canPrev && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              height: "100%",
+              width: 52,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              paddingLeft: 4,
+              background: "linear-gradient(to right, var(--bg-base, #f5f6fa) 30%, transparent 100%)",
+              pointerEvents: "none",
+              zIndex: 2,
+              borderRadius: "14px 0 0 14px",
+            }}
+          >
+            <button
+              id="chips-prev"
+              aria-label="Previous situations"
+              onClick={() => setPage((p) => p - 1)}
+              style={{
+                pointerEvents: "auto",
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                border: "1.5px solid var(--border)",
+                background: "rgba(255,255,255,0.72)",
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
+                color: "var(--text-secondary)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
+                transition: "all 0.15s ease",
+                padding: 0,
+              }}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.background = "var(--accent)";
+                el.style.color = "#fff";
+                el.style.borderColor = "var(--accent)";
+                el.style.boxShadow = "0 2px 12px rgba(232,93,42,0.28)";
+              }}
+              onMouseLeave={(e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.background = "rgba(255,255,255,0.72)";
+                el.style.color = "var(--text-secondary)";
+                el.style.borderColor = "var(--border)";
+                el.style.boxShadow = "0 2px 8px rgba(0,0,0,0.10)";
+              }}
+            >
+              <CaretLeftIcon size={13} weight="bold" />
             </button>
-          );
-        })}
+          </div>
+        )}
+
+        {/* ── Right overlay nav ── */}
+        {canNext && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              height: "100%",
+              width: 52,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              paddingRight: 4,
+              background: "linear-gradient(to left, var(--bg-base, #f5f6fa) 30%, transparent 100%)",
+              pointerEvents: "none",
+              zIndex: 2,
+              borderRadius: "0 14px 14px 0",
+            }}
+          >
+            <button
+              id="chips-next"
+              aria-label="Next situations"
+              onClick={() => setPage((p) => p + 1)}
+              style={{
+                pointerEvents: "auto",
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                border: "1.5px solid var(--border)",
+                background: "rgba(255,255,255,0.72)",
+                backdropFilter: "blur(8px)",
+                WebkitBackdropFilter: "blur(8px)",
+                color: "var(--text-secondary)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
+                transition: "all 0.15s ease",
+                padding: 0,
+              }}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.background = "var(--accent)";
+                el.style.color = "#fff";
+                el.style.borderColor = "var(--accent)";
+                el.style.boxShadow = "0 2px 12px rgba(232,93,42,0.28)";
+              }}
+              onMouseLeave={(e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.background = "rgba(255,255,255,0.72)";
+                el.style.color = "var(--text-secondary)";
+                el.style.borderColor = "var(--border)";
+                el.style.boxShadow = "0 2px 8px rgba(0,0,0,0.10)";
+              }}
+            >
+              <CaretRightIcon size={13} weight="bold" />
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Page dots */}
+      {totalPages > 1 && (
+        <div style={{ display: "flex", justifyContent: "center", gap: 5, marginTop: 8 }}>
+          {Array.from({ length: totalPages }).map((_, i) => (
+            <button
+              key={i}
+              aria-label={`Go to page ${i + 1}`}
+              onClick={() => setPage(i)}
+              style={{
+                width: i === page ? 18 : 6,
+                height: 6,
+                borderRadius: 3,
+                border: "none",
+                background: i === page ? "var(--accent)" : "var(--border)",
+                cursor: "pointer",
+                padding: 0,
+                transition: "all 0.2s ease",
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
