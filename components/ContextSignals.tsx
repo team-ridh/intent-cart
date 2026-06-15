@@ -84,8 +84,8 @@ export function ContextSignals({
   } else {
     // Idle state
     icon = <MapPinIcon size={24} weight="regular" />;
-    line1 = "My";
-    line2 = "Context";
+    line1 = "Get My";
+    line2 = "Location and Weather";
   }
 
   const labelStyle: React.CSSProperties = {
