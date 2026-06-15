@@ -9,12 +9,6 @@ jobs:
     name: "Amplify Build"
     runs-on: ubuntu-latest
 
-    # This creates the "Environments" entry in the GitHub repo sidebar
-    # with a clickable "View deployment" link to your live Amplify URL
-    environment:
-      name: production
-      url: ${{ secrets.AMPLIFY_APP_URL }}
-
     # Permissions needed to post deployment status back to GitHub
     permissions:
       deployments: write
@@ -28,9 +22,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.BEDROCK_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.BEDROCK_REGION }}
 
-      # Give Amplify ~15 seconds to pick up the push and start a build
+      # Give Amplify ~45 seconds to pick up the push and queue a new build.
+      # At 15s the job list often returns the previous build's ID (stale).
       - name: Wait for Amplify to register push
-        run: sleep 15
+        run: sleep 45
 
       # Find the most recent build for the branch and poll until it finishes
       - name: Wait for Amplify build to complete
