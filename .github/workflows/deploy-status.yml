@@ -1,0 +1,81 @@
+name: AWS Amplify Deploy Status
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  amplify-deploy-status:
+    name: "Amplify Build"
+    runs-on: ubuntu-latest
+
+    # Permissions needed to post deployment status back to GitHub
+    permissions:
+      deployments: write
+      statuses: write
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.BEDROCK_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.BEDROCK_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.BEDROCK_REGION }}
+
+      # Give Amplify ~15 seconds to pick up the push and start a build
+      - name: Wait for Amplify to register push
+        run: sleep 15
+
+      # Find the most recent build for the branch and poll until it finishes
+      - name: Wait for Amplify build to complete
+        id: amplify_build
+        run: |
+          APP_ID="${{ secrets.AMPLIFY_APP_ID }}"
+          BRANCH="${{ secrets.AMPLIFY_BRANCH }}"
+
+          echo "Fetching latest Amplify job for branch: $BRANCH"
+
+          # Get the most recent job ID for this branch
+          JOB_ID=$(aws amplify list-jobs \
+            --app-id "$APP_ID" \
+            --branch-name "$BRANCH" \
+            --max-results 1 \
+            --query 'jobSummaries[0].jobId' \
+            --output text)
+
+          if [ -z "$JOB_ID" ] || [ "$JOB_ID" = "None" ]; then
+            echo "No Amplify job found — skipping"
+            echo "status=SUCCEED" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Monitoring Amplify job: $JOB_ID"
+
+          # Poll every 20 seconds until the build finishes (max 20 min)
+          for i in $(seq 1 60); do
+            STATUS=$(aws amplify get-job \
+              --app-id "$APP_ID" \
+              --branch-name "$BRANCH" \
+              --job-id "$JOB_ID" \
+              --query 'job.summary.status' \
+              --output text)
+
+            echo "[$i/60] Build status: $STATUS"
+
+            if [ "$STATUS" = "SUCCEED" ] || [ "$STATUS" = "FAILED" ] || [ "$STATUS" = "CANCELLED" ]; then
+              echo "status=$STATUS" >> $GITHUB_OUTPUT
+              break
+            fi
+
+            sleep 20
+          done
+
+      - name: Report success
+        if: steps.amplify_build.outputs.status == 'SUCCEED'
+        run: echo "✅ Amplify build succeeded"
+
+      - name: Report failure
+        if: steps.amplify_build.outputs.status == 'FAILED' || steps.amplify_build.outputs.status == 'CANCELLED'
+        run: |
+          echo "❌ Amplify build ${{ steps.amplify_build.outputs.status }}"
+          exit 1
