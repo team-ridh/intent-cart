@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { WeatherResult } from "@/app/api/weather/route";
 
 // ─── Types ────────────────────────────────────────────────────────
@@ -32,11 +32,55 @@ interface UseContextSignalsReturn {
   getSignals: () => ContextSignals;
 }
 
+// ─── sessionStorage keys ──────────────────────────────────────────
+const SS_LOCATION = "ic_location";
+const SS_WEATHER = "ic_weather";
+
+function readSS<T>(key: string): T | null {
+  try {
+    const raw = sessionStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSS(key: string, value: unknown): void {
+  try {
+    sessionStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // sessionStorage unavailable (private mode quota, etc.) — silently ignore
+  }
+}
+
+function clearSS(...keys: string[]): void {
+  try {
+    keys.forEach((k) => sessionStorage.removeItem(k));
+  } catch { /* ignore */ }
+}
+
 export function useContextSignals(): UseContextSignalsReturn {
-  const [location, setLocation] = useState<LocationSignal | null>(null);
-  const [weather, setWeather] = useState<WeatherResult | null>(null);
-  const [status, setStatus] = useState<SignalStatus>("idle");
+  // Initialise from sessionStorage so a page reload restores the last values
+  const [location, setLocation] = useState<LocationSignal | null>(
+    () => readSS<LocationSignal>(SS_LOCATION)
+  );
+  const [weather, setWeather] = useState<WeatherResult | null>(
+    () => readSS<WeatherResult>(SS_WEATHER)
+  );
+  // If we already have persisted data, start in "done" so the chip renders correctly
+  const [status, setStatus] = useState<SignalStatus>(
+    () => (readSS<LocationSignal>(SS_LOCATION) ? "done" : "idle")
+  );
   const [error, setError] = useState<string | null>(null);
+
+  // Keep sessionStorage in sync whenever state changes
+  useEffect(() => {
+    if (location) writeSS(SS_LOCATION, location);
+  }, [location]);
+
+  useEffect(() => {
+    if (weather) writeSS(SS_WEATHER, weather);
+  }, [weather]);
 
   // ─── One tap: get location + weather in a single flow ─────────
   const request = useCallback(() => {
@@ -85,6 +129,7 @@ export function useContextSignals(): UseContextSignalsReturn {
     setWeather(null);
     setStatus("idle");
     setError(null);
+    clearSS(SS_LOCATION, SS_WEATHER);
   }, []);
 
   const getSignals = useCallback(
