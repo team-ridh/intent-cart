@@ -113,8 +113,15 @@ export const useCartStore = create<CartStore>((set, get) => ({
       const res = await fetch("/api/cart", { credentials: "include" });
 
       if (res.status === 401 || res.status === 404) {
-        // No session or session not found → redirect to home
-        window.location.href = "/";
+        // No session or session not found → clear state, stay on page (empty cart state)
+        set({ ...INITIAL, isLoading: false });
+        return;
+      }
+
+      if (res.status === 409) {
+        // Session was already confirmed (order placed) → no active cart
+        // Clear state so the cart page shows the empty/start-over state
+        set({ ...INITIAL, isLoading: false });
         return;
       }
 

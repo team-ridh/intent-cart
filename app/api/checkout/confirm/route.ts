@@ -38,13 +38,25 @@ export async function POST(req: NextRequest) {
 
     await confirmSession(sessionId);
 
-    return NextResponse.json({
+    // Expire the session cookie so the next visit starts with a clean slate.
+    // The confirmed session remains in DynamoDB for order history (reorder flow).
+    const res = NextResponse.json({
       confirmed: true,
       sessionId,
       totalPrice: session.cart.totalPrice,
       itemCount: session.cart.itemCount,
       estimatedEta: session.cart.estimatedEta,
     });
+
+    res.cookies.set(SESSION_COOKIE, "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 0, // immediate expiry
+      path: "/",
+    });
+
+    return res;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[POST /api/checkout/confirm] Error:", message);

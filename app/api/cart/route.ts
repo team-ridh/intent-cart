@@ -41,6 +41,16 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // If the session is already confirmed (payment done), there is no active cart.
+    // Return a 204-like signal so the client knows to show an empty state instead
+    // of resurrecting the old confirmed cart.
+    if (session.status === "confirmed") {
+      return NextResponse.json(
+        { error: "Session already confirmed. Start a new session at /.", status: "confirmed" },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json({
       sessionId: session.sessionId,
       situationText: session.situationText,

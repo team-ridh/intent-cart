@@ -345,16 +345,13 @@ function EmptyCartState({ onRefine, onNew }: { onRefine: () => void; onNew: () =
   return (
     <div className="cart-empty-state">
       <ShoppingCartIcon size={56} weight="light" color="var(--text-muted)" />
-      <h2 className="cart-empty-state__heading">Cart is empty</h2>
+      <h2 className="cart-empty-state__heading">Your cart is empty</h2>
       <p className="cart-empty-state__body">
-        We couldn&apos;t find items for this situation. Try describing it differently.
+        Describe your situation on the home page and we&apos;ll build a cart instantly.
       </p>
       <div className="cart-empty-state__actions">
-        <button className="btn-secondary" onClick={onRefine}>
-          <PencilSimpleIcon size={14} weight="bold" /> Refine Situation
-        </button>
         <button className="btn-primary" onClick={onNew}>
-          <LightningIcon size={14} weight="fill" /> New Situation
+          <LightningIcon size={14} weight="fill" /> Build My Cart
         </button>
       </div>
     </div>
@@ -493,6 +490,19 @@ function CartPage() {
         onRetry={loadFromServer}
         onBack={() => router.push("/")}
       />
+    );
+  }
+
+  // No active cart — either new user, or previous order was already confirmed
+  if (!isLoading && !cart) {
+    return (
+      <main className="cart-page">
+        <Navbar title="Shopping Cart" />
+        <EmptyCartState
+          onRefine={() => router.push("/")}
+          onNew={() => router.push("/")}
+        />
+      </main>
     );
   }
 

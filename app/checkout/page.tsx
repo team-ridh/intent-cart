@@ -572,7 +572,7 @@ function CheckoutPage() {
                 router.push("/");
               }}
             >
-              Continue Shopping
+              Build a New Cart
             </button>
             <button
               className="btn-ghost"
