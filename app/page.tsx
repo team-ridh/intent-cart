@@ -569,12 +569,12 @@ function SituationPage() {
 
             {/* Photo tab */}
             {activeTab === "photo" && (
-              <div style={{ height: "100%", overflow: "auto" }}>
+              <div style={{ height: "100%", overflow: "hidden" }}>
                 <PhotoUpload
-                  onUploaded={(s3Key, _publicUrl, filename) => {
+                  onUploaded={(s3Key) => {
                     setPhotoS3Key(s3Key);
-                    const cleanName = filename.replace(/\.[^.]+$/, "").replace(/[_-]/g, " ");
-                    setSituationText(cleanName.length > 4 ? cleanName : "photo of my situation");
+                  }}
+                  onConfirm={() => {
                     setActiveTab("type");
                   }}
                 />
